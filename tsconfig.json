@@ -1,16 +1,28 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": "./"
-  },
-  "references": [
-    { "path": "./packages/core" },
-    { "path": "./packages/server" },
-    { "path": "./packages/cli" },
-    { "path": "./packages/sdk" },
-    { "path": "./packages/mcp" },
-    { "path": "./packages/vscode" }
-  ],
-  "files": []
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "baseUrl": "./"
+    },
+    "references": [
+        {
+            "path": "./packages/guardian"
+        },
+        {
+            "path": "./packages/server"
+        },
+        {
+            "path": "./packages/cli"
+        },
+        {
+            "path": "./packages/sdk"
+        },
+        {
+            "path": "./packages/mcp"
+        },
+        {
+            "path": "./packages/vscode"
+        }
+    ],
+    "files": []
 }

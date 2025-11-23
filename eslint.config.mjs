@@ -96,8 +96,8 @@ export default tseslint.config(
             // ========================================
             indent: ['error', 4, { SwitchCase: 1 }],
             '@typescript-eslint/indent': 'off', // Let Prettier handle this
-            quotes: ['error', 'single', { avoidEscape: true }],
-            semi: ['error', 'always'],
+            quotes: ['error', 'double', { avoidEscape: true }],
+            semi: ['error', 'never'],
 
             // ========================================
             // Prettier Integration

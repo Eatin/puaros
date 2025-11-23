@@ -89,6 +89,13 @@ From `eslint.config.mjs` and detailed in `LINTING.md`:
    - Max lines per function: 100
    - Max nesting depth: 4
 
+4. **Comments Style:**
+   - Single-line comments must have a space after `//` (e.g., `// Comment`)
+   - Multi-line comments should use JSDoc style (`/** */`)
+   - No section divider comments (e.g., `// Entities`, `// Value Objects`) in code
+   - Comments should explain "why", not "what" (code should be self-documenting)
+   - TODO/FIXME/HACK comments trigger warnings
+
 ## Git Commit Format
 
 Follow Conventional Commits format. See `.gitmessage` for full rules.

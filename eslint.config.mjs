@@ -129,6 +129,31 @@ export default tseslint.config(
                     ignoreDeclarationSort: true,
                 },
             ],
+
+            // ========================================
+            // Comments
+            // ========================================
+            'no-inline-comments': 'off',
+            'line-comment-position': 'off',
+            'spaced-comment': [
+                'error',
+                'always',
+                {
+                    markers: ['/'],
+                    exceptions: ['-', '+', '*', '='],
+                    block: {
+                        balanced: true,
+                    },
+                },
+            ],
+            'multiline-comment-style': ['warn', 'starred-block'],
+            'no-warning-comments': [
+                'warn',
+                {
+                    terms: ['todo', 'fixme', 'hack', 'xxx'],
+                    location: 'start',
+                },
+            ],
         },
     },
 );

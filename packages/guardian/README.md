@@ -1,10 +1,10 @@
-# @puaros/guardian 🛡️
+# @samiyev/guardian 🛡️
 
 **Your AI Coding Companion - Keep the Vibe, Ditch the Tech Debt**
 
 Code quality guardian for vibe coders and enterprise teams - because AI writes fast, Guardian keeps it clean.
 
-[![npm version](https://badge.fury.io/js/@puaros%2Fguardian.svg)](https://www.npmjs.com/package/@puaros/guardian)
+[![npm version](https://badge.fury.io/js/@samiyev%2Fguardian.svg)](https://www.npmjs.com/package/@samiyev/guardian)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Perfect for:**
@@ -70,7 +70,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 1. 🤖 Ask Claude/GPT: "Build me a user authentication service"
    → AI generates 200 lines in 10 seconds
 
-2. 🛡️ Run Guardian: npx @puaros/guardian check ./src
+2. 🛡️ Run Guardian: npx @samiyev/guardian check ./src
    → Finds: hardcoded JWT secret, magic timeouts, circular deps
 
 3. 🔄 Feed Guardian's output back to AI: "Fix these 5 issues"
@@ -196,7 +196,7 @@ Think of Guardian as a senior developer reviewing AI's pull requests:
 # GitHub Actions / GitLab CI / Jenkins
 - name: Guardian Quality Gate
   run: |
-    npm install -g @puaros/guardian
+    npm install -g @samiyev/guardian
     guardian check ./src --format json > guardian-report.json
 
     # Fail build if critical violations found
@@ -226,7 +226,7 @@ Think of Guardian as a senior developer reviewing AI's pull requests:
 **Metrics Dashboard**
 ```typescript
 // Track quality metrics across sprints
-import { analyzeProject } from "@puaros/guardian"
+import { analyzeProject } from "@samiyev/guardian"
 
 const metrics = await analyzeProject({ projectPath: "./src" })
 
@@ -264,11 +264,11 @@ await reportMetrics({
 ## Installation
 
 ```bash
-npm install @puaros/guardian
+npm install @samiyev/guardian
 # or
-pnpm add @puaros/guardian
+pnpm add @samiyev/guardian
 # or
-yarn add @puaros/guardian
+yarn add @samiyev/guardian
 ```
 
 ## Quick Start for Vibe Coders
@@ -277,7 +277,7 @@ yarn add @puaros/guardian
 
 ```bash
 # 1. Install globally for instant use
-npm install -g @puaros/guardian
+npm install -g @samiyev/guardian
 
 # 2. Run on your AI-generated code
 cd your-project
@@ -310,7 +310,7 @@ module.exports = {
 ## API Quick Start
 
 ```typescript
-import { analyzeProject } from "@puaros/guardian"
+import { analyzeProject } from "@samiyev/guardian"
 
 const result = await analyzeProject({
     projectPath: "./src",
@@ -334,23 +334,23 @@ Guardian can also be used as a command-line tool:
 
 ```bash
 # Check your project
-npx @puaros/guardian check ./src
+npx @samiyev/guardian check ./src
 
 # With custom excludes
-npx @puaros/guardian check ./src --exclude node_modules dist build
+npx @samiyev/guardian check ./src --exclude node_modules dist build
 
 # Verbose output
-npx @puaros/guardian check ./src --verbose
+npx @samiyev/guardian check ./src --verbose
 
 # Skip specific checks
-npx @puaros/guardian check ./src --no-hardcode  # Skip hardcode detection
-npx @puaros/guardian check ./src --no-architecture  # Skip architecture checks
+npx @samiyev/guardian check ./src --no-hardcode  # Skip hardcode detection
+npx @samiyev/guardian check ./src --no-architecture  # Skip architecture checks
 
 # Show help
-npx @puaros/guardian --help
+npx @samiyev/guardian --help
 
 # Show version
-npx @puaros/guardian --version
+npx @samiyev/guardian --version
 ```
 
 **Example output:**
@@ -630,7 +630,7 @@ const url = "http://localhost"
 ### CI/CD Integration
 
 ```typescript
-import { analyzeProject } from "@puaros/guardian"
+import { analyzeProject } from "@samiyev/guardian"
 
 const result = await analyzeProject({ projectPath: "./src" })
 
@@ -655,7 +655,7 @@ if (result.hardcodeViolations.length > 0) {
 ### Custom Analyzer
 
 ```typescript
-import { HardcodeDetector } from "@puaros/guardian"
+import { HardcodeDetector } from "@samiyev/guardian"
 
 const detector = new HardcodeDetector()
 const code = `const timeout = 5000`
@@ -675,13 +675,13 @@ Use Guardian's output to guide your AI assistant:
 # (Ask Claude: "Create a REST API with user authentication")
 
 # 2. Run Guardian
-npx @puaros/guardian check ./src > guardian-report.txt
+npx @samiyev/guardian check ./src > guardian-report.txt
 
 # 3. Feed back to AI
 # (Show Claude the report: "Fix these issues Guardian found")
 
 # 4. Verify fixes
-npx @puaros/guardian check ./src
+npx @samiyev/guardian check ./src
 ```
 
 ### Pattern 2: Pre-Commit Quality Gate
@@ -691,7 +691,7 @@ Catch issues before they hit your repo:
 ```bash
 # .husky/pre-commit
 #!/bin/sh
-npx @puaros/guardian check ./src
+npx @samiyev/guardian check ./src
 
 if [ $? -ne 0 ]; then
   echo "❌ Guardian found issues. Fix them or commit with --no-verify"
@@ -715,7 +715,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - run: npm install -g @puaros/guardian
+      - run: npm install -g @samiyev/guardian
       - run: guardian check ./src
 ```
 
@@ -730,7 +730,7 @@ Watch mode for real-time feedback as AI generates code:
 # Terminal 2: Guardian watches for changes
 while true; do
   clear
-  npx @puaros/guardian check ./src --no-exit
+  npx @samiyev/guardian check ./src --no-exit
   sleep 2
 done
 ```
@@ -763,7 +763,7 @@ import {
     FileScanner,
     CodeParser,
     HardcodeDetector,
-} from "@puaros/guardian"
+} from "@samiyev/guardian"
 
 // Scan files
 const scanner = new FileScanner()
@@ -787,7 +787,7 @@ const violations = detector.detectAll(code, "file.ts")
 Guardian follows Clean Architecture principles:
 
 ```
-@puaros/guardian/
+@samiyev/guardian/
 ├── domain/           # Business logic & interfaces
 │   ├── entities/     # BaseEntity, SourceFile
 │   ├── value-objects/# HardcodedValue, ProjectPath

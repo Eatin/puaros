@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to @puaros/guardian will be documented in this file.
+All notable changes to @samiyev/guardian will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-**🎉 Initial Release of @puaros/guardian**
+**🎉 Initial Release of @samiyev/guardian**
 
 Code quality guardian for vibe coders and enterprise teams - your AI coding companion that keeps code clean while you move fast.
 
@@ -152,7 +152,7 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 - Size: ~58 KB compressed
 - Unpacked: ~239 KB
 - 172 files included
-- Public npm package (`@puaros/guardian`)
+- Public npm package (`@samiyev/guardian`)
 - CLI binary: `guardian`
 
 ### Documentation
@@ -227,7 +227,7 @@ Before releasing a new version:
 **Links:**
 - [Official Website](https://puaros.ailabs.uz)
 - [GitHub Repository](https://github.com/samiyev/puaros)
-- [npm Package](https://www.npmjs.com/package/@puaros/guardian)
+- [npm Package](https://www.npmjs.com/package/@samiyev/guardian)
 - [Documentation](https://github.com/samiyev/puaros/packages/guardian#readme)
 - [Roadmap](./ROADMAP.md)
 - [Issues](https://github.com/samiyev/puaros/issues)

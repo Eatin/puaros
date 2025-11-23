@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Puaros is a TypeScript monorepo using pnpm workspaces. Currently contains the `@puaros/core` package for core business logic. The project uses Node.js 22.18.0 (see `.nvmrc`).
+Puaros is a TypeScript monorepo using pnpm workspaces. Currently contains the `@puaros/guardian` package - a code quality guardian for detecting hardcoded values, circular dependencies, and architecture violations. The project uses Node.js 22.18.0 (see `.nvmrc`).
 
 ## Essential Commands
 
@@ -18,10 +18,10 @@ pnpm build:all
 pnpm clean:all
 
 # Build specific package
-cd packages/core && pnpm build
+cd packages/guardian && pnpm build
 
 # Watch mode for specific package
-cd packages/core && pnpm watch
+cd packages/guardian && pnpm watch
 ```
 
 ### Testing
@@ -30,8 +30,8 @@ cd packages/core && pnpm watch
 # Run all tests across packages
 pnpm test
 
-# Core package testing options
-cd packages/core
+# Guardian package testing options
+cd packages/guardian
 pnpm test              # Run tests in watch mode
 pnpm test:run          # Run tests once
 pnpm test:coverage     # Generate coverage report (80% threshold)
@@ -61,8 +61,8 @@ pnpm eslint "packages/**/*.ts"
 ### Key Configuration
 - **Indentation:** 4 spaces (enforced by Prettier)
 - **Line Length:** 100 characters max
-- **Quotes:** Single quotes
-- **Semicolons:** Always required
+- **Quotes:** Double quotes
+- **Semicolons:** Never used
 - **Trailing Commas:** Always in multiline
 - **TypeScript:** Strict type checking with nodenext modules
 
@@ -110,13 +110,35 @@ Commits should only follow the Conventional Commits format without any additiona
 ```
 puaros/
 ├── packages/
-│   └── core/              # @puaros/core - Core business logic
-│       ├── src/           # Source files
-│       ├── dist/          # Build output
-│       └── package.json   # Uses Vitest for testing
-├── pnpm-workspace.yaml    # Workspace configuration
-└── tsconfig.base.json     # Shared TypeScript config
+│   └── guardian/                # @puaros/guardian - Code quality analyzer
+│       ├── src/                 # Source files (Clean Architecture layers)
+│       │   ├── domain/          # Domain layer (entities, value objects)
+│       │   ├── application/     # Application layer (use cases, DTOs)
+│       │   ├── infrastructure/  # Infrastructure layer (parsers, analyzers)
+│       │   ├── cli/            # CLI implementation
+│       │   └── shared/          # Shared utilities
+│       ├── dist/                # Build output
+│       ├── bin/                 # CLI entry point
+│       ├── tests/               # Test files
+│       ├── examples/            # Usage examples
+│       └── package.json         # Uses Vitest for testing
+├── pnpm-workspace.yaml          # Workspace configuration
+└── tsconfig.base.json           # Shared TypeScript config
 ```
+
+### Guardian Package Architecture
+
+The guardian package follows Clean Architecture principles:
+- **Domain Layer**: Core business logic (entities, value objects, domain events)
+- **Application Layer**: Use cases, DTOs, and mappers
+- **Infrastructure Layer**: External concerns (parsers, analyzers, file scanners)
+- **CLI Layer**: Command-line interface implementation
+
+Key features:
+- Hardcode detection (magic numbers, strings)
+- Circular dependency detection
+- Naming convention validation
+- CLI tool with `guardian` command
 
 ### TypeScript Configuration
 
@@ -127,12 +149,14 @@ Base configuration (`tsconfig.base.json`) uses:
 - Decorators enabled (experimental)
 - JSX configured for React
 
-Core package (`packages/core/tsconfig.json`) overrides:
-- Module: `CommonJS` (not nodenext)
-- Module Resolution: `node` (not nodenext)
+Guardian package (`packages/guardian/tsconfig.json`):
+- Module: `CommonJS`
+- Module Resolution: `node`
+- Target: `ES2023`
 - Output to `dist/` from `src/`
+- Strict type checking enabled
 
-**Important:** The core package uses CommonJS output despite base config using nodenext.
+**Important:** The guardian package uses CommonJS output for compatibility.
 
 ## Adding New Packages
 
@@ -143,15 +167,20 @@ Core package (`packages/core/tsconfig.json`) overrides:
 
 ## Dependencies
 
-Core package uses:
+Guardian package uses:
+- `commander` - CLI framework for command-line interface
 - `simple-git` - Git operations
-- `tree-sitter-*` - Code parsing (JavaScript/TypeScript)
+- `tree-sitter` - Abstract syntax tree parsing
+- `tree-sitter-javascript` - JavaScript parser
+- `tree-sitter-typescript` - TypeScript parser
 - `uuid` - UUID generation
 
 Development tools:
-- Vitest for testing (replaces Jest)
+- Vitest for testing with coverage thresholds
 - ESLint with TypeScript strict rules
 - Prettier for formatting
+- `@vitest/ui` - Vitest UI for interactive testing
+- `@vitest/coverage-v8` - Coverage reporting
 
 ## Important Notes
 

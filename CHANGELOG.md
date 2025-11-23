@@ -9,23 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial monorepo setup with pnpm workspaces
-- `@puaros/core` package with TypeScript and Vitest configuration
+- `@puaros/guardian` package - code quality guardian for vibe coders and enterprise teams
+- TypeScript with strict type checking and Vitest configuration
 - ESLint strict TypeScript rules with 4-space indentation
-- Prettier code formatting (4 spaces, single quotes)
+- Prettier code formatting (4 spaces, double quotes, no semicolons)
 - LINTING.md documentation for code style guidelines
 - CLAUDE.md for AI assistant guidance
 - EditorConfig for consistent IDE settings
 - Node.js version specification (.nvmrc: 22.18.0)
 - Vitest testing framework with 80% coverage thresholds
-- Core dependencies: simple-git, tree-sitter (JavaScript/TypeScript), uuid
+- Guardian dependencies: commander, simple-git, tree-sitter, uuid
 
 ### Configuration
 - TypeScript: nodenext modules, ES2023 target, strict null checks
 - ESLint: Strict type checking, complexity limits, code quality rules
-- Prettier: 100 char line length, single quotes, trailing commas
+- Prettier: 100 char line length, double quotes, no semicolons, trailing commas
 - Test coverage: 80% threshold for lines, functions, branches, statements
 
-## [0.0.1] - 2025-01-23
+### Guardian Package
+- Hardcode detection (magic numbers, strings)
+- Circular dependency detection
+- Naming convention enforcement
+- Architecture violation detection
+- CLI tool with `guardian` command
+- 159 tests, all passing
+- Clean Architecture implementation
+
+## [0.0.1] - 2025-11-24
 
 ### Added
 - Initial project structure

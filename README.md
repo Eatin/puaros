@@ -1,6 +1,10 @@
 # Puaros
 
-A TypeScript monorepo for Puaros project.
+A TypeScript monorepo for code quality and analysis tools.
+
+## Packages
+
+- **[@puaros/guardian](./packages/guardian)** - Code quality guardian for vibe coders and enterprise teams. Detects hardcoded values, circular dependencies, and architecture violations. Perfect for AI-assisted development and enforcing Clean Architecture at scale.
 
 ## Prerequisites
 
@@ -35,14 +39,20 @@ pnpm dev:cli
 # Run all tests across packages
 pnpm test
 
+# Guardian package testing
+cd packages/guardian
+
 # Run tests with coverage (80% threshold required)
-cd packages/core && pnpm test:coverage
+pnpm test:coverage
 
 # Run tests with UI
-cd packages/core && pnpm test:ui
+pnpm test:ui
 
 # Run tests once (no watch mode)
-cd packages/core && pnpm test:run
+pnpm test:run
+
+# Run tests in watch mode
+pnpm test:watch
 ```
 
 The project uses Vitest for testing with coverage thresholds set to 80% for all metrics (lines, functions, branches, statements).
@@ -65,17 +75,25 @@ pnpm eslint "packages/**/*.ts"
 ```
 puaros/
 ├── packages/
-│   └── core/              # @puaros/core - Core business logic
-│       ├── src/           # Source files
-│       ├── dist/          # Build output (generated)
+│   └── guardian/              # @puaros/guardian - Code quality analyzer
+│       ├── src/               # Source files (Clean Architecture)
+│       │   ├── domain/        # Domain layer
+│       │   ├── application/   # Application layer
+│       │   ├── infrastructure/# Infrastructure layer
+│       │   ├── cli/          # CLI implementation
+│       │   └── shared/        # Shared utilities
+│       ├── dist/              # Build output (generated)
+│       ├── bin/               # CLI entry point
+│       ├── tests/             # Unit and integration tests
+│       ├── examples/          # Usage examples
 │       └── package.json
-├── pnpm-workspace.yaml    # Workspace configuration
-├── tsconfig.base.json     # Shared TypeScript config
-├── eslint.config.mjs      # ESLint configuration
-├── .prettierrc            # Prettier configuration
-├── LINTING.md             # Code style guidelines
-├── CLAUDE.md              # AI assistant guidance
-└── CHANGELOG.md           # Project changelog
+├── pnpm-workspace.yaml        # Workspace configuration
+├── tsconfig.base.json         # Shared TypeScript config
+├── eslint.config.mjs          # ESLint configuration
+├── .prettierrc                # Prettier configuration
+├── LINTING.md                 # Code style guidelines
+├── CLAUDE.md                  # AI assistant guidance
+└── README.md                  # This file
 ```
 
 ## Code Style
@@ -84,8 +102,9 @@ This project follows strict TypeScript and code quality standards:
 
 - **Indentation:** 4 spaces (enforced by Prettier)
 - **Line Length:** 100 characters maximum
-- **Quotes:** Single quotes
-- **Semicolons:** Always required
+- **Quotes:** Double quotes
+- **Semicolons:** Never used
+- **Trailing Commas:** Always in multiline
 - **TypeScript:** Strict type checking enabled
 
 ### Key Rules
@@ -115,19 +134,79 @@ This project uses pnpm workspaces for managing multiple packages:
 3. Create `tsconfig.json` extending `../../tsconfig.base.json`
 4. The package will be auto-discovered via workspace configuration
 
+## Guardian Package
+
+The `@puaros/guardian` package is a code quality analyzer for both individual developers and enterprise teams:
+
+### Features
+
+- **Hardcode Detection**: Detects magic numbers and magic strings with context-aware analysis
+- **Circular Dependency Detection**: Finds import cycles in your codebase
+- **Naming Convention Validation**: Enforces layer-based naming rules (Domain, Application, Infrastructure)
+- **Architecture Governance**: Enforces Clean Architecture boundaries across teams
+- **CLI Tool**: Command-line interface with `guardian` command
+- **CI/CD Integration**: JSON/Markdown output for automation pipelines
+
+### Use Cases
+
+**For Vibe Coders:**
+- ⚡ AI writes code → Guardian reviews → AI fixes → Ship
+- 🎯 Catch hardcoded secrets before production
+- 📚 Learn Clean Architecture patterns as you code
+
+**For Enterprise Teams:**
+- 🏢 Enforce architectural standards across 100+ developers
+- 🔒 Prevent security incidents (hardcoded credentials)
+- 📊 Track technical debt metrics over time
+- 👥 Faster onboarding with automated feedback
+- 🤖 Safe AI adoption with quality gates
+
+### Architecture
+
+Built with Clean Architecture principles:
+- **Domain Layer**: Core business logic (entities, value objects, domain services)
+- **Application Layer**: Use cases, DTOs, and mappers
+- **Infrastructure Layer**: External concerns (parsers, analyzers, file scanners)
+- **CLI Layer**: Command-line interface
+
+### Usage
+
+```bash
+# Install dependencies
+cd packages/guardian && pnpm install
+
+# Build the package
+pnpm build
+
+# Run tests
+pnpm test
+
+# Use the CLI (after building)
+node bin/guardian.js analyze <project-path>
+
+# CI/CD integration
+guardian check ./src --format json > report.json
+guardian check ./src --fail-on hardcode --fail-on circular
+```
+
 ## Dependencies
 
-Core package uses:
+Guardian package uses:
 
+- `commander` - CLI framework
 - `simple-git` - Git operations
-- `tree-sitter`, `tree-sitter-javascript`, `tree-sitter-typescript` - Code parsing
+- `tree-sitter` - Abstract syntax tree parsing
+- `tree-sitter-javascript` - JavaScript parser
+- `tree-sitter-typescript` - TypeScript parser
 - `uuid` - UUID generation
 
 Development tools:
 
-- Vitest - Testing framework
+- Vitest - Testing framework with 80% coverage thresholds
+- `@vitest/ui` - Interactive testing UI
+- `@vitest/coverage-v8` - Coverage reporting
 - ESLint + TypeScript ESLint - Strict type checking and linting
-- Prettier - Code formatting
+- Prettier - Code formatting (4-space indentation)
 
 ## Contributing
 

@@ -1,0 +1,101 @@
+{
+    "name": "@puaros/guardian",
+    "version": "0.1.0",
+    "description": "Code quality guardian for vibe coders and enterprise teams - catch hardcodes, architecture violations, and circular deps. Enforce Clean Architecture at scale. Works with Claude, GPT, Copilot.",
+    "keywords": [
+        "puaros",
+        "guardian",
+        "vibe-coding",
+        "enterprise",
+        "ai-assistant",
+        "ai-powered",
+        "claude-code",
+        "copilot",
+        "cursor",
+        "gpt-code",
+        "ai-code-review",
+        "code-analysis",
+        "static-analysis",
+        "hardcode-detection",
+        "magic-numbers",
+        "magic-strings",
+        "circular-dependency",
+        "dependency-cycles",
+        "code-quality",
+        "linter",
+        "clean-architecture",
+        "code-review",
+        "tech-debt",
+        "architecture-governance",
+        "code-standards",
+        "security-audit",
+        "compliance",
+        "quality-gate",
+        "ci-cd",
+        "devops"
+    ],
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "author": "Fozilbek Samiyev <fozilbek.samiyev@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/samiyev/puaros.git",
+        "directory": "packages/guardian"
+    },
+    "bugs": {
+        "url": "https://github.com/samiyev/puaros/issues"
+    },
+    "homepage": "https://github.com/samiyev/puaros#readme",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "files": [
+        "dist",
+        "bin",
+        "README.md",
+        "LICENSE"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "import": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch",
+        "clean": "rm -rf dist",
+        "test": "vitest",
+        "test:ui": "vitest --ui",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest run --coverage",
+        "test:run": "vitest run",
+        "prepublishOnly": "pnpm run clean && pnpm run build && pnpm run test:run"
+    },
+    "bin": {
+        "guardian": "./bin/guardian.js"
+    },
+    "dependencies": {
+        "commander": "^12.1.0",
+        "simple-git": "^3.30.0",
+        "tree-sitter": "^0.21.1",
+        "tree-sitter-javascript": "^0.23.0",
+        "tree-sitter-typescript": "^0.23.0",
+        "uuid": "^13.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.7",
+        "@types/uuid": "^11.0.0",
+        "@vitest/coverage-v8": "^4.0.10",
+        "@vitest/ui": "^4.0.10",
+        "tsx": "^4.20.6",
+        "typescript": "^5.7.3",
+        "vitest": "^4.0.10"
+    }
+}

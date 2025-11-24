@@ -13,6 +13,9 @@ export default tseslint.config(
             '**/coverage/**',
             '**/.puaros/**',
             '**/build/**',
+            '**/examples/**',
+            '**/tests/**',
+            '**/*.config.ts',
         ],
     },
     eslint.configs.recommended,
@@ -64,12 +67,12 @@ export default tseslint.config(
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/await-thenable': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
-            '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+            '@typescript-eslint/prefer-nullish-coalescing': 'off', // Allow || operator alongside ??
             '@typescript-eslint/prefer-optional-chain': 'warn',
             '@typescript-eslint/prefer-readonly': 'warn',
             '@typescript-eslint/promise-function-async': 'warn',
             '@typescript-eslint/require-await': 'warn',
-            '@typescript-eslint/no-unnecessary-condition': 'warn',
+            '@typescript-eslint/no-unnecessary-condition': 'off', // Sometimes useful for defensive coding
             '@typescript-eslint/no-non-null-assertion': 'warn',
 
             // ========================================
@@ -82,7 +85,7 @@ export default tseslint.config(
             'prefer-const': 'error',
             'prefer-arrow-callback': 'warn',
             'prefer-template': 'warn',
-            'no-nested-ternary': 'warn',
+            'no-nested-ternary': 'off', // Allow nested ternaries when readable
             'no-unneeded-ternary': 'error',
             'no-else-return': 'warn',
             eqeqeq: ['error', 'always'],
@@ -154,6 +157,26 @@ export default tseslint.config(
                     location: 'start',
                 },
             ],
+        },
+    },
+    {
+        // CLI-specific overrides
+        files: ['**/cli/**/*.ts', '**/cli/**/*.js'],
+        rules: {
+            'no-console': 'off', // Console is expected in CLI
+            'max-lines-per-function': 'off', // CLI action handlers can be long
+            complexity: 'off', // CLI logic can be complex
+            '@typescript-eslint/no-unsafe-member-access': 'off', // Commander options are untyped
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+        },
+    },
+    {
+        // Value Objects and Domain - allow more parameters for create methods
+        files: ['**/domain/value-objects/**/*.ts', '**/application/use-cases/**/*.ts'],
+        rules: {
+            'max-params': ['warn', 8], // DDD patterns often need more params
         },
     },
 );

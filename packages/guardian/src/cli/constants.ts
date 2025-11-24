@@ -22,6 +22,7 @@ export const CLI_DESCRIPTIONS = {
     NO_ARCHITECTURE_OPTION: "Skip architecture checks",
     MIN_SEVERITY_OPTION: "Minimum severity level (critical, high, medium, low)",
     ONLY_CRITICAL_OPTION: "Show only critical severity issues",
+    LIMIT_OPTION: "Limit detailed output to specified number of violations per category",
 } as const
 
 export const CLI_OPTIONS = {
@@ -31,6 +32,21 @@ export const CLI_OPTIONS = {
     NO_ARCHITECTURE: "--no-architecture",
     MIN_SEVERITY: "--min-severity <level>",
     ONLY_CRITICAL: "--only-critical",
+    LIMIT: "-l, --limit <number>",
+} as const
+
+export const SEVERITY_DISPLAY_LABELS = {
+    CRITICAL: "🔴 CRITICAL",
+    HIGH: "🟠 HIGH",
+    MEDIUM: "🟡 MEDIUM",
+    LOW: "🟢 LOW",
+} as const
+
+export const SEVERITY_SECTION_HEADERS = {
+    CRITICAL: "\n═══════════════════════════════════════════\n🔴 CRITICAL SEVERITY\n═══════════════════════════════════════════",
+    HIGH: "\n═══════════════════════════════════════════\n🟠 HIGH SEVERITY\n═══════════════════════════════════════════",
+    MEDIUM: "\n═══════════════════════════════════════════\n🟡 MEDIUM SEVERITY\n═══════════════════════════════════════════",
+    LOW: "\n═══════════════════════════════════════════\n🟢 LOW SEVERITY\n═══════════════════════════════════════════",
 } as const
 
 export const CLI_ARGUMENTS = {

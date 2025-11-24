@@ -5,6 +5,42 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2025-11-24
+
+### Added
+
+**📚 Research-Backed Documentation**
+
+Guardian's detection rules are now backed by scientific research and industry standards!
+
+- ✅ **New Documentation**
+  - `docs/WHY.md` - User-friendly explanations for each rule with authoritative sources
+  - `docs/RESEARCH_CITATIONS.md` - Complete academic and industry references (551 lines)
+  - Organized by detection type with quick navigation
+
+- ✅ **Micro-Citations in README**
+  - Each feature now includes one-line citation with "Why?" link
+  - Examples: "Based on MIT 6.031, SonarQube RSPEC-109"
+  - Non-intrusive, opt-in for users who want to learn more
+
+- ✅ **CLI Help Enhancement**
+  - Added "BACKED BY RESEARCH" section to `--help` output
+  - Mentions MIT, Martin Fowler, Robert C. Martin, industry standards
+  - Link to full documentation
+
+### Changed
+
+- **Documentation Structure**: Moved `RESEARCH_CITATIONS.md` to `docs/` directory for better organization
+- **All internal links updated** to reflect new documentation structure
+
+### Backed By
+
+Our rules are supported by:
+- 🎓 **Academia**: MIT Course 6.031, ScienceDirect peer-reviewed studies
+- 📚 **Books**: Clean Architecture (Martin 2017), DDD (Evans 2003), Enterprise Patterns (Fowler 2002)
+- 🏢 **Industry**: Google, Microsoft, Airbnb style guides, SonarQube standards
+- 👨‍🏫 **Experts**: Martin Fowler, Robert C. Martin, Eric Evans, Alistair Cockburn
+
 ## [0.6.1] - 2025-11-24
 
 ### Improved
@@ -452,7 +488,7 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 #### Developer Experience
 
 - 🤖 **Built for AI-Assisted Development**
-  - Perfect companion for Claude, GPT, Copilot, Cursor
+  - Perfect companion for GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline
   - Catches common AI code smells (hardcoded values, architecture violations)
   - Educational error messages with fix suggestions
   - Designed for vibe coding workflow: AI writes → Guardian reviews → AI fixes → Ship

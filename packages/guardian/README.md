@@ -8,7 +8,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **Perfect for:**
-> - 🚀 **Vibe Coders**: Ship fast with Claude, GPT, Copilot while maintaining quality
+> - 🚀 **Vibe Coders**: Ship fast with GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT while maintaining quality
 > - 🏢 **Enterprise Teams**: Enforce architectural standards and code quality at scale
 > - 📚 **Code Review Automation**: Catch issues before human reviewers see them
 
@@ -20,6 +20,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - 🎯 Smart context analysis
 - 💡 Automatic constant name suggestions
 - 📍 Suggested location for constants
+- 📚 *Based on: MIT 6.031, SonarQube RSPEC-109, peer-reviewed research* → [Why?](./docs/WHY.md#hardcode-detection)
 
 🔄 **Circular Dependency Detection**
 - Detects import cycles in your codebase
@@ -27,6 +28,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Helps maintain clean architecture
 - Prevents maintenance nightmares
 - Severity-based reporting
+- 📚 *Based on: Martin Fowler's architecture patterns, Shopify Engineering* → [Why?](./docs/WHY.md#circular-dependencies)
 
 📝 **Naming Convention Detection**
 - Layer-based naming rules enforcement
@@ -35,6 +37,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Infrastructure: Controllers (*Controller), Repositories (*Repository), Services (*Service/*Adapter)
 - Smart exclusions for base classes
 - Helpful fix suggestions
+- 📚 *Based on: Google Style Guide, Airbnb JavaScript Style Guide, Microsoft Guidelines* → [Why?](./docs/WHY.md#naming-conventions)
 
 🔌 **Framework Leak Detection**
 - Detects framework-specific imports in domain layer
@@ -43,6 +46,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Detects external service dependencies (AWS SDK, Firebase, Stripe, Twilio)
 - Maintains clean domain boundaries
 - Prevents infrastructure coupling in business logic
+- 📚 *Based on: Hexagonal Architecture (Cockburn 2005), Clean Architecture (Martin 2017)* → [Why?](./docs/WHY.md#framework-leaks)
 
 🎭 **Entity Exposure Detection**
 - Detects domain entities exposed in API responses
@@ -50,6 +54,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Enforces DTO/Response object usage
 - Layer-aware validation
 - Smart suggestions for proper DTOs
+- 📚 *Based on: Martin Fowler's Enterprise Patterns (2002)* → [Why?](./docs/WHY.md#entity-exposure)
 
 ⬆️ **Dependency Direction Enforcement**
 - Validates Clean Architecture layer dependencies
@@ -57,6 +62,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Prevents backwards dependencies
 - Maintains architectural boundaries
 - Detailed violation reports
+- 📚 *Based on: Robert C. Martin's Dependency Rule, SOLID principles* → [Why?](./docs/WHY.md#clean-architecture)
 
 📦 **Repository Pattern Validation**
 - Validates repository interface design
@@ -64,6 +70,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Checks for technical method names (findOne, save, etc.)
 - Enforces domain language usage
 - Prevents "new Repository()" anti-pattern
+- 📚 *Based on: Martin Fowler's Repository Pattern, DDD (Evans 2003)* → [Why?](./docs/WHY.md#repository-pattern)
 
 🏗️ **Clean Architecture Enforcement**
 - Built with DDD principles
@@ -71,6 +78,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - TypeScript with strict type checking
 - Fully tested (80%+ coverage)
 - Enforces architectural boundaries across teams
+- 📚 *Based on: Clean Architecture (Martin 2017), Domain-Driven Design (Evans 2003)* → [Why?](./docs/WHY.md#clean-architecture)
 
 🚀 **Developer & Enterprise Friendly**
 - Simple API for developers
@@ -87,11 +95,11 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - 🏗️ Enforces Clean Architecture that AI often ignores
 - 💡 Smart suggestions you can feed back to your AI assistant
 - 🔄 Closes the feedback loop: better prompts = cleaner AI code
-- 🚀 Works with Claude, GPT, Copilot, Cursor, and any AI tool
+- 🚀 Works with GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline, and any AI tool
 
 ## Why Guardian for Vibe Coding?
 
-**The Problem:** AI assistants (Claude, GPT, Copilot) are incredible at shipping features fast, but they love hardcoding values and sometimes ignore architectural patterns. You're moving fast, but accumulating tech debt.
+**The Problem:** AI assistants (GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT) are incredible at shipping features fast, but they love hardcoding values and sometimes ignore architectural patterns. You're moving fast, but accumulating tech debt.
 
 **The Solution:** Guardian is your quality safety net. Code with AI at full speed, then let Guardian catch the issues before they hit production.
 
@@ -953,7 +961,7 @@ Based on testing Guardian with AI-generated codebases:
 A: No! Run it after AI generates code, not during. Analysis takes 1-2 seconds for most projects.
 
 **Q: Can I use this with any AI coding assistant?**
-A: Yes! Works with Claude, GPT, Copilot, Cursor, or any tool that generates TypeScript/JavaScript.
+A: Yes! Works with GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline, or any tool that generates TypeScript/JavaScript.
 
 **Q: Does Guardian replace ESLint/Prettier?**
 A: No, it complements them. ESLint checks syntax, Guardian checks architecture and hardcodes.
@@ -962,7 +970,7 @@ A: No, it complements them. ESLint checks syntax, Guardian checks architecture a
 A: Perfect use case! Guardian helps you identify tech debt so you can decide what to fix before production.
 
 **Q: Can AI fix Guardian's findings automatically?**
-A: Yes! Copy Guardian's output, paste into Claude/GPT with "fix these issues", and watch the magic.
+A: Yes! Copy Guardian's output, paste into Claude, ChatGPT, or your AI assistant with "fix these issues", and watch the magic.
 
 ## Contributing
 

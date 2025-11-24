@@ -28,7 +28,11 @@ export const CLI_DESCRIPTIONS = {
         "  🔴 CRITICAL - Must fix immediately (breaks architecture)\n" +
         "  🟠 HIGH     - Should fix soon (major quality issue)\n" +
         "  🟡 MEDIUM   - Should fix (moderate quality issue)\n" +
-        "  🟢 LOW      - Nice to fix (minor quality issue)",
+        "  🟢 LOW      - Nice to fix (minor quality issue)\n\n" +
+        "BACKED BY RESEARCH:\n" +
+        "  Guardian's rules are based on established software engineering principles\n" +
+        "  from MIT, Martin Fowler, Robert C. Martin, and industry standards.\n" +
+        "  Learn more: https://github.com/samiyev/puaros/blob/main/packages/guardian/docs/WHY.md",
     CHECK:
         "Analyze project for code quality and architecture issues\n\n" +
         "WORKFLOW:\n" +

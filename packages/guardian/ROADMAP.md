@@ -36,7 +36,7 @@ This document outlines the current features and future plans for @puaros/guardia
 - ✅ Extracted constants for better maintainability
 
 **🎯 Built For:**
-- ✅ Vibe coders using AI assistants (Claude, GPT, Copilot, Cursor)
+- ✅ Vibe coders using AI assistants (GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline)
 - ✅ Enterprise teams enforcing architectural standards
 - ✅ Code review automation
 

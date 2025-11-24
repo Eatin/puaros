@@ -1,5 +1,9 @@
 import { ValueObject } from "./ValueObject"
 import { FRAMEWORK_LEAK_MESSAGES } from "../../shared/constants/rules"
+import {
+    DEFAULT_FRAMEWORK_CATEGORY_DESCRIPTION,
+    FRAMEWORK_CATEGORY_DESCRIPTIONS,
+} from "../constants/FrameworkCategories"
 
 interface FrameworkLeakProps {
     readonly packageName: string
@@ -72,7 +76,10 @@ export class FrameworkLeak extends ValueObject<FrameworkLeakProps> {
     }
 
     public getMessage(): string {
-        return FRAMEWORK_LEAK_MESSAGES.DOMAIN_IMPORT.replace("{package}", this.props.packageName)
+        return FRAMEWORK_LEAK_MESSAGES.DOMAIN_IMPORT.replace(
+            FRAMEWORK_LEAK_MESSAGES.PACKAGE_PLACEHOLDER,
+            this.props.packageName,
+        )
     }
 
     public getSuggestion(): string {
@@ -80,33 +87,10 @@ export class FrameworkLeak extends ValueObject<FrameworkLeakProps> {
     }
 
     public getCategoryDescription(): string {
-        switch (this.props.category) {
-            case "ORM":
-                return "Database ORM/ODM"
-            case "WEB_FRAMEWORK":
-                return "Web Framework"
-            case "HTTP_CLIENT":
-                return "HTTP Client"
-            case "VALIDATION":
-                return "Validation Library"
-            case "DI_CONTAINER":
-                return "DI Container"
-            case "LOGGER":
-                return "Logger"
-            case "CACHE":
-                return "Cache"
-            case "MESSAGE_QUEUE":
-                return "Message Queue"
-            case "EMAIL":
-                return "Email Service"
-            case "STORAGE":
-                return "Storage Service"
-            case "TESTING":
-                return "Testing Framework"
-            case "TEMPLATE_ENGINE":
-                return "Template Engine"
-            default:
-                return "Framework Package"
-        }
+        return (
+            FRAMEWORK_CATEGORY_DESCRIPTIONS[
+                this.props.category as keyof typeof FRAMEWORK_CATEGORY_DESCRIPTIONS
+            ] || DEFAULT_FRAMEWORK_CATEGORY_DESCRIPTION
+        )
     }
 }

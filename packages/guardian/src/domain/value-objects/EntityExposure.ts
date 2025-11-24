@@ -1,4 +1,5 @@
 import { ValueObject } from "./ValueObject"
+import { ENTITY_EXPOSURE_MESSAGES } from "../constants/Messages"
 
 interface EntityExposureProps {
     readonly entityName: string
@@ -80,7 +81,9 @@ export class EntityExposure extends ValueObject<EntityExposureProps> {
     }
 
     public getMessage(): string {
-        const method = this.props.methodName ? `Method '${this.props.methodName}'` : "Method"
+        const method = this.props.methodName
+            ? `Method '${this.props.methodName}'`
+            : ENTITY_EXPOSURE_MESSAGES.METHOD_DEFAULT
         return `${method} returns domain entity '${this.props.entityName}' instead of DTO`
     }
 
@@ -96,12 +99,12 @@ export class EntityExposure extends ValueObject<EntityExposureProps> {
     public getExampleFix(): string {
         return `
 // ❌ Bad: Exposing domain entity
-async ${this.props.methodName || "getEntity"}(): Promise<${this.props.entityName}> {
+async ${this.props.methodName || ENTITY_EXPOSURE_MESSAGES.METHOD_DEFAULT_NAME}(): Promise<${this.props.entityName}> {
     return await this.service.find()
 }
 
 // ✅ Good: Using DTO
-async ${this.props.methodName || "getEntity"}(): Promise<${this.props.entityName}ResponseDto> {
+async ${this.props.methodName || ENTITY_EXPOSURE_MESSAGES.METHOD_DEFAULT_NAME}(): Promise<${this.props.entityName}ResponseDto> {
     const entity = await this.service.find()
     return ${this.props.entityName}Mapper.toDto(entity)
 }`

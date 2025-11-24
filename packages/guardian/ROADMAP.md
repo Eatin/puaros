@@ -2,7 +2,7 @@
 
 This document outlines the current features and future plans for @puaros/guardian.
 
-## Current Version: 0.4.0 ✅ RELEASED
+## Current Version: 0.5.0 ✅ RELEASED
 
 **Released:** 2025-11-24
 
@@ -114,10 +114,9 @@ import { User } from '../../domain/entities/User'  // OK
 
 ---
 
-## Future Roadmap
+## Version 0.5.0 - Repository Pattern Validation 📚 ✅ RELEASED
 
-### Version 0.5.0 - Repository Pattern Validation 📚
-**Target:** Q1 2026
+**Released:** 2025-11-24
 **Priority:** HIGH
 
 Validate correct implementation of Repository Pattern:
@@ -148,14 +147,19 @@ class CreateUser {
 }
 ```
 
-**Planned Features:**
-- Check repository interfaces for ORM-specific types
-- Detect concrete repository usage in use cases
-- Detect `new Repository()` in use cases (should use DI)
-- Validate repository methods follow domain language
-- Check for data mapper pattern usage
+**Implemented Features:**
+- ✅ Check repository interfaces for ORM-specific types (Prisma, TypeORM, Mongoose, Sequelize, etc.)
+- ✅ Detect concrete repository usage in use cases
+- ✅ Detect `new Repository()` in use cases (should use DI)
+- ✅ Validate repository methods follow domain language
+- ✅ 31 tests covering all repository pattern scenarios
+- ✅ 96.77% statement coverage, 83.82% branch coverage
+- ✅ Examples for both good and bad patterns
+- ✅ Comprehensive README with patterns and principles
 
 ---
+
+## Future Roadmap
 
 ### Version 0.6.0 - Aggregate Boundary Validation 🔒
 **Target:** Q1 2026
@@ -1751,4 +1755,4 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 ---
 
 **Last Updated:** 2025-11-24
-**Current Version:** 0.4.0
+**Current Version:** 0.5.0

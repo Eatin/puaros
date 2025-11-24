@@ -34,9 +34,25 @@ export class HardcodeDetector implements IHardcodeDetector {
      * @returns Array of detected hardcoded values with suggestions
      */
     public detectAll(code: string, filePath: string): HardcodedValue[] {
+        if (this.isConstantsFile(filePath)) {
+            return []
+        }
         const magicNumbers = this.detectMagicNumbers(code, filePath)
         const magicStrings = this.detectMagicStrings(code, filePath)
         return [...magicNumbers, ...magicStrings]
+    }
+
+    /**
+     * Check if a file is a constants definition file
+     */
+    private isConstantsFile(filePath: string): boolean {
+        const fileName = filePath.split("/").pop() || ""
+        const constantsPatterns = [
+            /^constants?\.(ts|js)$/i,
+            /constants?\/.*\.(ts|js)$/i,
+            /\/(constants|config|settings|defaults)\.ts$/i,
+        ]
+        return constantsPatterns.some((pattern) => pattern.test(filePath))
     }
 
     /**

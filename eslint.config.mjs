@@ -94,7 +94,7 @@ export default tseslint.config(
             // ========================================
             // Code Style (handled by Prettier mostly)
             // ========================================
-            indent: ['error', 4, { SwitchCase: 1 }],
+            indent: 'off', // Let Prettier handle this
             '@typescript-eslint/indent': 'off', // Let Prettier handle this
             quotes: ['error', 'double', { avoidEscape: true }],
             semi: ['error', 'never'],

@@ -1,4 +1,10 @@
 import { ValueObject } from "./ValueObject"
+import {
+    LAYER_APPLICATION,
+    LAYER_DOMAIN,
+    LAYER_INFRASTRUCTURE,
+} from "../../shared/constants/layers"
+import { DEPENDENCY_VIOLATION_MESSAGES } from "../constants/Messages"
 
 interface DependencyViolationProps {
     readonly fromLayer: string
@@ -81,18 +87,18 @@ export class DependencyViolation extends ValueObject<DependencyViolationProps> {
     public getSuggestion(): string {
         const suggestions: string[] = []
 
-        if (this.props.fromLayer === "domain") {
+        if (this.props.fromLayer === LAYER_DOMAIN) {
             suggestions.push(
-                "Domain layer should be independent and not depend on other layers",
-                "Move the imported code to the domain layer if it contains business logic",
-                "Use dependency inversion: define an interface in domain and implement it in infrastructure",
+                DEPENDENCY_VIOLATION_MESSAGES.DOMAIN_INDEPENDENCE,
+                DEPENDENCY_VIOLATION_MESSAGES.DOMAIN_MOVE_TO_DOMAIN,
+                DEPENDENCY_VIOLATION_MESSAGES.DOMAIN_USE_DI,
             )
-        } else if (this.props.fromLayer === "application") {
+        } else if (this.props.fromLayer === LAYER_APPLICATION) {
             suggestions.push(
-                "Application layer should not depend on infrastructure",
-                "Define an interface (Port) in application layer",
-                "Implement the interface (Adapter) in infrastructure layer",
-                "Use dependency injection to provide the implementation",
+                DEPENDENCY_VIOLATION_MESSAGES.APPLICATION_NO_INFRA,
+                DEPENDENCY_VIOLATION_MESSAGES.APPLICATION_DEFINE_PORT,
+                DEPENDENCY_VIOLATION_MESSAGES.APPLICATION_IMPLEMENT_ADAPTER,
+                DEPENDENCY_VIOLATION_MESSAGES.APPLICATION_USE_DI,
             )
         }
 
@@ -100,7 +106,7 @@ export class DependencyViolation extends ValueObject<DependencyViolationProps> {
     }
 
     public getExampleFix(): string {
-        if (this.props.fromLayer === "domain" && this.props.toLayer === "infrastructure") {
+        if (this.props.fromLayer === LAYER_DOMAIN && this.props.toLayer === LAYER_INFRASTRUCTURE) {
             return `
 // ❌ Bad: Domain depends on Infrastructure (PrismaClient)
 // domain/services/UserService.ts
@@ -128,7 +134,10 @@ class PrismaUserRepository implements IUserRepository {
 }`
         }
 
-        if (this.props.fromLayer === "application" && this.props.toLayer === "infrastructure") {
+        if (
+            this.props.fromLayer === LAYER_APPLICATION &&
+            this.props.toLayer === LAYER_INFRASTRUCTURE
+        ) {
             return `
 // ❌ Bad: Application depends on Infrastructure (SmtpEmailService)
 // application/use-cases/SendEmail.ts

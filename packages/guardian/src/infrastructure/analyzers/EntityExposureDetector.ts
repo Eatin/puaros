@@ -1,6 +1,7 @@
 import { IEntityExposureDetector } from "../../domain/services/IEntityExposureDetector"
 import { EntityExposure } from "../../domain/value-objects/EntityExposure"
 import { LAYERS } from "../../shared/constants/rules"
+import { DTO_SUFFIXES, NULLABLE_TYPES, PRIMITIVE_TYPES } from "../constants/type-patterns"
 
 /**
  * Detects domain entity exposure in controller/route return types
@@ -29,15 +30,7 @@ import { LAYERS } from "../../shared/constants/rules"
  * ```
  */
 export class EntityExposureDetector implements IEntityExposureDetector {
-    private readonly dtoSuffixes = [
-        "Dto",
-        "DTO",
-        "Request",
-        "Response",
-        "Command",
-        "Query",
-        "Result",
-    ]
+    private readonly dtoSuffixes = DTO_SUFFIXES
     private readonly controllerPatterns = [
         /Controller/i,
         /Route/i,
@@ -167,7 +160,9 @@ export class EntityExposureDetector implements IEntityExposureDetector {
 
         if (cleanType.includes("|")) {
             const types = cleanType.split("|").map((t) => t.trim())
-            const nonNullTypes = types.filter((t) => t !== "null" && t !== "undefined")
+            const nonNullTypes = types.filter(
+                (t) => !(NULLABLE_TYPES as readonly string[]).includes(t),
+            )
             if (nonNullTypes.length > 0) {
                 cleanType = nonNullTypes[0]
             }
@@ -180,19 +175,7 @@ export class EntityExposureDetector implements IEntityExposureDetector {
      * Checks if a type is a primitive type
      */
     private isPrimitiveType(type: string): boolean {
-        const primitives = [
-            "string",
-            "number",
-            "boolean",
-            "void",
-            "any",
-            "unknown",
-            "null",
-            "undefined",
-            "object",
-            "never",
-        ]
-        return primitives.includes(type.toLowerCase())
+        return (PRIMITIVE_TYPES as readonly string[]).includes(type.toLowerCase())
     }
 
     /**

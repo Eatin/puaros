@@ -5,6 +5,185 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2025-11-24
+
+### Changed
+
+**🧹 Code Quality Refactoring**
+
+Major internal refactoring to eliminate hardcoded values and improve maintainability - Guardian now fully passes its own quality checks!
+
+- ✅ **Extracted Constants**
+  - All RepositoryViolation messages moved to domain constants (Messages.ts)
+  - All framework leak template strings centralized
+  - All layer paths moved to infrastructure constants (paths.ts)
+  - All regex patterns extracted to IMPORT_PATTERNS constant
+  - 30+ new constants added for better maintainability
+
+- ✅ **New Constants Files**
+  - `src/infrastructure/constants/paths.ts` - Layer paths, CLI paths, import patterns
+  - Extended `src/domain/constants/Messages.ts` - 25+ repository pattern messages
+  - Extended `src/shared/constants/rules.ts` - Package placeholder constant
+
+- ✅ **Self-Validation Achievement**
+  - Reduced hardcoded values from 37 to 1 (97% improvement)
+  - Guardian now passes its own `src/` directory checks with 0 violations
+  - Only acceptable hardcode remaining: bin/guardian.js entry point path
+  - All 292 tests still passing (100% pass rate)
+
+- ✅ **Improved Code Organization**
+  - Better separation of concerns
+  - More maintainable codebase
+  - Easier to extend with new features
+  - Follows DRY principle throughout
+
+### Technical Details
+
+- No breaking changes - fully backwards compatible
+- All functionality preserved
+- Test suite: 292 tests passing
+- Coverage: 96.77% statements, 83.82% branches
+
+---
+
+## [0.5.0] - 2025-11-24
+
+### Added
+
+**📚 Repository Pattern Validation**
+
+Validate proper implementation of the Repository Pattern to ensure domain remains decoupled from infrastructure.
+
+- ✅ **ORM Type Detection in Interfaces**
+  - Detects ORM-specific types (Prisma, TypeORM, Mongoose) in domain repository interfaces
+  - Ensures repository interfaces remain persistence-agnostic
+  - Supports detection of 25+ ORM type patterns
+  - Provides fix suggestions with clean domain examples
+
+- ✅ **Concrete Repository Usage Detection**
+  - Identifies use cases depending on concrete repository implementations
+  - Enforces Dependency Inversion Principle
+  - Validates constructor and field dependency types
+  - Suggests using repository interfaces instead
+
+- ✅ **Repository Instantiation Detection**
+  - Detects `new Repository()` in use cases
+  - Enforces Dependency Injection pattern
+  - Identifies hidden dependencies
+  - Provides DI container setup guidance
+
+- ✅ **Domain Language Validation**
+  - Checks repository methods use domain terminology
+  - Rejects technical database terms (findOne, insert, query, execute)
+  - Promotes ubiquitous language across codebase
+  - Suggests business-oriented method names
+
+- ✅ **Smart Violation Reporting**
+  - RepositoryViolation value object with detailed context
+  - Four violation types: ORM types, concrete repos, new instances, technical names
+  - Provides actionable fix suggestions
+  - Shows before/after code examples
+
+- ✅ **Comprehensive Test Coverage**
+  - 31 new tests for repository pattern detection
+  - 292 total tests passing (100% pass rate)
+  - Integration tests for multiple violation types
+  - 96.77% statement coverage, 83.82% branch coverage
+
+- ✅ **Documentation & Examples**
+  - 6 example files (3 bad patterns, 3 good patterns)
+  - Comprehensive README with patterns and principles
+  - Examples for ORM types, concrete repos, DI, and domain language
+  - Demonstrates Clean Architecture and SOLID principles
+
+### Changed
+
+- Updated test count: 261 → 292 tests
+- Added REPOSITORY_PATTERN rule to constants
+- Extended AnalyzeProject use case with repository pattern detection
+- Added REPOSITORY_VIOLATION_TYPES constant with 4 violation types
+- ROADMAP updated with completed repository pattern validation (v0.5.0)
+
+---
+
+## [0.4.0] - 2025-11-24
+
+### Added
+
+**🔀 Dependency Direction Enforcement**
+
+Enforce Clean Architecture dependency rules to prevent architectural violations across layers.
+
+- ✅ **Dependency Direction Detector**
+  - Validates that dependencies flow in the correct direction
+  - Domain layer can only import from Domain and Shared
+  - Application layer can only import from Domain, Application, and Shared
+  - Infrastructure layer can import from all layers
+  - Shared layer can be imported by all layers
+
+- ✅ **Smart Violation Reporting**
+  - DependencyViolation value object with detailed context
+  - Provides fix suggestions with concrete examples
+  - Shows both violating import and suggested layer placement
+  - CLI output with severity indicators
+
+- ✅ **Comprehensive Test Coverage**
+  - 43 new tests for dependency direction detection
+  - 100% test pass rate (261 total tests)
+  - Examples for both good and bad architecture patterns
+
+- ✅ **Documentation & Examples**
+  - Good architecture examples for all layers
+  - Bad architecture examples showing common violations
+  - Demonstrates proper layer separation
+
+### Changed
+
+- Updated test count: 218 → 261 tests
+- Optimized extractLayerFromImport method to reduce complexity
+- Updated getExampleFix to avoid false positives
+- ROADMAP updated with completed dependency direction feature
+
+---
+
+## [0.3.0] - 2025-11-24
+
+### Added
+
+**🚫 Entity Exposure Detection**
+
+Prevent domain entities from leaking to API responses, enforcing proper DTO usage at boundaries.
+
+- ✅ **Entity Exposure Detector**
+  - Detects when controllers/routes return domain entities instead of DTOs
+  - Scans infrastructure layer (controllers, routes, handlers, resolvers, gateways)
+  - Identifies PascalCase entities without Dto/Request/Response suffixes
+  - Parses async methods with Promise<T> return types
+
+- ✅ **Smart Remediation Suggestions**
+  - EntityExposure value object with step-by-step fix guidance
+  - Suggests creating DTOs with proper naming
+  - Provides mapper implementation examples
+  - Shows how to separate domain from presentation concerns
+
+- ✅ **Comprehensive Test Coverage**
+  - 24 new tests for entity exposure detection (98% coverage)
+  - EntityExposureDetector: 98.07% coverage
+  - Overall project: 90.6% statements, 83.97% branches
+
+- ✅ **Documentation & Examples**
+  - BadUserController and BadOrderController examples
+  - GoodUserController showing proper DTO usage
+  - Integration with CLI for helpful output
+
+### Changed
+
+- Updated test count: 194 → 218 tests
+- Added entity exposure to violation pipeline
+- ROADMAP updated with completed entity exposure feature
+
+---
+
 ## [0.2.0] - 2025-11-24
 
 ### Added
@@ -233,7 +412,6 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 ## Future Releases
 
 Planned features for upcoming versions:
-- Entity exposure detection (domain entities in presentation layer)
 - Configuration file support (.guardianrc)
 - Custom rule definitions
 - Plugin system

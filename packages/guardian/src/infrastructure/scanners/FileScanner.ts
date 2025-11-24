@@ -3,6 +3,7 @@ import * as path from "path"
 import { FileScanOptions, IFileScanner } from "../../domain/services/IFileScanner"
 import { DEFAULT_EXCLUDES, DEFAULT_EXTENSIONS, FILE_ENCODING } from "../constants/defaults"
 import { ERROR_MESSAGES } from "../../shared/constants"
+import { TEST_FILE_EXTENSIONS, TEST_FILE_SUFFIXES } from "../constants/type-patterns"
 
 /**
  * Scans project directory for source files
@@ -56,7 +57,12 @@ export class FileScanner implements IFileScanner {
     }
 
     private shouldExclude(name: string, excludePatterns: string[]): boolean {
-        return excludePatterns.some((pattern) => name.includes(pattern))
+        const isExcludedDirectory = excludePatterns.some((pattern) => name.includes(pattern))
+        const isTestFile =
+            (TEST_FILE_EXTENSIONS as readonly string[]).some((ext) => name.includes(ext)) ||
+            (TEST_FILE_SUFFIXES as readonly string[]).some((suffix) => name.endsWith(suffix))
+
+        return isExcludedDirectory || isTestFile
     }
 
     public async readFile(filePath: string): Promise<string> {

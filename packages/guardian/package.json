@@ -1,6 +1,6 @@
 {
     "name": "@samiyev/guardian",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "Code quality guardian for vibe coders and enterprise teams - catch hardcodes, architecture violations, and circular deps. Enforce Clean Architecture at scale. Works with Claude, GPT, Copilot.",
     "keywords": [
         "puaros",

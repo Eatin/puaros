@@ -1,6 +1,7 @@
 import { IDependencyDirectionDetector } from "../../domain/services/IDependencyDirectionDetector"
 import { DependencyViolation } from "../../domain/value-objects/DependencyViolation"
 import { LAYERS } from "../../shared/constants/rules"
+import { IMPORT_PATTERNS, LAYER_PATHS } from "../constants/paths"
 
 /**
  * Detects dependency direction violations between architectural layers
@@ -118,13 +119,13 @@ export class DependencyDirectionDetector implements IDependencyDirectionDetector
      * @returns The layer name if detected, undefined otherwise
      */
     public extractLayerFromImport(importPath: string): string | undefined {
-        const normalizedPath = importPath.replace(/['"]/g, "").toLowerCase()
+        const normalizedPath = importPath.replace(IMPORT_PATTERNS.QUOTE, "").toLowerCase()
 
-        const layerPatterns: Array<[string, string]> = [
-            [LAYERS.DOMAIN, "/domain/"],
-            [LAYERS.APPLICATION, "/application/"],
-            [LAYERS.INFRASTRUCTURE, "/infrastructure/"],
-            [LAYERS.SHARED, "/shared/"],
+        const layerPatterns: [string, string][] = [
+            [LAYERS.DOMAIN, LAYER_PATHS.DOMAIN],
+            [LAYERS.APPLICATION, LAYER_PATHS.APPLICATION],
+            [LAYERS.INFRASTRUCTURE, LAYER_PATHS.INFRASTRUCTURE],
+            [LAYERS.SHARED, LAYER_PATHS.SHARED],
         ]
 
         for (const [layer, pattern] of layerPatterns) {
@@ -163,19 +164,16 @@ export class DependencyDirectionDetector implements IDependencyDirectionDetector
     private extractImports(line: string): string[] {
         const imports: string[] = []
 
-        const esImportRegex =
-            /import\s+(?:{[^}]*}|[\w*]+(?:\s+as\s+\w+)?|\*\s+as\s+\w+)\s+from\s+['"]([^'"]+)['"]/g
-        let match = esImportRegex.exec(line)
+        let match = IMPORT_PATTERNS.ES_IMPORT.exec(line)
         while (match) {
             imports.push(match[1])
-            match = esImportRegex.exec(line)
+            match = IMPORT_PATTERNS.ES_IMPORT.exec(line)
         }
 
-        const requireRegex = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
-        match = requireRegex.exec(line)
+        match = IMPORT_PATTERNS.REQUIRE.exec(line)
         while (match) {
             imports.push(match[1])
-            match = requireRegex.exec(line)
+            match = IMPORT_PATTERNS.REQUIRE.exec(line)
         }
 
         return imports

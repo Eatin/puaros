@@ -8,6 +8,10 @@ export const DEFAULT_EXCLUDES = [
     "coverage",
     ".git",
     ".puaros",
+    "tests",
+    "test",
+    "__tests__",
+    "examples",
 ] as const
 
 export const DEFAULT_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"] as const

@@ -13,6 +13,7 @@ import {
     PATH_PATTERNS,
     PATTERN_WORDS,
 } from "../constants/detectorPatterns"
+import { NAMING_SUGGESTION_DEFAULT } from "../constants/naming-patterns"
 
 /**
  * Detects naming convention violations based on Clean Architecture layers
@@ -72,7 +73,7 @@ export class NamingConventionDetector implements INamingConventionDetector {
                         filePath,
                         NAMING_ERROR_MESSAGES.DOMAIN_FORBIDDEN,
                         fileName,
-                        "Move to application or infrastructure layer, or rename to follow domain patterns",
+                        NAMING_SUGGESTION_DEFAULT,
                     ),
                 )
                 return violations

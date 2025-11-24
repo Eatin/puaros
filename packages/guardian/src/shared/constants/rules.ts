@@ -7,6 +7,7 @@ export const RULES = {
     CIRCULAR_DEPENDENCY: "circular-dependency",
     NAMING_CONVENTION: "naming-convention",
     FRAMEWORK_LEAK: "framework-leak",
+    ENTITY_EXPOSURE: "entity-exposure",
 } as const
 
 /**

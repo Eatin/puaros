@@ -2,7 +2,7 @@
 
 This document outlines the current features and future plans for @puaros/guardian.
 
-## Current Version: 0.1.0 ✅ RELEASED
+## Current Version: 0.3.0 ✅ RELEASED
 
 **Released:** 2025-11-24
 
@@ -42,10 +42,9 @@ This document outlines the current features and future plans for @puaros/guardia
 
 ---
 
-## Future Roadmap
+## Version 0.3.0 - Entity Exposure Detection 🎭 ✅ RELEASED
 
-### Version 0.2.0 - Entity Exposure Detection 🎭
-**Target:** Q1 2026
+**Released:** 2025-11-24
 **Priority:** HIGH
 
 Prevent domain entities from leaking to API responses:
@@ -63,15 +62,18 @@ async getUser(id: string): Promise<UserResponseDto> {
 }
 ```
 
-**Planned Features:**
-- Analyze return types in controllers/routes
-- Check if returned type is from domain/entities
-- Suggest using DTOs and Mappers
-- Examples of proper DTO usage
+**Implemented Features:**
+- ✅ Analyze return types in controllers/routes
+- ✅ Check if returned type is from domain/entities
+- ✅ Suggest using DTOs and Mappers
+- ✅ Examples of proper DTO usage
+- ✅ 24 tests covering all scenarios
 
 ---
 
-### Version 0.3.0 - Dependency Direction Enforcement 🎯
+## Future Roadmap
+
+### Version 0.4.0 - Dependency Direction Enforcement 🎯
 **Target:** Q1 2026
 **Priority:** HIGH
 
@@ -111,7 +113,7 @@ import { User } from '../../domain/entities/User'  // OK
 
 ---
 
-### Version 0.4.0 - Repository Pattern Validation 📚
+### Version 0.5.0 - Repository Pattern Validation 📚
 **Target:** Q1 2026
 **Priority:** HIGH
 
@@ -152,7 +154,7 @@ class CreateUser {
 
 ---
 
-### Version 0.5.0 - Aggregate Boundary Validation 🔒
+### Version 0.6.0 - Aggregate Boundary Validation 🔒
 **Target:** Q1 2026
 **Priority:** MEDIUM
 
@@ -189,7 +191,7 @@ class Order {
 
 ---
 
-### Version 0.6.0 - Anemic Domain Model Detection 🩺
+### Version 0.7.0 - Anemic Domain Model Detection 🩺
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -1746,4 +1748,4 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 ---
 
 **Last Updated:** 2025-11-24
-**Current Version:** 0.2.0
+**Current Version:** 0.3.0

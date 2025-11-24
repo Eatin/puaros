@@ -8,11 +8,13 @@ import { ICodeParser } from "./domain/services/ICodeParser"
 import { IHardcodeDetector } from "./domain/services/IHardcodeDetector"
 import { INamingConventionDetector } from "./domain/services/INamingConventionDetector"
 import { IFrameworkLeakDetector } from "./domain/services/IFrameworkLeakDetector"
+import { IEntityExposureDetector } from "./domain/services/IEntityExposureDetector"
 import { FileScanner } from "./infrastructure/scanners/FileScanner"
 import { CodeParser } from "./infrastructure/parsers/CodeParser"
 import { HardcodeDetector } from "./infrastructure/analyzers/HardcodeDetector"
 import { NamingConventionDetector } from "./infrastructure/analyzers/NamingConventionDetector"
 import { FrameworkLeakDetector } from "./infrastructure/analyzers/FrameworkLeakDetector"
+import { EntityExposureDetector } from "./infrastructure/analyzers/EntityExposureDetector"
 import { ERROR_MESSAGES } from "./shared/constants"
 
 /**
@@ -66,12 +68,14 @@ export async function analyzeProject(
     const hardcodeDetector: IHardcodeDetector = new HardcodeDetector()
     const namingConventionDetector: INamingConventionDetector = new NamingConventionDetector()
     const frameworkLeakDetector: IFrameworkLeakDetector = new FrameworkLeakDetector()
+    const entityExposureDetector: IEntityExposureDetector = new EntityExposureDetector()
     const useCase = new AnalyzeProject(
         fileScanner,
         codeParser,
         hardcodeDetector,
         namingConventionDetector,
         frameworkLeakDetector,
+        entityExposureDetector,
     )
 
     const result = await useCase.execute(options)
@@ -91,5 +95,6 @@ export type {
     CircularDependencyViolation,
     NamingConventionViolation,
     FrameworkLeakViolation,
+    EntityExposureViolation,
     ProjectMetrics,
 } from "./application/use-cases/AnalyzeProject"

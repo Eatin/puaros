@@ -39,6 +39,7 @@ program
                 circularDependencyViolations,
                 namingViolations,
                 frameworkLeakViolations,
+                entityExposureViolations,
                 metrics,
             } = result
 
@@ -126,6 +127,33 @@ program
                 })
             }
 
+            // Entity exposure violations
+            if (options.architecture && entityExposureViolations.length > 0) {
+                console.log(
+                    `\n🎭 Found ${String(entityExposureViolations.length)} entity exposure(s):\n`,
+                )
+
+                entityExposureViolations.forEach((ee, index) => {
+                    const location = ee.line ? `${ee.file}:${String(ee.line)}` : ee.file
+                    console.log(`${String(index + 1)}. ${location}`)
+                    console.log(`   Entity: ${ee.entityName}`)
+                    console.log(`   Return Type: ${ee.returnType}`)
+                    if (ee.methodName) {
+                        console.log(`   Method: ${ee.methodName}`)
+                    }
+                    console.log(`   Layer: ${ee.layer}`)
+                    console.log(`   Rule: ${ee.rule}`)
+                    console.log(`   ${ee.message}`)
+                    console.log("   💡 Suggestion:")
+                    ee.suggestion.split("\n").forEach((line) => {
+                        if (line.trim()) {
+                            console.log(`      ${line}`)
+                        }
+                    })
+                    console.log("")
+                })
+            }
+
             // Hardcode violations
             if (options.hardcode && hardcodeViolations.length > 0) {
                 console.log(
@@ -151,7 +179,8 @@ program
                 hardcodeViolations.length +
                 circularDependencyViolations.length +
                 namingViolations.length +
-                frameworkLeakViolations.length
+                frameworkLeakViolations.length +
+                entityExposureViolations.length
 
             if (totalIssues === 0) {
                 console.log(CLI_MESSAGES.NO_ISSUES)

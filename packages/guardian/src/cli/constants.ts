@@ -13,16 +13,39 @@ export const CLI_COMMANDS = {
 } as const
 
 export const CLI_DESCRIPTIONS = {
-    MAIN: "🛡️  Code quality guardian - detect hardcoded values and architecture violations",
-    CHECK: "Analyze project for code quality issues",
-    PATH_ARG: "Path to analyze",
-    EXCLUDE_OPTION: "Directories to exclude",
-    VERBOSE_OPTION: "Verbose output",
-    NO_HARDCODE_OPTION: "Skip hardcode detection",
-    NO_ARCHITECTURE_OPTION: "Skip architecture checks",
-    MIN_SEVERITY_OPTION: "Minimum severity level (critical, high, medium, low)",
-    ONLY_CRITICAL_OPTION: "Show only critical severity issues",
-    LIMIT_OPTION: "Limit detailed output to specified number of violations per category",
+    MAIN:
+        "🛡️  Guardian - Code quality analyzer for TypeScript/JavaScript projects\n\n" +
+        "DETECTS:\n" +
+        "  • Hardcoded values (magic numbers/strings) - extract to constants\n" +
+        "  • Circular dependencies - refactor module structure\n" +
+        "  • Framework leaks in domain - move framework imports to infrastructure\n" +
+        "  • Naming violations - rename files to match layer conventions\n" +
+        "  • Architecture violations - respect Clean Architecture layers\n" +
+        "  • Entity exposure - use DTOs instead of returning entities\n" +
+        "  • Dependency direction - ensure dependencies flow inward\n" +
+        "  • Repository pattern - enforce repository interfaces in domain\n\n" +
+        "SEVERITY LEVELS:\n" +
+        "  🔴 CRITICAL - Must fix immediately (breaks architecture)\n" +
+        "  🟠 HIGH     - Should fix soon (major quality issue)\n" +
+        "  🟡 MEDIUM   - Should fix (moderate quality issue)\n" +
+        "  🟢 LOW      - Nice to fix (minor quality issue)",
+    CHECK:
+        "Analyze project for code quality and architecture issues\n\n" +
+        "WORKFLOW:\n" +
+        "  1. Run: guardian check ./src\n" +
+        "  2. Review violations by severity\n" +
+        "  3. Read the suggestion for each violation\n" +
+        "  4. Fix violations starting with CRITICAL\n" +
+        "  5. Re-run to verify fixes",
+    PATH_ARG: "Path to analyze (e.g., ./src or ./packages/api)",
+    EXCLUDE_OPTION:
+        "Exclude dirs/patterns (default: node_modules,dist,build,coverage,tests,**/*.test.ts)",
+    VERBOSE_OPTION: "Show additional help and analysis details",
+    NO_HARDCODE_OPTION: "Skip hardcode detection (only check architecture)",
+    NO_ARCHITECTURE_OPTION: "Skip architecture checks (only check hardcodes)",
+    MIN_SEVERITY_OPTION: "Filter by severity: critical|high|medium|low (e.g., --min-severity high)",
+    ONLY_CRITICAL_OPTION: "Show only 🔴 CRITICAL issues (shortcut for --min-severity critical)",
+    LIMIT_OPTION: "Limit violations shown per category (e.g., -l 10 shows first 10)",
 } as const
 
 export const CLI_OPTIONS = {
@@ -43,7 +66,8 @@ export const SEVERITY_DISPLAY_LABELS = {
 } as const
 
 export const SEVERITY_SECTION_HEADERS = {
-    CRITICAL: "\n═══════════════════════════════════════════\n🔴 CRITICAL SEVERITY\n═══════════════════════════════════════════",
+    CRITICAL:
+        "\n═══════════════════════════════════════════\n🔴 CRITICAL SEVERITY\n═══════════════════════════════════════════",
     HIGH: "\n═══════════════════════════════════════════\n🟠 HIGH SEVERITY\n═══════════════════════════════════════════",
     MEDIUM: "\n═══════════════════════════════════════════\n🟡 MEDIUM SEVERITY\n═══════════════════════════════════════════",
     LOW: "\n═══════════════════════════════════════════\n🟢 LOW SEVERITY\n═══════════════════════════════════════════",
@@ -93,4 +117,33 @@ export const CLI_LABELS = {
     NAMING_VIOLATIONS: "naming convention violations:",
     HARDCODE_VIOLATIONS: "hardcoded values:",
     ISSUES_TOTAL: "issues total",
+} as const
+
+export const CLI_HELP_TEXT = {
+    POSITION: "after",
+    EXAMPLES_HEADER: "\nEXAMPLES:\n",
+    EXAMPLE_BASIC: "  $ guardian check ./src                          # Analyze src directory\n",
+    EXAMPLE_CRITICAL:
+        "  $ guardian check ./src --only-critical          # Show only critical issues\n",
+    EXAMPLE_SEVERITY:
+        "  $ guardian check ./src --min-severity high      # Show high and critical\n",
+    EXAMPLE_LIMIT:
+        "  $ guardian check ./src --limit 10               # Limit output to 10 per category\n",
+    EXAMPLE_NO_HARDCODE:
+        "  $ guardian check ./src --no-hardcode            # Skip hardcode detection\n",
+    EXAMPLE_NO_ARCHITECTURE:
+        "  $ guardian check ./src --no-architecture        # Skip architecture checks\n",
+    EXAMPLE_EXCLUDE:
+        "  $ guardian check ./src -e dist build            # Exclude additional dirs\n\n",
+    FIX_HEADER: "HOW TO FIX COMMON ISSUES:\n",
+    FIX_HARDCODE: "  Hardcoded values    → Extract to constants file\n",
+    FIX_CIRCULAR: "  Circular deps       → Break cycle by extracting shared code\n",
+    FIX_FRAMEWORK: "  Framework leaks     → Move Express/NestJS imports to infrastructure layer\n",
+    FIX_NAMING: "  Naming violations   → Rename file (e.g., UserEntity.ts, CreateUserUseCase.ts)\n",
+    FIX_ENTITY: "  Entity exposure     → Create DTO and map entity to DTO before returning\n",
+    FIX_DEPENDENCY:
+        "  Dependency direction → Move import to correct layer (domain ← app ← infra)\n",
+    FIX_REPOSITORY:
+        "  Repository pattern  → Create IUserRepository in domain, implement in infra\n\n",
+    FOOTER: "Each violation includes a 💡 Suggestion with specific fix instructions.\n",
 } as const

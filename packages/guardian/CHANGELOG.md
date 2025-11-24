@@ -5,6 +5,45 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2025-11-24
+
+### Improved
+
+**📖 Enhanced CLI Help System**
+
+Guardian's `--help` command is now comprehensive and AI-agent-friendly!
+
+- ✅ **Detailed Main Help**
+  - Complete detector descriptions with quick fix instructions
+  - Severity level explanations (CRITICAL → LOW)
+  - Step-by-step workflow guide for fixing violations
+  - 7 practical usage examples
+  - "HOW TO FIX COMMON ISSUES" reference section
+
+- ✅ **Better Organization**
+  - Clear DETECTS section with all 8 violation types
+  - Each detector includes → what to do to fix it
+  - Severity system with priority guidance
+  - Examples cover all major use cases
+
+- ✅ **AI Agent Ready**
+  - Help output provides complete context for autonomous agents
+  - Actionable instructions for each violation type
+  - Clear workflow: run → review → fix → verify
+
+### Fixed
+
+- **Code Quality**: Extracted all hardcoded strings from help text to constants
+  - Moved 17 magic strings to `CLI_HELP_TEXT` constant
+  - Improved maintainability and i18n readiness
+  - Follows Clean Code principles (Single Source of Truth)
+
+### Technical
+
+- All CLI help strings now use `CLI_HELP_TEXT` from constants
+- Zero hardcode violations in Guardian's own codebase
+- Passes all quality checks (format, lint, build, self-check)
+
 ## [0.6.0] - 2025-11-24
 
 ### Added

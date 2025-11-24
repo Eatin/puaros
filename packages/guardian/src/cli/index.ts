@@ -6,6 +6,7 @@ import {
     CLI_ARGUMENTS,
     CLI_COMMANDS,
     CLI_DESCRIPTIONS,
+    CLI_HELP_TEXT,
     CLI_LABELS,
     CLI_MESSAGES,
     CLI_OPTIONS,
@@ -99,7 +100,30 @@ function displayGroupedViolations<T extends { severity: SeverityLevel }>(
 
 const program = new Command()
 
-program.name(CLI_COMMANDS.NAME).description(CLI_DESCRIPTIONS.MAIN).version(version)
+program
+    .name(CLI_COMMANDS.NAME)
+    .description(CLI_DESCRIPTIONS.MAIN)
+    .version(version)
+    .addHelpText(
+        CLI_HELP_TEXT.POSITION,
+        CLI_HELP_TEXT.EXAMPLES_HEADER +
+            CLI_HELP_TEXT.EXAMPLE_BASIC +
+            CLI_HELP_TEXT.EXAMPLE_CRITICAL +
+            CLI_HELP_TEXT.EXAMPLE_SEVERITY +
+            CLI_HELP_TEXT.EXAMPLE_LIMIT +
+            CLI_HELP_TEXT.EXAMPLE_NO_HARDCODE +
+            CLI_HELP_TEXT.EXAMPLE_NO_ARCHITECTURE +
+            CLI_HELP_TEXT.EXAMPLE_EXCLUDE +
+            CLI_HELP_TEXT.FIX_HEADER +
+            CLI_HELP_TEXT.FIX_HARDCODE +
+            CLI_HELP_TEXT.FIX_CIRCULAR +
+            CLI_HELP_TEXT.FIX_FRAMEWORK +
+            CLI_HELP_TEXT.FIX_NAMING +
+            CLI_HELP_TEXT.FIX_ENTITY +
+            CLI_HELP_TEXT.FIX_DEPENDENCY +
+            CLI_HELP_TEXT.FIX_REPOSITORY +
+            CLI_HELP_TEXT.FOOTER,
+    )
 
 program
     .command(CLI_COMMANDS.CHECK)

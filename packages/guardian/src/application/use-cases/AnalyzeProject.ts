@@ -20,6 +20,9 @@ import {
     REPOSITORY_VIOLATION_TYPES,
     RULES,
     SEVERITY_LEVELS,
+    SEVERITY_ORDER,
+    type SeverityLevel,
+    VIOLATION_SEVERITY_MAP,
 } from "../../shared/constants"
 
 export interface AnalyzeProjectRequest {
@@ -47,6 +50,7 @@ export interface ArchitectureViolation {
     message: string
     file: string
     line?: number
+    severity: SeverityLevel
 }
 
 export interface HardcodeViolation {
@@ -64,13 +68,14 @@ export interface HardcodeViolation {
         constantName: string
         location: string
     }
+    severity: SeverityLevel
 }
 
 export interface CircularDependencyViolation {
     rule: typeof RULES.CIRCULAR_DEPENDENCY
     message: string
     cycle: string[]
-    severity: typeof SEVERITY_LEVELS.ERROR
+    severity: SeverityLevel
 }
 
 export interface NamingConventionViolation {
@@ -88,6 +93,7 @@ export interface NamingConventionViolation {
     actual: string
     message: string
     suggestion?: string
+    severity: SeverityLevel
 }
 
 export interface FrameworkLeakViolation {
@@ -100,6 +106,7 @@ export interface FrameworkLeakViolation {
     line?: number
     message: string
     suggestion: string
+    severity: SeverityLevel
 }
 
 export interface EntityExposureViolation {
@@ -112,6 +119,7 @@ export interface EntityExposureViolation {
     methodName?: string
     message: string
     suggestion: string
+    severity: SeverityLevel
 }
 
 export interface DependencyDirectionViolation {
@@ -123,6 +131,7 @@ export interface DependencyDirectionViolation {
     line?: number
     message: string
     suggestion: string
+    severity: SeverityLevel
 }
 
 export interface RepositoryPatternViolation {
@@ -138,6 +147,7 @@ export interface RepositoryPatternViolation {
     details: string
     message: string
     suggestion: string
+    severity: SeverityLevel
 }
 
 export interface ProjectMetrics {
@@ -207,14 +217,24 @@ export class AnalyzeProject extends UseCase<
                 }
             }
 
-            const violations = this.detectViolations(sourceFiles)
-            const hardcodeViolations = this.detectHardcode(sourceFiles)
-            const circularDependencyViolations = this.detectCircularDependencies(dependencyGraph)
-            const namingViolations = this.detectNamingConventions(sourceFiles)
-            const frameworkLeakViolations = this.detectFrameworkLeaks(sourceFiles)
-            const entityExposureViolations = this.detectEntityExposures(sourceFiles)
-            const dependencyDirectionViolations = this.detectDependencyDirections(sourceFiles)
-            const repositoryPatternViolations = this.detectRepositoryPatternViolations(sourceFiles)
+            const violations = this.sortBySeverity(this.detectViolations(sourceFiles))
+            const hardcodeViolations = this.sortBySeverity(this.detectHardcode(sourceFiles))
+            const circularDependencyViolations = this.sortBySeverity(
+                this.detectCircularDependencies(dependencyGraph),
+            )
+            const namingViolations = this.sortBySeverity(this.detectNamingConventions(sourceFiles))
+            const frameworkLeakViolations = this.sortBySeverity(
+                this.detectFrameworkLeaks(sourceFiles),
+            )
+            const entityExposureViolations = this.sortBySeverity(
+                this.detectEntityExposures(sourceFiles),
+            )
+            const dependencyDirectionViolations = this.sortBySeverity(
+                this.detectDependencyDirections(sourceFiles),
+            )
+            const repositoryPatternViolations = this.sortBySeverity(
+                this.detectRepositoryPatternViolations(sourceFiles),
+            )
             const metrics = this.calculateMetrics(sourceFiles, totalFunctions, dependencyGraph)
 
             return ResponseDto.ok({
@@ -294,6 +314,7 @@ export class AnalyzeProject extends UseCase<
                         rule: RULES.CLEAN_ARCHITECTURE,
                         message: `Layer "${file.layer}" cannot import from "${importedLayer}"`,
                         file: file.path.relative,
+                        severity: VIOLATION_SEVERITY_MAP.ARCHITECTURE,
                     })
                 }
             }
@@ -336,6 +357,7 @@ export class AnalyzeProject extends UseCase<
                         constantName: hardcoded.suggestConstantName(),
                         location: hardcoded.suggestLocation(file.layer),
                     },
+                    severity: VIOLATION_SEVERITY_MAP.HARDCODE,
                 })
             }
         }
@@ -355,7 +377,7 @@ export class AnalyzeProject extends UseCase<
                 rule: RULES.CIRCULAR_DEPENDENCY,
                 message: `Circular dependency detected: ${cycleChain}`,
                 cycle,
-                severity: SEVERITY_LEVELS.ERROR,
+                severity: VIOLATION_SEVERITY_MAP.CIRCULAR_DEPENDENCY,
             })
         }
 
@@ -383,6 +405,7 @@ export class AnalyzeProject extends UseCase<
                     actual: violation.actual,
                     message: violation.getMessage(),
                     suggestion: violation.suggestion,
+                    severity: VIOLATION_SEVERITY_MAP.NAMING_CONVENTION,
                 })
             }
         }
@@ -411,6 +434,7 @@ export class AnalyzeProject extends UseCase<
                     line: leak.line,
                     message: leak.getMessage(),
                     suggestion: leak.getSuggestion(),
+                    severity: VIOLATION_SEVERITY_MAP.FRAMEWORK_LEAK,
                 })
             }
         }
@@ -439,6 +463,7 @@ export class AnalyzeProject extends UseCase<
                     methodName: exposure.methodName,
                     message: exposure.getMessage(),
                     suggestion: exposure.getSuggestion(),
+                    severity: VIOLATION_SEVERITY_MAP.ENTITY_EXPOSURE,
                 })
             }
         }
@@ -466,6 +491,7 @@ export class AnalyzeProject extends UseCase<
                     line: violation.line,
                     message: violation.getMessage(),
                     suggestion: violation.getSuggestion(),
+                    severity: VIOLATION_SEVERITY_MAP.DEPENDENCY_DIRECTION,
                 })
             }
         }
@@ -499,6 +525,7 @@ export class AnalyzeProject extends UseCase<
                     details: violation.details,
                     message: violation.getMessage(),
                     suggestion: violation.getSuggestion(),
+                    severity: VIOLATION_SEVERITY_MAP.REPOSITORY_PATTERN,
                 })
             }
         }
@@ -527,5 +554,11 @@ export class AnalyzeProject extends UseCase<
             totalImports,
             layerDistribution,
         }
+    }
+
+    private sortBySeverity<T extends { severity: SeverityLevel }>(violations: T[]): T[] {
+        return violations.sort((a, b) => {
+            return SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
+        })
     }
 }

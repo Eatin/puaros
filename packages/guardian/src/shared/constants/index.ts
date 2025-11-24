@@ -64,9 +64,36 @@ export const PLACEHOLDERS = {
  * Violation severity levels
  */
 export const SEVERITY_LEVELS = {
-    ERROR: "error",
-    WARNING: "warning",
-    INFO: "info",
+    CRITICAL: "critical",
+    HIGH: "high",
+    MEDIUM: "medium",
+    LOW: "low",
+} as const
+
+export type SeverityLevel = (typeof SEVERITY_LEVELS)[keyof typeof SEVERITY_LEVELS]
+
+/**
+ * Severity order for sorting (lower number = more critical)
+ */
+export const SEVERITY_ORDER: Record<SeverityLevel, number> = {
+    [SEVERITY_LEVELS.CRITICAL]: 0,
+    [SEVERITY_LEVELS.HIGH]: 1,
+    [SEVERITY_LEVELS.MEDIUM]: 2,
+    [SEVERITY_LEVELS.LOW]: 3,
+} as const
+
+/**
+ * Violation type to severity mapping
+ */
+export const VIOLATION_SEVERITY_MAP = {
+    CIRCULAR_DEPENDENCY: SEVERITY_LEVELS.CRITICAL,
+    REPOSITORY_PATTERN: SEVERITY_LEVELS.CRITICAL,
+    DEPENDENCY_DIRECTION: SEVERITY_LEVELS.HIGH,
+    FRAMEWORK_LEAK: SEVERITY_LEVELS.HIGH,
+    ENTITY_EXPOSURE: SEVERITY_LEVELS.HIGH,
+    NAMING_CONVENTION: SEVERITY_LEVELS.MEDIUM,
+    ARCHITECTURE: SEVERITY_LEVELS.MEDIUM,
+    HARDCODE: SEVERITY_LEVELS.LOW,
 } as const
 
 export * from "./rules"

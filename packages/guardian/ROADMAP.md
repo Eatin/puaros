@@ -2,7 +2,7 @@
 
 This document outlines the current features and future plans for @puaros/guardian.
 
-## Current Version: 0.5.0 ✅ RELEASED
+## Current Version: 0.5.2 ✅ RELEASED
 
 **Released:** 2025-11-24
 
@@ -156,6 +156,62 @@ class CreateUser {
 - ✅ 96.77% statement coverage, 83.82% branch coverage
 - ✅ Examples for both good and bad patterns
 - ✅ Comprehensive README with patterns and principles
+
+---
+
+## Version 0.5.2 - Severity-Based Prioritization 🎯 ✅ RELEASED
+
+**Released:** 2025-11-24
+**Priority:** HIGH
+
+Intelligently prioritize violations by severity to help teams focus on critical issues first:
+
+```bash
+# Show only critical issues
+guardian check src --only-critical
+
+# Show high severity and above
+guardian check src --min-severity high
+```
+
+**Severity Levels:**
+- 🔴 **CRITICAL**: Circular dependencies, Repository pattern violations
+- 🟠 **HIGH**: Dependency direction violations, Framework leaks, Entity exposures
+- 🟡 **MEDIUM**: Naming violations, Architecture violations
+- 🟢 **LOW**: Hardcoded values
+
+**Implemented Features:**
+- ✅ Automatic sorting by severity (most critical first)
+- ✅ CLI flags: `--min-severity <level>` and `--only-critical`
+- ✅ Color-coded severity labels in output (🔴🟠🟡🟢)
+- ✅ Visual severity group headers with separators
+- ✅ Filtering messages when filters active
+- ✅ All violation interfaces include severity field
+- ✅ 292 tests passing with 90%+ coverage
+- ✅ Backwards compatible - no breaking changes
+
+**Benefits:**
+- Focus on critical architectural violations first
+- Gradual technical debt reduction
+- Better CI/CD integration (fail on critical only)
+- Improved developer experience with visual prioritization
+
+---
+
+## Version 0.5.1 - Code Quality Refactoring 🧹 ✅ RELEASED
+
+**Released:** 2025-11-24
+**Priority:** MEDIUM
+
+Internal refactoring to eliminate hardcoded values and improve maintainability:
+
+**Implemented Features:**
+- ✅ Extracted 30+ constants from hardcoded strings
+- ✅ New constants files: paths.ts, extended Messages.ts
+- ✅ Reduced hardcoded values from 37 to 1 (97% improvement)
+- ✅ Guardian passes its own checks (0 violations in src/)
+- ✅ All 292 tests passing
+- ✅ No breaking changes - fully backwards compatible
 
 ---
 

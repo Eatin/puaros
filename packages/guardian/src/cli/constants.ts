@@ -20,6 +20,8 @@ export const CLI_DESCRIPTIONS = {
     VERBOSE_OPTION: "Verbose output",
     NO_HARDCODE_OPTION: "Skip hardcode detection",
     NO_ARCHITECTURE_OPTION: "Skip architecture checks",
+    MIN_SEVERITY_OPTION: "Minimum severity level (critical, high, medium, low)",
+    ONLY_CRITICAL_OPTION: "Show only critical severity issues",
 } as const
 
 export const CLI_OPTIONS = {
@@ -27,6 +29,8 @@ export const CLI_OPTIONS = {
     VERBOSE: "-v, --verbose",
     NO_HARDCODE: "--no-hardcode",
     NO_ARCHITECTURE: "--no-architecture",
+    MIN_SEVERITY: "--min-severity <level>",
+    ONLY_CRITICAL: "--only-critical",
 } as const
 
 export const CLI_ARGUMENTS = {

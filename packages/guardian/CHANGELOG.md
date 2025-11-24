@@ -5,6 +5,53 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2025-11-24
+
+### Added
+
+**🎯 Severity-Based Prioritization**
+
+Guardian now intelligently prioritizes violations by severity, helping teams focus on critical issues first!
+
+- ✅ **Severity Levels**
+  - 🔴 **CRITICAL**: Circular dependencies, Repository pattern violations
+  - 🟠 **HIGH**: Dependency direction violations, Framework leaks, Entity exposures
+  - 🟡 **MEDIUM**: Naming violations, Architecture violations
+  - 🟢 **LOW**: Hardcoded values
+
+- ✅ **Automatic Sorting**
+  - All violations automatically sorted by severity (most critical first)
+  - Applied in AnalyzeProject use case before returning results
+  - Consistent ordering across all detection types
+
+- ✅ **CLI Filtering Options**
+  - `--min-severity <level>` - Show only violations at specified level and above
+  - `--only-critical` - Quick filter for critical issues only
+  - Examples:
+    - `guardian check src --only-critical`
+    - `guardian check src --min-severity high`
+
+- ✅ **Enhanced CLI Output**
+  - Color-coded severity labels (🔴🟠🟡🟢)
+  - Visual severity group headers with separators
+  - Severity displayed for each violation
+  - Clear filtering messages when filters active
+
+### Changed
+
+- Updated all violation interfaces to include `severity: SeverityLevel` field
+- Improved CLI presentation with grouped severity display
+- Enhanced developer experience with visual prioritization
+
+### Technical Details
+
+- All 292 tests passing (100% pass rate)
+- Coverage: 90.63% statements, 82.19% branches, 83.51% functions
+- No breaking changes - fully backwards compatible
+- Clean Architecture principles maintained
+
+---
+
 ## [0.5.1] - 2025-11-24
 
 ### Changed

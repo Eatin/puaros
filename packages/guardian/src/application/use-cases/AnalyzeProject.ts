@@ -6,6 +6,7 @@ import { IHardcodeDetector } from "../../domain/services/IHardcodeDetector"
 import { INamingConventionDetector } from "../../domain/services/INamingConventionDetector"
 import { IFrameworkLeakDetector } from "../../domain/services/IFrameworkLeakDetector"
 import { IEntityExposureDetector } from "../../domain/services/IEntityExposureDetector"
+import { IDependencyDirectionDetector } from "../../domain/services/IDependencyDirectionDetector"
 import { SourceFile } from "../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../domain/entities/DependencyGraph"
 import { ProjectPath } from "../../domain/value-objects/ProjectPath"
@@ -34,6 +35,7 @@ export interface AnalyzeProjectResponse {
     namingViolations: NamingConventionViolation[]
     frameworkLeakViolations: FrameworkLeakViolation[]
     entityExposureViolations: EntityExposureViolation[]
+    dependencyDirectionViolations: DependencyDirectionViolation[]
     metrics: ProjectMetrics
 }
 
@@ -109,6 +111,17 @@ export interface EntityExposureViolation {
     suggestion: string
 }
 
+export interface DependencyDirectionViolation {
+    rule: typeof RULES.DEPENDENCY_DIRECTION
+    fromLayer: string
+    toLayer: string
+    importPath: string
+    file: string
+    line?: number
+    message: string
+    suggestion: string
+}
+
 export interface ProjectMetrics {
     totalFiles: number
     totalFunctions: number
@@ -130,6 +143,7 @@ export class AnalyzeProject extends UseCase<
         private readonly namingConventionDetector: INamingConventionDetector,
         private readonly frameworkLeakDetector: IFrameworkLeakDetector,
         private readonly entityExposureDetector: IEntityExposureDetector,
+        private readonly dependencyDirectionDetector: IDependencyDirectionDetector,
     ) {
         super()
     }
@@ -180,6 +194,7 @@ export class AnalyzeProject extends UseCase<
             const namingViolations = this.detectNamingConventions(sourceFiles)
             const frameworkLeakViolations = this.detectFrameworkLeaks(sourceFiles)
             const entityExposureViolations = this.detectEntityExposures(sourceFiles)
+            const dependencyDirectionViolations = this.detectDependencyDirections(sourceFiles)
             const metrics = this.calculateMetrics(sourceFiles, totalFunctions, dependencyGraph)
 
             return ResponseDto.ok({
@@ -191,6 +206,7 @@ export class AnalyzeProject extends UseCase<
                 namingViolations,
                 frameworkLeakViolations,
                 entityExposureViolations,
+                dependencyDirectionViolations,
                 metrics,
             })
         } catch (error) {
@@ -402,6 +418,33 @@ export class AnalyzeProject extends UseCase<
                     methodName: exposure.methodName,
                     message: exposure.getMessage(),
                     suggestion: exposure.getSuggestion(),
+                })
+            }
+        }
+
+        return violations
+    }
+
+    private detectDependencyDirections(sourceFiles: SourceFile[]): DependencyDirectionViolation[] {
+        const violations: DependencyDirectionViolation[] = []
+
+        for (const file of sourceFiles) {
+            const directionViolations = this.dependencyDirectionDetector.detectViolations(
+                file.content,
+                file.path.relative,
+                file.layer,
+            )
+
+            for (const violation of directionViolations) {
+                violations.push({
+                    rule: RULES.DEPENDENCY_DIRECTION,
+                    fromLayer: violation.fromLayer,
+                    toLayer: violation.toLayer,
+                    importPath: violation.importPath,
+                    file: file.path.relative,
+                    line: violation.line,
+                    message: violation.getMessage(),
+                    suggestion: violation.getSuggestion(),
                 })
             }
         }

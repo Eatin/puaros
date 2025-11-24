@@ -2,7 +2,7 @@
 
 This document outlines the current features and future plans for @puaros/guardian.
 
-## Current Version: 0.3.0 ✅ RELEASED
+## Current Version: 0.4.0 ✅ RELEASED
 
 **Released:** 2025-11-24
 
@@ -71,10 +71,9 @@ async getUser(id: string): Promise<UserResponseDto> {
 
 ---
 
-## Future Roadmap
+## Version 0.4.0 - Dependency Direction Enforcement 🎯 ✅ RELEASED
 
-### Version 0.4.0 - Dependency Direction Enforcement 🎯
-**Target:** Q1 2026
+**Released:** 2025-11-24
 **Priority:** HIGH
 
 Enforce correct dependency direction between architectural layers:
@@ -103,15 +102,19 @@ import { User } from '../../domain/entities/User'  // OK
 - ✅ Infrastructure → Application, Domain (разрешено)
 - ✅ Shared → используется везде
 
-**Planned Features:**
-- Detect domain importing from application
-- Detect domain importing from infrastructure
-- Detect application importing from infrastructure
-- Visualize dependency graph
-- Suggest refactoring to fix violations
-- Support for custom layer definitions
+**Implemented Features:**
+- ✅ Detect domain importing from application
+- ✅ Detect domain importing from infrastructure
+- ✅ Detect application importing from infrastructure
+- ✅ Detect violations in all import formats (ES6, require)
+- ✅ Provide detailed error messages with suggestions
+- ✅ Show example fixes for each violation type
+- ✅ 43 tests covering all dependency scenarios
+- ✅ Good and bad examples in examples directory
 
 ---
+
+## Future Roadmap
 
 ### Version 0.5.0 - Repository Pattern Validation 📚
 **Target:** Q1 2026
@@ -1748,4 +1751,4 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 ---
 
 **Last Updated:** 2025-11-24
-**Current Version:** 0.3.0
+**Current Version:** 0.4.0

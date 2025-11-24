@@ -8,6 +8,7 @@ export const RULES = {
     NAMING_CONVENTION: "naming-convention",
     FRAMEWORK_LEAK: "framework-leak",
     ENTITY_EXPOSURE: "entity-exposure",
+    DEPENDENCY_DIRECTION: "dependency-direction",
 } as const
 
 /**

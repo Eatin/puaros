@@ -9,12 +9,14 @@ import { IHardcodeDetector } from "./domain/services/IHardcodeDetector"
 import { INamingConventionDetector } from "./domain/services/INamingConventionDetector"
 import { IFrameworkLeakDetector } from "./domain/services/IFrameworkLeakDetector"
 import { IEntityExposureDetector } from "./domain/services/IEntityExposureDetector"
+import { IDependencyDirectionDetector } from "./domain/services/IDependencyDirectionDetector"
 import { FileScanner } from "./infrastructure/scanners/FileScanner"
 import { CodeParser } from "./infrastructure/parsers/CodeParser"
 import { HardcodeDetector } from "./infrastructure/analyzers/HardcodeDetector"
 import { NamingConventionDetector } from "./infrastructure/analyzers/NamingConventionDetector"
 import { FrameworkLeakDetector } from "./infrastructure/analyzers/FrameworkLeakDetector"
 import { EntityExposureDetector } from "./infrastructure/analyzers/EntityExposureDetector"
+import { DependencyDirectionDetector } from "./infrastructure/analyzers/DependencyDirectionDetector"
 import { ERROR_MESSAGES } from "./shared/constants"
 
 /**
@@ -69,6 +71,8 @@ export async function analyzeProject(
     const namingConventionDetector: INamingConventionDetector = new NamingConventionDetector()
     const frameworkLeakDetector: IFrameworkLeakDetector = new FrameworkLeakDetector()
     const entityExposureDetector: IEntityExposureDetector = new EntityExposureDetector()
+    const dependencyDirectionDetector: IDependencyDirectionDetector =
+        new DependencyDirectionDetector()
     const useCase = new AnalyzeProject(
         fileScanner,
         codeParser,
@@ -76,6 +80,7 @@ export async function analyzeProject(
         namingConventionDetector,
         frameworkLeakDetector,
         entityExposureDetector,
+        dependencyDirectionDetector,
     )
 
     const result = await useCase.execute(options)
@@ -96,5 +101,6 @@ export type {
     NamingConventionViolation,
     FrameworkLeakViolation,
     EntityExposureViolation,
+    DependencyDirectionViolation,
     ProjectMetrics,
 } from "./application/use-cases/AnalyzeProject"

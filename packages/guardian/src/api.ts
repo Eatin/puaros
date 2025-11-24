@@ -10,6 +10,7 @@ import { INamingConventionDetector } from "./domain/services/INamingConventionDe
 import { IFrameworkLeakDetector } from "./domain/services/IFrameworkLeakDetector"
 import { IEntityExposureDetector } from "./domain/services/IEntityExposureDetector"
 import { IDependencyDirectionDetector } from "./domain/services/IDependencyDirectionDetector"
+import { IRepositoryPatternDetector } from "./domain/services/RepositoryPatternDetectorService"
 import { FileScanner } from "./infrastructure/scanners/FileScanner"
 import { CodeParser } from "./infrastructure/parsers/CodeParser"
 import { HardcodeDetector } from "./infrastructure/analyzers/HardcodeDetector"
@@ -17,6 +18,7 @@ import { NamingConventionDetector } from "./infrastructure/analyzers/NamingConve
 import { FrameworkLeakDetector } from "./infrastructure/analyzers/FrameworkLeakDetector"
 import { EntityExposureDetector } from "./infrastructure/analyzers/EntityExposureDetector"
 import { DependencyDirectionDetector } from "./infrastructure/analyzers/DependencyDirectionDetector"
+import { RepositoryPatternDetector } from "./infrastructure/analyzers/RepositoryPatternDetector"
 import { ERROR_MESSAGES } from "./shared/constants"
 
 /**
@@ -73,6 +75,7 @@ export async function analyzeProject(
     const entityExposureDetector: IEntityExposureDetector = new EntityExposureDetector()
     const dependencyDirectionDetector: IDependencyDirectionDetector =
         new DependencyDirectionDetector()
+    const repositoryPatternDetector: IRepositoryPatternDetector = new RepositoryPatternDetector()
     const useCase = new AnalyzeProject(
         fileScanner,
         codeParser,
@@ -81,6 +84,7 @@ export async function analyzeProject(
         frameworkLeakDetector,
         entityExposureDetector,
         dependencyDirectionDetector,
+        repositoryPatternDetector,
     )
 
     const result = await useCase.execute(options)
@@ -102,5 +106,6 @@ export type {
     FrameworkLeakViolation,
     EntityExposureViolation,
     DependencyDirectionViolation,
+    RepositoryPatternViolation,
     ProjectMetrics,
 } from "./application/use-cases/AnalyzeProject"

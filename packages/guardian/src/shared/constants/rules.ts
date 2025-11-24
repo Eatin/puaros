@@ -9,6 +9,7 @@ export const RULES = {
     FRAMEWORK_LEAK: "framework-leak",
     ENTITY_EXPOSURE: "entity-exposure",
     DEPENDENCY_DIRECTION: "dependency-direction",
+    REPOSITORY_PATTERN: "repository-pattern",
 } as const
 
 /**
@@ -397,4 +398,15 @@ export const FRAMEWORK_LEAK_MESSAGES = {
     DOMAIN_IMPORT:
         'Domain layer imports framework-specific package "{package}". Use interfaces and dependency injection instead.',
     SUGGESTION: "Create an interface in domain layer and implement it in infrastructure layer.",
+    PACKAGE_PLACEHOLDER: "{package}",
+} as const
+
+/**
+ * Repository pattern violation types
+ */
+export const REPOSITORY_VIOLATION_TYPES = {
+    ORM_TYPE_IN_INTERFACE: "orm-type-in-interface",
+    CONCRETE_REPOSITORY_IN_USE_CASE: "concrete-repository-in-use-case",
+    NEW_REPOSITORY_IN_USE_CASE: "new-repository-in-use-case",
+    NON_DOMAIN_METHOD_NAME: "non-domain-method-name",
 } as const

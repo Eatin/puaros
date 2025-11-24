@@ -33,7 +33,20 @@ export const CLI_ARGUMENTS = {
     PATH: "<path>",
 } as const
 
-export const DEFAULT_EXCLUDES = ["node_modules", "dist", "build", "coverage"] as const
+export const DEFAULT_EXCLUDES = [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "tests",
+    "test",
+    "__tests__",
+    "examples",
+    "**/*.test.ts",
+    "**/*.test.js",
+    "**/*.spec.ts",
+    "**/*.spec.js",
+] as const
 
 export const CLI_MESSAGES = {
     ANALYZING: "\n🛡️  Guardian - Analyzing your code...\n",

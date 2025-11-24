@@ -7,6 +7,7 @@ import { INamingConventionDetector } from "../../domain/services/INamingConventi
 import { IFrameworkLeakDetector } from "../../domain/services/IFrameworkLeakDetector"
 import { IEntityExposureDetector } from "../../domain/services/IEntityExposureDetector"
 import { IDependencyDirectionDetector } from "../../domain/services/IDependencyDirectionDetector"
+import { IRepositoryPatternDetector } from "../../domain/services/RepositoryPatternDetectorService"
 import { SourceFile } from "../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../domain/entities/DependencyGraph"
 import { ProjectPath } from "../../domain/value-objects/ProjectPath"
@@ -16,6 +17,7 @@ import {
     LAYERS,
     NAMING_VIOLATION_TYPES,
     REGEX_PATTERNS,
+    REPOSITORY_VIOLATION_TYPES,
     RULES,
     SEVERITY_LEVELS,
 } from "../../shared/constants"
@@ -36,6 +38,7 @@ export interface AnalyzeProjectResponse {
     frameworkLeakViolations: FrameworkLeakViolation[]
     entityExposureViolations: EntityExposureViolation[]
     dependencyDirectionViolations: DependencyDirectionViolation[]
+    repositoryPatternViolations: RepositoryPatternViolation[]
     metrics: ProjectMetrics
 }
 
@@ -122,6 +125,21 @@ export interface DependencyDirectionViolation {
     suggestion: string
 }
 
+export interface RepositoryPatternViolation {
+    rule: typeof RULES.REPOSITORY_PATTERN
+    violationType:
+        | typeof REPOSITORY_VIOLATION_TYPES.ORM_TYPE_IN_INTERFACE
+        | typeof REPOSITORY_VIOLATION_TYPES.CONCRETE_REPOSITORY_IN_USE_CASE
+        | typeof REPOSITORY_VIOLATION_TYPES.NEW_REPOSITORY_IN_USE_CASE
+        | typeof REPOSITORY_VIOLATION_TYPES.NON_DOMAIN_METHOD_NAME
+    file: string
+    layer: string
+    line?: number
+    details: string
+    message: string
+    suggestion: string
+}
+
 export interface ProjectMetrics {
     totalFiles: number
     totalFunctions: number
@@ -144,6 +162,7 @@ export class AnalyzeProject extends UseCase<
         private readonly frameworkLeakDetector: IFrameworkLeakDetector,
         private readonly entityExposureDetector: IEntityExposureDetector,
         private readonly dependencyDirectionDetector: IDependencyDirectionDetector,
+        private readonly repositoryPatternDetector: IRepositoryPatternDetector,
     ) {
         super()
     }
@@ -195,6 +214,7 @@ export class AnalyzeProject extends UseCase<
             const frameworkLeakViolations = this.detectFrameworkLeaks(sourceFiles)
             const entityExposureViolations = this.detectEntityExposures(sourceFiles)
             const dependencyDirectionViolations = this.detectDependencyDirections(sourceFiles)
+            const repositoryPatternViolations = this.detectRepositoryPatternViolations(sourceFiles)
             const metrics = this.calculateMetrics(sourceFiles, totalFunctions, dependencyGraph)
 
             return ResponseDto.ok({
@@ -207,6 +227,7 @@ export class AnalyzeProject extends UseCase<
                 frameworkLeakViolations,
                 entityExposureViolations,
                 dependencyDirectionViolations,
+                repositoryPatternViolations,
                 metrics,
             })
         } catch (error) {
@@ -443,6 +464,39 @@ export class AnalyzeProject extends UseCase<
                     importPath: violation.importPath,
                     file: file.path.relative,
                     line: violation.line,
+                    message: violation.getMessage(),
+                    suggestion: violation.getSuggestion(),
+                })
+            }
+        }
+
+        return violations
+    }
+
+    private detectRepositoryPatternViolations(
+        sourceFiles: SourceFile[],
+    ): RepositoryPatternViolation[] {
+        const violations: RepositoryPatternViolation[] = []
+
+        for (const file of sourceFiles) {
+            const patternViolations = this.repositoryPatternDetector.detectViolations(
+                file.content,
+                file.path.relative,
+                file.layer,
+            )
+
+            for (const violation of patternViolations) {
+                violations.push({
+                    rule: RULES.REPOSITORY_PATTERN,
+                    violationType: violation.violationType as
+                        | typeof REPOSITORY_VIOLATION_TYPES.ORM_TYPE_IN_INTERFACE
+                        | typeof REPOSITORY_VIOLATION_TYPES.CONCRETE_REPOSITORY_IN_USE_CASE
+                        | typeof REPOSITORY_VIOLATION_TYPES.NEW_REPOSITORY_IN_USE_CASE
+                        | typeof REPOSITORY_VIOLATION_TYPES.NON_DOMAIN_METHOD_NAME,
+                    file: file.path.relative,
+                    layer: violation.layer,
+                    line: violation.line,
+                    details: violation.details,
                     message: violation.getMessage(),
                     suggestion: violation.getSuggestion(),
                 })

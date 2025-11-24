@@ -5,6 +5,59 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-11-24
+
+### Added
+
+**🎯 Output Limit Control**
+
+Guardian now supports limiting detailed violation output for large codebases!
+
+- ✅ **--limit Option**
+  - Limit detailed violation output per category: `guardian check src --limit 10`
+  - Short form: `-l <number>`
+  - Works with severity filters: `guardian check src --only-critical --limit 5`
+  - Shows warning when violations exceed limit
+  - Full statistics always displayed
+
+**📋 Severity Display Constants**
+
+- Extracted severity labels and headers to reusable constants
+- Improved CLI maintainability and consistency
+- `SEVERITY_DISPLAY_LABELS` and `SEVERITY_SECTION_HEADERS`
+
+**📚 Complete Development Workflow**
+
+- Added comprehensive workflow documentation to CLAUDE.md
+- 6-phase development process (Planning → Quality → Documentation → Verification → Commit → Publication)
+- Quick checklists for new features
+- Common workflows and debugging tips
+
+### Changed
+
+- **ESLint Configuration**: Optimized with CLI-specific overrides, reduced warnings from 129 to 0
+- **Documentation**: Updated README with all 8 detector types and latest statistics
+- **TODO**: Added technical debt tracking for low-coverage files
+
+### Fixed
+
+- Removed unused `SEVERITY_LEVELS` import from AnalyzeProject.ts
+- Fixed unused `fileName` variable in HardcodeDetector.ts
+- Replaced `||` with `??` for nullish coalescing
+
+### Removed
+
+- Deleted unused `IBaseRepository` interface (dead code)
+- Fixed repository pattern violations detected by Guardian on itself
+
+### Technical Details
+
+- All 292 tests passing (100% pass rate)
+- Coverage: 90.63% statements, 82.19% branches, 83.51% functions
+- ESLint: 0 errors, 0 warnings
+- Guardian self-check: ✅ No issues found
+- No breaking changes - fully backwards compatible
+
 ## [0.5.2] - 2025-11-24
 
 ### Added

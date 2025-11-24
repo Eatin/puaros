@@ -13,6 +13,7 @@ This document outlines the current features and future plans for @puaros/guardia
 - ✅ Circular dependency detection
 - ✅ Naming convention enforcement (layer-based rules)
 - ✅ Architecture violations (Clean Architecture layers)
+- ✅ Framework leak detection (domain importing frameworks)
 
 **🛠️ Developer Tools:**
 - ✅ CLI interface with `guardian check` command
@@ -23,13 +24,13 @@ This document outlines the current features and future plans for @puaros/guardia
 
 **📚 Documentation & Examples:**
 - ✅ AI-focused documentation (vibe coding + enterprise)
-- ✅ Comprehensive examples (36 files: 29 good + 7 bad patterns)
+- ✅ Comprehensive examples (38 files: 29 good + 9 bad patterns)
 - ✅ DDD/Clean Architecture templates
 - ✅ Quick start guides
 - ✅ Integration examples (CI/CD, pre-commit hooks)
 
 **🧪 Quality:**
-- ✅ 159 tests across 6 test files (all passing)
+- ✅ 194 tests across 7 test files (all passing)
 - ✅ 80%+ code coverage on all metrics
 - ✅ Self-analysis: 0 violations (100% clean codebase)
 - ✅ Extracted constants for better maintainability
@@ -43,31 +44,7 @@ This document outlines the current features and future plans for @puaros/guardia
 
 ## Future Roadmap
 
-### Version 0.2.0 - Framework Leak Detection 🏗️
-**Target:** Q4 2025 (December)
-**Priority:** HIGH
-
-Detect when domain layer imports framework-specific code:
-
-```typescript
-// ❌ Violation: Framework leak in domain
-import { PrismaClient } from '@prisma/client'  // in domain layer
-import { Request, Response } from 'express'    // in domain layer
-
-// ✅ Good: Use interfaces
-import { IUserRepository } from '../repositories'  // interface
-```
-
-**Planned Features:**
-- Check domain layer imports for framework dependencies
-- Blacklist common frameworks: prisma, typeorm, express, fastify, mongoose, etc.
-- Suggest creating interfaces in domain with implementations in infrastructure
-- CLI output with detailed suggestions
-- New rule: `FRAMEWORK_LEAK` with severity levels
-
----
-
-### Version 0.3.0 - Entity Exposure Detection 🎭
+### Version 0.2.0 - Entity Exposure Detection 🎭
 **Target:** Q1 2026
 **Priority:** HIGH
 
@@ -94,7 +71,7 @@ async getUser(id: string): Promise<UserResponseDto> {
 
 ---
 
-### Version 0.4.0 - Configuration File Support ⚙️
+### Version 0.3.0 - Configuration File Support ⚙️
 **Target:** Q1 2026
 **Priority:** MEDIUM
 
@@ -145,7 +122,7 @@ export default {
 
 ---
 
-### Version 0.5.0 - Pattern Enforcement 🎯
+### Version 0.4.0 - Pattern Enforcement 🎯
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -173,7 +150,7 @@ Enforce common DDD/Clean Architecture patterns:
 
 ---
 
-### Version 0.6.0 - Output Formats 📊
+### Version 0.5.0 - Output Formats 📊
 **Target:** Q2 2026
 **Priority:** LOW
 
@@ -206,6 +183,32 @@ guardian check ./src --format markdown
 
 ---
 
+### Version 0.6.0 - Auto-Fix Capabilities 🔧
+**Target:** Q3 2026
+**Priority:** LOW
+
+Automatic refactoring and fixes:
+
+```bash
+# Interactive mode - choose fixes
+guardian fix ./src --interactive
+
+# Auto-fix all issues
+guardian fix ./src --auto
+
+# Dry run - show what would be fixed
+guardian fix ./src --dry-run
+```
+
+**Planned Auto-fixes:**
+1. Extract hardcoded values to constants
+2. Create Value Objects from primitives
+3. Generate repository interfaces
+4. Create DTOs and mappers
+5. Fix naming convention violations
+
+---
+
 ### Version 0.7.0 - Watch Mode & Git Integration 🔍
 **Target:** Q3 2026
 **Priority:** LOW
@@ -232,32 +235,6 @@ guardian check --pr
 - Staged files checking
 - PR file checking
 - Pre-commit hook helper
-
----
-
-### Version 0.8.0 - Auto-Fix Capabilities 🔧
-**Target:** Q3 2026
-**Priority:** LOW
-
-Automatic refactoring and fixes:
-
-```bash
-# Interactive mode - choose fixes
-guardian fix ./src --interactive
-
-# Auto-fix all issues
-guardian fix ./src --auto
-
-# Dry run - show what would be fixed
-guardian fix ./src --dry-run
-```
-
-**Planned Auto-fixes:**
-1. Extract hardcoded values to constants
-2. Create Value Objects from primitives
-3. Generate repository interfaces
-4. Create DTOs and mappers
-5. Fix naming convention violations
 
 ---
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Puaros is a TypeScript monorepo using pnpm workspaces. Currently contains the `@puaros/guardian` package - a code quality guardian for detecting hardcoded values, circular dependencies, and architecture violations. The project uses Node.js 22.18.0 (see `.nvmrc`).
+Puaros is a TypeScript monorepo using pnpm workspaces. Currently contains the `@puaros/guardian` package - a code quality guardian for detecting hardcoded values, circular dependencies, framework leaks, naming violations, and architecture violations. The project uses Node.js 22.18.0 (see `.nvmrc`).
 
 ## Essential Commands
 
@@ -137,7 +137,9 @@ The guardian package follows Clean Architecture principles:
 Key features:
 - Hardcode detection (magic numbers, strings)
 - Circular dependency detection
+- Framework leak detection (domain importing frameworks)
 - Naming convention validation
+- Architecture violation detection
 - CLI tool with `guardian` command
 
 ### TypeScript Configuration

@@ -59,6 +59,15 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
   - Layer detection from file paths
   - Import statement analysis
 
+- 🔌 **Framework Leak Detection**
+  - Detects framework-specific imports in domain layer
+  - Identifies coupling between domain and infrastructure concerns
+  - Checks for HTTP framework leaks (Express, Fastify, Koa, Hapi, NestJS)
+  - Checks for ORM/Database leaks (Prisma, TypeORM, Sequelize, Mongoose, Drizzle)
+  - Checks for external service leaks (AWS SDK, Firebase, Stripe, Twilio)
+  - Reports violations with framework type and suggested fixes
+  - Helps maintain clean domain boundaries
+
 #### CLI Interface
 
 - 🛠️ **Command-line tool** (`guardian` command)
@@ -98,12 +107,12 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 
 #### Examples & Documentation
 
-- 📚 **Comprehensive examples** (36 files)
+- 📚 **Comprehensive examples** (38 files)
   - **Good Architecture** (29 files): Complete DDD/Clean Architecture patterns
     - Domain: Aggregates, Entities, Value Objects, Events, Services, Factories, Specifications
     - Application: Use Cases, DTOs, Mappers
     - Infrastructure: Repositories, Controllers
-  - **Bad Architecture** (7 files): Anti-patterns to avoid
+  - **Bad Architecture** (9 files): Anti-patterns to avoid
     - Hardcoded values, Circular dependencies, Framework leaks, Entity exposure, Naming violations
   - All examples fully documented with explanations
   - Can be used as templates for new projects
@@ -111,7 +120,7 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 #### Testing & Quality
 
 - ✅ **Comprehensive test suite**
-  - 159 tests across 6 test files
+  - 194 tests across 7 test files
   - All tests passing
   - 80%+ code coverage on all metrics
   - Test fixtures for various scenarios
@@ -183,7 +192,6 @@ Code quality guardian for vibe coders and enterprise teams - your AI coding comp
 ## Future Releases
 
 Planned features for upcoming versions:
-- Framework leaks detection (domain importing from infrastructure)
 - Entity exposure detection (domain entities in presentation layer)
 - Configuration file support (.guardianrc)
 - Custom rule definitions

@@ -94,12 +94,13 @@ This file tracks technical debt, known issues, and improvements needed in the co
 ### Testing
 - [x] ~~**Increase test coverage**~~ ✅ **FIXED**
   - ~~Current: 85.71% (target: 80%+)~~
-  - **New: 94.24%** (exceeds 80% target!)
+  - **New: 90.06%** (exceeds 80% target!)
   - ~~But only 2 test files (Guards, BaseEntity)~~
-  - **Now: 4 test files** with 93 tests total
+  - **Now: 7 test files** with 187 tests total
   - ~~Need tests for:~~
     - ~~HardcodeDetector (main logic!)~~ ✅ 49 tests added
     - ~~HardcodedValue~~ ✅ 28 tests added
+    - ~~FrameworkLeakDetector~~ ✅ 28 tests added
     - AnalyzeProject use case (pending)
     - CLI commands (pending)
     - FileScanner (pending)
@@ -202,9 +203,18 @@ When implementing these, consider semantic versioning:
    - Fixed constant truthiness errors
 
 5. ✅ **Improved test coverage**
-   - From 85.71% to 94.24% (statements)
+   - From 85.71% to 90.06% (statements)
    - All metrics now exceed 80% threshold
-   - Total tests: 16 → 93 tests
+   - Total tests: 16 → 187 tests
+
+6. ✅ **Implemented Framework Leak Detection (v0.2.0)**
+   - Created FrameworkLeakDetector with 10 framework categories
+   - Added FrameworkLeak value object with smart suggestions
+   - Integrated with AnalyzeProject use case
+   - Added CLI output formatting
+   - 28 comprehensive tests with 100% coverage
+   - Supports ORM, Web Framework, HTTP Client, Validation, DI Container, Logger, Cache, Message Queue, Email, Storage
+   - Created bad example for documentation
 
 ---
 

@@ -34,6 +34,14 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Smart exclusions for base classes
 - Helpful fix suggestions
 
+🔌 **Framework Leak Detection**
+- Detects framework-specific imports in domain layer
+- Identifies HTTP frameworks (Express, Fastify, Koa, Hapi, NestJS)
+- Catches ORM/Database leaks (Prisma, TypeORM, Sequelize, Mongoose, Drizzle)
+- Detects external service dependencies (AWS SDK, Firebase, Stripe, Twilio)
+- Maintains clean domain boundaries
+- Prevents infrastructure coupling in business logic
+
 🏗️ **Clean Architecture Enforcement**
 - Built with DDD principles
 - Layered architecture (Domain, Application, Infrastructure)

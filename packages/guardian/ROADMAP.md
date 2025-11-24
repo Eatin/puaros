@@ -71,8 +71,370 @@ async getUser(id: string): Promise<UserResponseDto> {
 
 ---
 
-### Version 0.3.0 - Configuration File Support ⚙️
+### Version 0.3.0 - Dependency Direction Enforcement 🎯
 **Target:** Q1 2026
+**Priority:** HIGH
+
+Enforce correct dependency direction between architectural layers:
+
+```typescript
+// ❌ BAD: Wrong dependency direction
+// domain/entities/User.ts
+import { UserDto } from '../../application/dtos/UserDto'  // VIOLATION!
+
+// domain/services/UserService.ts
+import { PrismaClient } from '../../infrastructure/database'  // VIOLATION!
+
+// ✅ GOOD: Correct dependency direction
+// infrastructure/controllers/UserController.ts
+import { CreateUser } from '../../application/use-cases/CreateUser'  // OK
+import { UserResponseDto } from '../../application/dtos/UserResponseDto'  // OK
+
+// application/use-cases/CreateUser.ts
+import { IUserRepository } from '../../domain/repositories/IUserRepository'  // OK
+import { User } from '../../domain/entities/User'  // OK
+```
+
+**Dependency Rules:**
+- ✅ Domain → никуда (только внутри domain)
+- ✅ Application → Domain (разрешено)
+- ✅ Infrastructure → Application, Domain (разрешено)
+- ✅ Shared → используется везде
+
+**Planned Features:**
+- Detect domain importing from application
+- Detect domain importing from infrastructure
+- Detect application importing from infrastructure
+- Visualize dependency graph
+- Suggest refactoring to fix violations
+- Support for custom layer definitions
+
+---
+
+### Version 0.4.0 - Repository Pattern Validation 📚
+**Target:** Q1 2026
+**Priority:** HIGH
+
+Validate correct implementation of Repository Pattern:
+
+```typescript
+// ❌ BAD: ORM-specific interface
+// domain/repositories/IUserRepository.ts
+interface IUserRepository {
+    findOne(query: { where: { id: string } })  // VIOLATION! Prisma-specific
+    create(data: UserCreateInput)  // VIOLATION! ORM types in domain
+}
+
+// ✅ GOOD: Clean domain interface
+interface IUserRepository {
+    findById(id: UserId): Promise<User | null>
+    save(user: User): Promise<void>
+    delete(id: UserId): Promise<void>
+}
+
+// ❌ BAD: Use Case with concrete implementation
+class CreateUser {
+    constructor(private prisma: PrismaClient) {}  // VIOLATION!
+}
+
+// ✅ GOOD: Use Case with interface
+class CreateUser {
+    constructor(private userRepo: IUserRepository) {}  // OK
+}
+```
+
+**Planned Features:**
+- Check repository interfaces for ORM-specific types
+- Detect concrete repository usage in use cases
+- Detect `new Repository()` in use cases (should use DI)
+- Validate repository methods follow domain language
+- Check for data mapper pattern usage
+
+---
+
+### Version 0.5.0 - Aggregate Boundary Validation 🔒
+**Target:** Q1 2026
+**Priority:** MEDIUM
+
+Validate aggregate boundaries in DDD:
+
+```typescript
+// ❌ BAD: Direct entity reference across aggregates
+// domain/aggregates/order/Order.ts
+import { User } from '../user/User'  // VIOLATION!
+
+class Order {
+    constructor(private user: User) {}  // Cross-aggregate reference
+}
+
+// ✅ GOOD: Reference by ID
+class Order {
+    constructor(private userId: UserId) {}  // OK: Only ID
+}
+
+// ✅ GOOD: Use Value Object
+import { UserId } from '../user/value-objects/UserId'
+
+class Order {
+    constructor(private userId: UserId) {}  // OK
+}
+```
+
+**Planned Features:**
+- Detect entity references across aggregates
+- Allow only ID or Value Object references
+- Detect circular dependencies between aggregates
+- Validate aggregate root access patterns
+- Support for aggregate folder structure
+
+---
+
+### Version 0.6.0 - Anemic Domain Model Detection 🩺
+**Target:** Q2 2026
+**Priority:** MEDIUM
+
+Detect anemic domain models (entities without behavior):
+
+```typescript
+// ❌ BAD: Anemic model (only getters/setters)
+class Order {
+    getStatus() { return this.status }
+    setStatus(status: string) { this.status = status }  // VIOLATION!
+
+    getTotal() { return this.total }
+    setTotal(total: number) { this.total = total }  // VIOLATION!
+}
+
+// ✅ GOOD: Rich domain model
+class Order {
+    public approve(): void {
+        if (!this.canBeApproved()) {
+            throw new CannotApproveOrderError()
+        }
+        this.status = OrderStatus.APPROVED
+        this.events.push(new OrderApprovedEvent(this.id))
+    }
+
+    public calculateTotal(): Money {
+        return this.items.reduce((sum, item) => sum.add(item.price), Money.zero())
+    }
+}
+```
+
+**Planned Features:**
+- Count methods vs properties ratio
+- Detect public setters (anti-pattern in DDD)
+- Check for business logic in entities
+- Warn about entities with only getters/setters
+- Suggest moving logic from services to entities
+
+---
+
+### Version 0.7.0 - Domain Event Usage Validation 📢
+**Target:** Q2 2026
+**Priority:** MEDIUM
+
+Validate proper use of Domain Events:
+
+```typescript
+// ❌ BAD: Direct coupling to infrastructure
+class Order {
+    approve(emailService: EmailService) {  // VIOLATION!
+        this.status = OrderStatus.APPROVED
+        emailService.sendOrderApproved(this.id)  // Direct dependency
+    }
+}
+
+// ✅ GOOD: Domain Events
+class Order {
+    private events: DomainEvent[] = []
+
+    approve() {
+        this.status = OrderStatus.APPROVED
+        this.events.push(new OrderApprovedEvent(this.id, this.userId))
+    }
+
+    getEvents(): DomainEvent[] {
+        return this.events
+    }
+}
+```
+
+**Planned Features:**
+- Detect direct infrastructure calls from entities
+- Validate event publishing pattern
+- Check events inherit from DomainEvent base
+- Verify event handlers in infrastructure
+- Suggest event-driven refactoring
+
+---
+
+### Version 0.8.0 - Value Object Immutability Check 🔐
+**Target:** Q2 2026
+**Priority:** MEDIUM
+
+Ensure Value Objects are immutable:
+
+```typescript
+// ❌ BAD: Mutable Value Object
+class Email {
+    constructor(public value: string) {}  // VIOLATION! public mutable
+
+    setValue(newValue: string) {  // VIOLATION! setter
+        this.value = newValue
+    }
+}
+
+// ✅ GOOD: Immutable Value Object
+class Email {
+    constructor(private readonly value: string) {
+        if (!this.isValid(value)) {
+            throw new InvalidEmailError()
+        }
+    }
+
+    getValue(): string {
+        return this.value
+    }
+
+    equals(other: Email): boolean {
+        return this.value === other.value
+    }
+}
+```
+
+**Planned Features:**
+- Check Value Objects have readonly fields
+- Detect public setters in Value Objects
+- Verify equals() method exists
+- Check constructor validation
+- Validate immutability pattern
+
+---
+
+### Version 0.9.0 - Use Case Single Responsibility 🎯
+**Target:** Q2 2026
+**Priority:** LOW
+
+Enforce Single Responsibility Principle for Use Cases:
+
+```typescript
+// ❌ BAD: Use Case doing too much
+class ManageUser {
+    async createUser() { }
+    async updateUser() { }
+    async deleteUser() { }
+    async sendEmail() { }  // VIOLATION! Mixed responsibilities
+}
+
+// ✅ GOOD: Single responsibility per Use Case
+class CreateUser {
+    async execute(request: CreateUserRequest): Promise<UserResponseDto> {
+        // Only creates user
+    }
+}
+
+class SendWelcomeEmail {
+    async execute(userId: string): Promise<void> {
+        // Only sends email
+    }
+}
+```
+
+**Planned Features:**
+- Check Use Case has single public method (execute)
+- Validate Use Case naming (Verb + Noun)
+- Detect multiple responsibilities
+- Suggest splitting large Use Cases
+
+---
+
+### Version 0.10.0 - Interface Segregation Validation 🔌
+**Target:** Q2 2026
+**Priority:** LOW
+
+Validate Interface Segregation Principle:
+
+```typescript
+// ❌ BAD: Fat Interface
+interface IUserRepository {
+    // CRUD
+    findById(id: string): Promise<User>
+    save(user: User): Promise<void>
+
+    // Analytics - VIOLATION! Mixed concerns
+    getUserStatistics(): Promise<UserStats>
+    getActiveUsersCount(): Promise<number>
+
+    // Export - VIOLATION!
+    exportToCSV(): Promise<string>
+}
+
+// ✅ GOOD: Segregated Interfaces
+interface IUserRepository {
+    findById(id: string): Promise<User>
+    save(user: User): Promise<void>
+}
+
+interface IUserAnalytics {
+    getUserStatistics(userId: string): Promise<UserStats>
+    getActiveUsersCount(): Promise<number>
+}
+
+interface IUserExporter {
+    exportToCSV(users: User[]): Promise<string>
+}
+```
+
+**Planned Features:**
+- Count methods per interface (> 10 = warning)
+- Check method cohesion
+- Detect mixed concerns in interfaces
+- Suggest interface splitting
+
+---
+
+### Version 0.11.0 - Port-Adapter Pattern Validation 🔌
+**Target:** Q2 2026
+**Priority:** MEDIUM
+
+Validate Hexagonal Architecture (Ports & Adapters):
+
+```typescript
+// ❌ BAD: Direct external dependency
+import { TwilioClient } from 'twilio'
+
+class SendNotification {
+    constructor(private twilio: TwilioClient) {}  // VIOLATION!
+}
+
+// ✅ GOOD: Port in application
+interface INotificationPort {
+    sendSMS(phone: string, message: string): Promise<void>
+}
+
+class SendNotification {
+    constructor(private notificationPort: INotificationPort) {}  // OK
+}
+
+// ✅ GOOD: Adapter in infrastructure
+class TwilioAdapter implements INotificationPort {
+    async sendSMS(phone: string, message: string): Promise<void> {
+        await this.twilio.messages.create({ to: phone, body: message })
+    }
+}
+```
+
+**Planned Features:**
+- Check Ports (interfaces) are in application/domain
+- Verify Adapters are in infrastructure
+- Detect external library imports in use cases
+- Validate port-adapter pattern usage
+
+---
+
+### Version 0.12.0 - Configuration File Support ⚙️
+**Target:** Q3 2026
 **Priority:** MEDIUM
 
 Add support for configuration file `.guardianrc`:
@@ -122,119 +484,1159 @@ export default {
 
 ---
 
-### Version 0.4.0 - Pattern Enforcement 🎯
-**Target:** Q2 2026
+### Version 0.13.0 - Command Query Separation (CQS/CQRS) 📝
+**Target:** Q3 2026
 **Priority:** MEDIUM
 
-Enforce common DDD/Clean Architecture patterns:
+Enforce separation between commands and queries:
 
-**Repository Pattern:**
-- Repository interfaces must be in domain
-- Repository implementations must be in infrastructure
-- No DB-specific code in interfaces
+```typescript
+// ❌ BAD: Method returns data AND changes state
+class User {
+    activate(): User {  // VIOLATION!
+        this.status = 'active'
+        return this  // Returns data + changes state
+    }
+}
 
-**Dependency Injection:**
-- Detect `new ConcreteClass()` in use cases
-- Enforce constructor injection
-- Detect service locator anti-pattern
+// ❌ BAD: Use Case name implies both
+class UpdateAndGetUser {  // VIOLATION!
+    async execute(id: string, data: UpdateData): Promise<UserDto> {
+        await this.userRepo.update(id, data)  // Command
+        return await this.userRepo.findById(id)  // Query
+    }
+}
 
-**Primitive Obsession:**
-- Detect primitives where Value Objects should be used
-- Common candidates: email, phone, money, percentage, URL
+// ✅ GOOD: Commands and Queries separated
+class User {
+    activate(): void {  // Command: changes state, returns void
+        this.status = 'active'
+        this.events.push(new UserActivatedEvent(this.id))
+    }
+
+    isActive(): boolean {  // Query: returns data, no state change
+        return this.status === 'active'
+    }
+}
+
+// ✅ GOOD: Separate Use Cases
+class ActivateUser {  // Command
+    async execute(id: string): Promise<void> {
+        const user = await this.userRepo.findById(id)
+        user.activate()
+        await this.userRepo.save(user)
+    }
+}
+
+class GetUser {  // Query
+    async execute(id: string): Promise<UserDto> {
+        const user = await this.userRepo.findById(id)
+        return UserMapper.toDto(user)
+    }
+}
+```
+
+**Planned Features:**
+- Detect methods that both change state and return data
+- Check Use Case names for CQS violations (UpdateAndGet, SaveAndReturn)
+- Validate Command Use Cases return void
+- Validate Query Use Cases don't modify state
+- Suggest splitting into Command and Query
+
+---
+
+### Version 0.14.0 - Factory Pattern Validation 🏭
+**Target:** Q3 2026
+**Priority:** LOW
+
+Validate proper use of Factory Pattern:
+
+```typescript
+// ❌ BAD: Complex logic in constructor
+class Order {
+    constructor(userId: string, items: any[]) {  // VIOLATION!
+        this.id = uuid()
+        this.userId = userId
+        this.status = 'pending'
+        this.createdAt = new Date()
+
+        // Complex business logic in constructor
+        this.items = items.map(item => {
+            if (!item.price || item.price < 0) {
+                throw new Error('Invalid item')
+            }
+            return new OrderItem(item)
+        })
+
+        this.total = this.calculateTotal()
+
+        if (this.total > 10000) {
+            this.requiresApproval = true
+        }
+    }
+}
+
+// ✅ GOOD: Factory with separate concerns
+class OrderFactory {
+    static create(userId: string, items: CreateOrderItem[]): Order {
+        this.validateItems(items)
+
+        const orderItems = items.map(item =>
+            OrderItem.create(item.productId, item.quantity, item.price)
+        )
+
+        const order = new Order(
+            OrderId.generate(),
+            UserId.from(userId),
+            orderItems,
+            OrderStatus.PENDING
+        )
+
+        if (order.getTotal().greaterThan(Money.from(10000))) {
+            order.markAsRequiringApproval()
+        }
+
+        return order
+    }
+
+    static reconstitute(data: OrderData): Order {
+        return new Order(
+            OrderId.from(data.id),
+            UserId.from(data.userId),
+            data.items,
+            OrderStatus.from(data.status)
+        )
+    }
+}
+
+class Order {
+    constructor(
+        private readonly id: OrderId,
+        private readonly userId: UserId,
+        private items: OrderItem[],
+        private status: OrderStatus
+    ) {}  // Simple constructor
+}
+```
+
+**Planned Features:**
+- Detect complex logic in entity constructors
+- Check for `new Entity()` calls in use cases
+- Validate Factory classes exist for complex aggregates
+- Verify Factory has `create()` and `reconstitute()` methods
+- Suggest extracting complex construction to Factory
+
+---
+
+### Version 0.15.0 - Specification Pattern Detection 🔍
+**Target:** Q3 2026
+**Priority:** MEDIUM
+
+Validate use of Specification Pattern for business rules:
+
+```typescript
+// ❌ BAD: Business rules scattered in use case
+class ApproveOrder {
+    async execute(orderId: string) {
+        const order = await this.orderRepo.findById(orderId)
+
+        // VIOLATION! Business rules in use case
+        if (order.total < 100 || order.total > 10000) {
+            throw new Error('Order total out of range')
+        }
+
+        if (order.items.length === 0) {
+            throw new Error('Order has no items')
+        }
+
+        if (order.status !== 'pending') {
+            throw new Error('Order is not pending')
+        }
+
+        order.approve()
+        await this.orderRepo.save(order)
+    }
+}
+
+// ✅ GOOD: Specification Pattern
+class OrderCanBeApprovedSpec implements ISpecification<Order> {
+    isSatisfiedBy(order: Order): boolean {
+        return (
+            new OrderHasItemsSpec().isSatisfiedBy(order) &&
+            new OrderTotalInRangeSpec(100, 10000).isSatisfiedBy(order) &&
+            new OrderIsPendingSpec().isSatisfiedBy(order)
+        )
+    }
+
+    whyNotSatisfied(order: Order): string {
+        if (!new OrderHasItemsSpec().isSatisfiedBy(order)) {
+            return 'Order must have at least one item'
+        }
+        // ...
+    }
+}
+
+class ApproveOrder {
+    async execute(orderId: string) {
+        const order = await this.orderRepo.findById(orderId)
+
+        const spec = new OrderCanBeApprovedSpec()
+        if (!spec.isSatisfiedBy(order)) {
+            throw new Error(spec.whyNotSatisfied(order))
+        }
+
+        order.approve()
+        await this.userRepo.save(order)
+    }
+}
+```
+
+**Planned Features:**
+- Detect complex business rules in use cases
+- Check for multiple inline conditions
+- Validate Specification classes in domain
+- Verify `isSatisfiedBy()` and `whyNotSatisfied()` methods
+- Suggest extracting rules to Specifications
+
+---
+
+### Version 0.16.0 - Layered Service Anti-pattern Detection ⚠️
+**Target:** Q3 2026
+**Priority:** MEDIUM
+
+Detect Service layers instead of rich domain models:
+
+```typescript
+// ❌ BAD: Anemic entity + Service layer
+class Order {  // VIOLATION! Only data
+    id: string
+    total: number
+    status: string
+    items: OrderItem[]
+}
+
+class OrderService {  // VIOLATION! All logic in service
+    approve(order: Order): void {
+        if (order.status !== 'pending') {
+            throw new Error('Cannot approve')
+        }
+        order.status = 'approved'
+    }
+
+    calculateTotal(order: Order): number {
+        return order.items.reduce((sum, item) => sum + item.price, 0)
+    }
+
+    addItem(order: Order, item: OrderItem): void {
+        order.items.push(item)
+        order.total = this.calculateTotal(order)
+    }
+}
+
+// ✅ GOOD: Rich domain model
+class Order {
+    private readonly id: OrderId
+    private status: OrderStatus
+    private items: OrderItem[]
+
+    public approve(): void {
+        if (!this.isPending()) {
+            throw new CannotApproveOrderError()
+        }
+        this.status = OrderStatus.APPROVED
+        this.events.push(new OrderApprovedEvent(this.id))
+    }
+
+    public getTotal(): Money {
+        return this.items.reduce(
+            (sum, item) => sum.add(item.getPrice()),
+            Money.zero()
+        )
+    }
+
+    public addItem(item: OrderItem): void {
+        this.items.push(item)
+    }
+}
+
+// Domain Service only for multi-entity operations
+class OrderService {
+    transferItemsBetweenOrders(from: Order, to: Order, itemIds: string[]): void {
+        const items = from.removeItems(itemIds)
+        to.addItems(items)
+    }
+}
+```
+
+**Planned Features:**
+- Detect service methods operating on single entity
+- Check entity-to-method ratio in services
+- Validate entities have behavior methods
+- Suggest moving service methods to entities
+- Allow services only for multi-entity operations
+
+---
+
+### Version 0.17.0 - Bounded Context Leak Detection 🚧
+**Target:** Q3 2026
+**Priority:** LOW
+
+Detect leaks between Bounded Contexts:
+
+```typescript
+// ❌ BAD: Direct dependency between contexts
+// contexts/orders/domain/Order.ts
+import { User } from '../../../users/domain/User'  // VIOLATION!
+import { Product } from '../../../catalog/domain/Product'  // VIOLATION!
+
+class Order {
+    constructor(
+        private user: User,  // VIOLATION!
+        private products: Product[]  // VIOLATION!
+    ) {}
+}
+
+// ✅ GOOD: Independent contexts
+// contexts/orders/domain/Order.ts
+import { UserId } from './value-objects/UserId'
+import { ProductId } from './value-objects/ProductId'
+
+class Order {
+    constructor(
+        private userId: UserId,  // OK: only ID
+        private items: OrderItem[]
+    ) {}
+}
+
+class OrderItem {
+    constructor(
+        private productId: ProductId,
+        private productName: string,  // OK: denormalized data
+        private price: Money
+    ) {}
+}
+
+// ✅ GOOD: Integration via events
+// contexts/catalog/domain/events/ProductPriceChangedEvent.ts
+class ProductPriceChangedEvent {
+    constructor(
+        public readonly productId: string,
+        public readonly newPrice: number
+    ) {}
+}
+
+// contexts/orders/application/handlers/ProductPriceChangedHandler.ts
+class ProductPriceChangedHandler {
+    async handle(event: ProductPriceChangedEvent) {
+        await this.orderItemRepo.updatePrice(event.productId, event.newPrice)
+    }
+}
+```
+
+**Planned Features:**
+- Detect entity imports across contexts
+- Check for context folder structure
+- Validate only ID references between contexts
+- Verify event-based integration
+- Suggest Anti-Corruption Layer
+
+---
+
+### Version 0.18.0 - Transaction Script vs Domain Model Detection 📜
+**Target:** Q3 2026
+**Priority:** LOW
+
+Detect Transaction Script anti-pattern:
+
+```typescript
+// ❌ BAD: Transaction Script (procedural)
+class ProcessOrder {
+    async execute(orderId: string) {  // VIOLATION! All logic in use case
+        const order = await this.orderRepo.findById(orderId)
+
+        let total = 0
+        for (const item of order.items) {
+            total += item.price * item.quantity
+        }
+
+        if (total > 100) {
+            total = total * 0.9
+        }
+
+        order.total = total
+        order.status = 'processed'
+
+        await this.orderRepo.save(order)
+        await this.emailService.send(order.userId, 'Order processed')
+        await this.inventoryService.reserve(order.items)
+    }
+}
+
+// ✅ GOOD: Domain Model (OOP)
+class ProcessOrder {
+    async execute(orderId: string) {
+        const order = await this.orderRepo.findById(orderId)
+
+        order.process()  // Business logic in domain
+
+        await this.orderRepo.save(order)
+        await this.eventDispatcher.dispatch(order.getEvents())
+    }
+}
+
+class Order {
+    process(): void {
+        this.applyDiscountIfEligible()
+        this.markAsProcessed()
+        this.events.push(new OrderProcessedEvent(this.id, this.userId, this.items))
+    }
+
+    private applyDiscountIfEligible(): void {
+        if (new OrderEligibleForDiscountSpec().isSatisfiedBy(this)) {
+            const discount = new DiscountCalculator().calculate(this)
+            this.applyDiscount(discount)
+        }
+    }
+}
+```
+
+**Planned Features:**
+- Detect procedural logic in use cases
+- Check use case length (> 30-50 lines = warning)
+- Validate business logic is in domain
+- Detect loops and conditions in use cases
+- Suggest moving logic to domain entities
+
+---
+
+### Version 0.19.0 - Persistence Ignorance Validation 💾
+**Target:** Q3 2026
+**Priority:** MEDIUM
+
+Validate domain doesn't know about persistence:
+
+```typescript
+// ❌ BAD: Domain entity with ORM decorators
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm'
+
+@Entity('users')  // VIOLATION!
+class User {
+    @PrimaryGeneratedColumn()  // VIOLATION!
+    id: string
+
+    @Column()  // VIOLATION!
+    email: string
+
+    @BeforeInsert()  // VIOLATION! ORM lifecycle
+    setCreatedAt() {
+        this.createdAt = new Date()
+    }
+}
+
+// ✅ GOOD: Clean domain entity
+class User {
+    private readonly id: UserId
+    private email: Email
+    private readonly createdAt: Date
+
+    constructor(id: UserId, email: Email) {
+        this.id = id
+        this.email = email
+        this.createdAt = new Date()
+    }
+
+    changeEmail(newEmail: Email): void {
+        if (!this.canChangeEmail()) {
+            throw new Error('Cannot change email')
+        }
+        this.email = newEmail
+        this.events.push(new EmailChangedEvent(this.id, newEmail))
+    }
+}
+
+// ✅ GOOD: ORM mapping in infrastructure
+// infrastructure/persistence/typeorm/entities/UserEntity.ts
+@Entity('users')
+class UserEntity {
+    @PrimaryColumn()
+    id: string
+
+    @Column()
+    email: string
+
+    @Column({ type: 'timestamp' })
+    createdAt: Date
+}
+
+// infrastructure/persistence/typeorm/mappers/UserMapper.ts
+class UserEntityMapper {
+    toDomain(entity: UserEntity): User {
+        return new User(
+            UserId.from(entity.id),
+            Email.from(entity.email)
+        )
+    }
+
+    toPersistence(user: User): UserEntity {
+        const entity = new UserEntity()
+        entity.id = user.getId().getValue()
+        entity.email = user.getEmail().getValue()
+        return entity
+    }
+}
+```
+
+**Planned Features:**
+- Detect ORM decorators in domain entities
+- Check for ORM library imports in domain
+- Validate no persistence lifecycle methods
+- Verify mapping layer in infrastructure
+- Suggest persistence ignorance pattern
+
+---
+
+### Version 0.20.0 - Null Object Pattern Detection 🎭
+**Target:** Q3 2026
+**Priority:** LOW
+
+Detect missing Null Object pattern:
+
+```typescript
+// ❌ BAD: Multiple null checks
+class ProcessOrder {
+    async execute(orderId: string) {
+        const order = await this.orderRepo.findById(orderId)
+
+        if (order === null) {  // VIOLATION!
+            throw new Error('Order not found')
+        }
+
+        const discount = await this.discountService.findDiscount(order.userId)
+        if (discount !== null) {  // VIOLATION!
+            order.applyDiscount(discount)
+        }
+
+        const customer = await this.customerRepo.findById(order.userId)
+        if (customer !== null && customer.isPremium()) {  // VIOLATION!
+            order.applyPremiumBenefits()
+        }
+    }
+}
+
+// ✅ GOOD: Null Object Pattern
+class Discount {
+    constructor(
+        private readonly percentage: number,
+        private readonly code: string
+    ) {}
+
+    apply(amount: Money): Money {
+        return amount.multiply(1 - this.percentage / 100)
+    }
+}
+
+class NullDiscount extends Discount {
+    constructor() {
+        super(0, 'NONE')
+    }
+
+    apply(amount: Money): Money {
+        return amount
+    }
+
+    isNull(): boolean {
+        return true
+    }
+}
+
+class ProcessOrder {
+    async execute(orderId: string) {
+        const order = await this.orderRepo.findById(orderId)
+
+        if (order.isNull()) {  // Single check
+            throw new OrderNotFoundError(orderId)
+        }
+
+        const discount = await this.discountService.findDiscount(order.userId)
+        order.applyDiscount(discount)  // Works with NullDiscount
+
+        const customer = await this.customerRepo.findById(order.userId)
+        if (customer.isPremium()) {  // NullCustomer.isPremium() returns false
+            order.applyPremiumBenefits()
+        }
+    }
+}
+```
+
+**Planned Features:**
+- Count null checks in use cases
+- Suggest Null Object pattern for frequent checks
+- Validate Null Object classes inherit from base
+- Check for `isNull()` method
+- Detect repositories returning null vs Null Object
+
+---
+
+### Version 0.21.0 - Primitive Obsession in Methods 🔢
+**Target:** Q3 2026
+**Priority:** MEDIUM
+
+Detect primitives instead of Value Objects in signatures:
+
+```typescript
+// ❌ BAD: Too many primitives
+class Order {
+    constructor(
+        id: string,  // VIOLATION!
+        userId: string,  // VIOLATION!
+        customerEmail: string,  // VIOLATION!
+        total: number,  // VIOLATION!
+        currency: string,  // VIOLATION!
+        createdAt: Date
+    ) {}
+
+    applyDiscount(percentage: number): void {}  // VIOLATION!
+
+    addItem(productId: string, quantity: number, price: number): void {}  // VIOLATION!
+
+    setShippingAddress(
+        street: string,
+        city: string,
+        zipCode: string,
+        country: string
+    ): void {}  // VIOLATION!
+}
+
+// ✅ GOOD: Value Objects
+class Order {
+    constructor(
+        private readonly id: OrderId,
+        private readonly userId: UserId,
+        private readonly customer: Customer,
+        private total: Money,
+        private readonly createdAt: Date
+    ) {}
+
+    applyDiscount(discount: Discount): void {
+        this.total = discount.apply(this.total)
+    }
+
+    addItem(item: OrderItem): void {
+        this.items.push(item)
+        this.recalculateTotal()
+    }
+
+    setShippingAddress(address: Address): void {
+        if (!address.isValid()) {
+            throw new InvalidAddressError()
+        }
+        this.shippingAddress = address
+    }
+}
+```
+
+**Planned Features:**
+- Detect methods with > 3 primitive parameters
+- Check for common Value Object candidates (email, phone, money, address)
+- Validate parameter ordering issues
 - Suggest creating Value Objects
-
-**God Classes:**
-- Classes with > N methods (configurable)
-- Classes with > M lines (configurable)
-- Suggest splitting into smaller classes
+- Detect missing validation for primitives
 
 ---
 
-### Version 0.5.0 - Output Formats 📊
-**Target:** Q2 2026
-**Priority:** LOW
+### Version 0.22.0 - Service Locator Anti-pattern 🔍
+**Target:** Q4 2026
+**Priority:** MEDIUM
 
-Multiple output format support for better integration:
+Detect Service Locator instead of Dependency Injection:
 
-```bash
-# JSON for CI/CD integrations
-guardian check ./src --format json
+```typescript
+// ❌ BAD: Service Locator
+class ServiceLocator {  // VIOLATION! Anti-pattern
+    private static services: Map<string, any> = new Map()
 
-# HTML report for dashboards
-guardian check ./src --format html --output report.html
+    static register<T>(name: string, service: T): void {
+        this.services.set(name, service)
+    }
 
-# JUnit XML for CI systems
-guardian check ./src --format junit
+    static get<T>(name: string): T {
+        return this.services.get(name) as T
+    }
+}
 
-# SARIF for GitHub Code Scanning
-guardian check ./src --format sarif
+class CreateUser {
+    async execute(data: CreateUserRequest) {
+        // VIOLATION! Hidden dependencies
+        const userRepo = ServiceLocator.get<IUserRepository>('userRepository')
+        const emailService = ServiceLocator.get<IEmailService>('emailService')
+        const logger = ServiceLocator.get<ILogger>('logger')
 
-# Markdown for PR comments
-guardian check ./src --format markdown
+        const user = User.create(data.email, data.name)
+        await userRepo.save(user)
+        await emailService.sendWelcome(user.email)
+        logger.info('User created')
+    }
+}
+
+// ✅ GOOD: Dependency Injection
+class CreateUser {
+    constructor(
+        private readonly userRepo: IUserRepository,
+        private readonly emailService: IEmailService,
+        private readonly logger: ILogger
+    ) {}  // Explicit dependencies
+
+    async execute(data: CreateUserRequest) {
+        const user = User.create(data.email, data.name)
+        await this.userRepo.save(user)
+        await this.emailService.sendWelcome(user.email)
+        this.logger.info('User created')
+    }
+}
 ```
 
 **Planned Features:**
-- JSON output format
-- HTML report generation
-- JUnit XML format
-- SARIF format (GitHub Code Scanning)
-- Markdown format (for PR comments)
-- Custom templates support
+- Detect global ServiceLocator/Registry classes
+- Check for `.get()` calls for dependencies
+- Validate constructor injection
+- Detect hidden dependencies
+- Suggest DI container usage
 
 ---
 
-### Version 0.6.0 - Auto-Fix Capabilities 🔧
-**Target:** Q3 2026
+### Version 0.23.0 - Double Dispatch Pattern Validation 🎯
+**Target:** Q4 2026
 **Priority:** LOW
 
-Automatic refactoring and fixes:
+Validate Double Dispatch for polymorphism:
 
-```bash
-# Interactive mode - choose fixes
-guardian fix ./src --interactive
+```typescript
+// ❌ BAD: Type checking instead of polymorphism
+class CalculateShippingCost {
+    execute(order: Order): Money {
+        let cost = Money.zero()
 
-# Auto-fix all issues
-guardian fix ./src --auto
+        // VIOLATION! Type checking
+        for (const item of order.items) {
+            if (item.type === 'physical') {
+                cost = cost.add(this.calculatePhysicalShipping(item))
+            } else if (item.type === 'digital') {
+                cost = cost.add(Money.zero())
+            } else if (item.type === 'subscription') {
+                cost = cost.add(this.calculateSubscriptionShipping(item))
+            }
+        }
 
-# Dry run - show what would be fixed
-guardian fix ./src --dry-run
-```
+        return cost
+    }
+}
 
-**Planned Auto-fixes:**
-1. Extract hardcoded values to constants
-2. Create Value Objects from primitives
-3. Generate repository interfaces
-4. Create DTOs and mappers
-5. Fix naming convention violations
+// ✅ GOOD: Double Dispatch (Visitor Pattern)
+abstract class OrderItem {
+    abstract accept(visitor: IOrderItemVisitor): void
+}
 
----
+class PhysicalItem extends OrderItem {
+    accept(visitor: IOrderItemVisitor): void {
+        visitor.visitPhysicalItem(this)
+    }
+}
 
-### Version 0.7.0 - Watch Mode & Git Integration 🔍
-**Target:** Q3 2026
-**Priority:** LOW
+class DigitalItem extends OrderItem {
+    accept(visitor: IOrderItemVisitor): void {
+        visitor.visitDigitalItem(this)
+    }
+}
 
-Real-time feedback and git integration:
+interface IOrderItemVisitor {
+    visitPhysicalItem(item: PhysicalItem): void
+    visitDigitalItem(item: DigitalItem): void
+}
 
-```bash
-# Watch mode - analyze on file changes
-guardian watch ./src
+class ShippingCostCalculator implements IOrderItemVisitor {
+    private cost: Money = Money.zero()
 
-# Only check changed files (git diff)
-guardian check --git-diff
+    calculate(items: OrderItem[]): Money {
+        this.cost = Money.zero()
+        items.forEach(item => item.accept(this))
+        return this.cost
+    }
 
-# Check files staged for commit
-guardian check --staged
+    visitPhysicalItem(item: PhysicalItem): void {
+        this.cost = this.cost.add(item.getWeight().multiply(Money.from(2)))
+    }
 
-# Check files in PR
-guardian check --pr
+    visitDigitalItem(item: DigitalItem): void {
+        // Free shipping
+    }
+}
 ```
 
 **Planned Features:**
-- Watch mode for real-time analysis
-- Git integration (check only changed files)
-- Staged files checking
-- PR file checking
-- Pre-commit hook helper
+- Detect frequent `instanceof` or type checking
+- Check for long if-else/switch by type
+- Suggest Visitor pattern for complex logic
+- Validate polymorphism usage
+- Detect missing abstraction opportunities
+
+---
+
+### Version 0.24.0 - Entity Identity Validation 🆔
+**Target:** Q4 2026
+**Priority:** MEDIUM
+
+Validate proper entity identity handling:
+
+```typescript
+// ❌ BAD: Mutable identity
+class User {
+    constructor(
+        public id: string,  // VIOLATION! public mutable
+        private email: string
+    ) {}
+
+    equals(other: User): boolean {
+        return this === other  // VIOLATION! Reference comparison
+    }
+}
+
+class UpdateUser {
+    async execute(userId: string, email: string) {
+        const user = await this.userRepo.findById(userId)
+
+        user.id = uuid()  // VIOLATION! Changing identity
+        user.email = email
+
+        await this.userRepo.save(user)
+    }
+}
+
+// ✅ GOOD: Immutable identity
+class User {
+    constructor(
+        private readonly id: UserId,  // OK: readonly
+        private email: Email
+    ) {}
+
+    getId(): UserId {
+        return this.id
+    }
+
+    equals(other: User): boolean {  // OK: ID comparison
+        if (!other) return false
+        if (this === other) return true
+        return this.id.equals(other.id)
+    }
+
+    changeEmail(newEmail: Email): void {
+        if (this.email.equals(newEmail)) return
+
+        this.email = newEmail
+        this.events.push(new EmailChangedEvent(this.id, newEmail))
+    }
+}
+
+class UserId {
+    private readonly value: string
+
+    private constructor(value: string) {
+        if (!this.isValid(value)) {
+            throw new Error('Invalid user ID')
+        }
+        this.value = value
+    }
+
+    static generate(): UserId {
+        return new UserId(uuid())
+    }
+
+    static from(value: string): UserId {
+        return new UserId(value)
+    }
+
+    getValue(): string {
+        return this.value
+    }
+
+    equals(other: UserId): boolean {
+        if (!other) return false
+        return this.value === other.getValue()
+    }
+}
+```
+
+**Planned Features:**
+- Detect public mutable ID fields
+- Validate ID is Value Object
+- Check for `equals()` method implementation
+- Detect ID changes after construction
+- Validate ID-based equality
+
+---
+
+### Version 0.25.0 - Saga Pattern Detection 🔄
+**Target:** Q4 2026
+**Priority:** LOW
+
+Detect missing Saga for distributed transactions:
+
+```typescript
+// ❌ BAD: No compensating transactions
+class PlaceOrder {
+    async execute(orderData: PlaceOrderRequest) {
+        // VIOLATION! No compensation
+        const order = await this.orderRepo.create(orderData)
+
+        try {
+            await this.paymentService.charge(orderData.paymentInfo)
+        } catch (error) {
+            await this.orderRepo.delete(order.id)
+            throw error
+        }
+
+        try {
+            await this.inventoryService.reserve(order.items)
+        } catch (error) {
+            // VIOLATION! Payment charged but inventory failed
+            await this.orderRepo.delete(order.id)
+            // How to refund payment?
+            throw error
+        }
+    }
+}
+
+// ✅ GOOD: Saga Pattern
+class PlaceOrderSaga {
+    private steps: SagaStep[] = []
+
+    constructor(
+        private readonly orderRepo: IOrderRepository,
+        private readonly paymentService: IPaymentService,
+        private readonly inventoryService: IInventoryService
+    ) {
+        this.initializeSteps()
+    }
+
+    private initializeSteps(): void {
+        this.steps = [
+            new CreateOrderStep(this.orderRepo),
+            new ChargePaymentStep(this.paymentService),
+            new ReserveInventoryStep(this.inventoryService)
+        ]
+    }
+
+    async execute(orderData: PlaceOrderRequest): Promise<Order> {
+        const context = new SagaContext(orderData)
+        const executedSteps: SagaStep[] = []
+
+        try {
+            for (const step of this.steps) {
+                await step.execute(context)
+                executedSteps.push(step)
+            }
+
+            return context.getOrder()
+        } catch (error) {
+            await this.compensate(executedSteps, context)
+            throw error
+        }
+    }
+
+    private async compensate(
+        executedSteps: SagaStep[],
+        context: SagaContext
+    ): Promise<void> {
+        for (const step of executedSteps.reverse()) {
+            try {
+                await step.compensate(context)
+            } catch (error) {
+                this.logger.error(`Compensation failed for ${step.name}`, error)
+            }
+        }
+    }
+}
+
+abstract class SagaStep {
+    abstract readonly name: string
+    abstract execute(context: SagaContext): Promise<void>
+    abstract compensate(context: SagaContext): Promise<void>
+}
+```
+
+**Planned Features:**
+- Detect multiple external calls without compensation
+- Check for Saga implementation
+- Validate compensating transactions
+- Detect incomplete rollback logic
+- Suggest Saga pattern for distributed operations
+
+---
+
+### Version 0.26.0 - Anti-Corruption Layer Detection 🛡️
+**Target:** Q4 2026
+**Priority:** MEDIUM
+
+Validate ACL for legacy system integration:
+
+```typescript
+// ❌ BAD: Direct legacy integration
+class SyncOrderToLegacy {
+    constructor(
+        private legacyApi: LegacySystemAPI  // VIOLATION!
+    ) {}
+
+    async execute(order: Order) {
+        // VIOLATION! Domain adapts to legacy
+        const legacyOrder = {
+            ord_id: order.id,
+            cust_num: order.customerId,
+            ord_amt: order.total * 100,  // Kopecks
+            ord_sts: this.mapStatus(order.status),
+            itms: order.items.map(i => ({
+                prd_cd: i.productId,
+                qty: i.quantity,
+                prc: i.price * 100
+            }))
+        }
+
+        await this.legacyApi.createOrder(legacyOrder)
+    }
+}
+
+// ✅ GOOD: Anti-Corruption Layer
+class LegacyOrderAdapter implements IOrderSyncPort {
+    constructor(
+        private readonly legacyApi: LegacySystemAPI,
+        private readonly translator: LegacyOrderTranslator
+    ) {}
+
+    async syncOrder(order: Order): Promise<void> {
+        const legacyModel = this.translator.toLegacy(order)
+        await this.legacyApi.createOrder(legacyModel)
+    }
+
+    async fetchOrder(orderId: string): Promise<Order> {
+        const legacyOrder = await this.legacyApi.getOrder(orderId)
+        return this.translator.toDomain(legacyOrder)
+    }
+}
+
+class LegacyOrderTranslator {
+    toLegacy(order: Order): LegacyOrderModel {
+        return {
+            ord_id: order.getId().getValue(),
+            cust_num: order.getCustomerId().getValue(),
+            ord_amt: this.convertToLegacyAmount(order.getTotal()),
+            ord_sts: this.mapDomainStatusToLegacy(order.getStatus()),
+            itms: this.translateItems(order.getItems())
+        }
+    }
+
+    toDomain(legacyOrder: LegacyOrderModel): Order {
+        return Order.reconstitute(
+            OrderId.from(legacyOrder.ord_id),
+            CustomerId.from(legacyOrder.cust_num),
+            this.convertFromLegacyAmount(legacyOrder.ord_amt),
+            this.mapLegacyStatusToDomain(legacyOrder.ord_sts),
+            this.translateItemsToDomain(legacyOrder.itms)
+        )
+    }
+}
+
+interface IOrderSyncPort {
+    syncOrder(order: Order): Promise<void>
+    fetchOrder(orderId: string): Promise<Order>
+}
+```
+
+**Planned Features:**
+- Detect direct legacy library imports
+- Check for domain adaptation to external APIs
+- Validate translator/adapter layer exists
+- Detect legacy types in domain code
+- Suggest Anti-Corruption Layer pattern
+
+---
+
+### Version 0.27.0 - Ubiquitous Language Validation 📖
+**Target:** Q4 2026
+**Priority:** HIGH
+
+Validate consistent domain language usage:
+
+```typescript
+// ❌ BAD: Inconsistent terminology
+class User {  // customer, user, client, or account?
+    private customerId: string
+}
+
+class Order {
+    private clientId: string  // Different term!
+    private purchaseDate: Date  // purchase or order?
+}
+
+class RegisterClient {  // Register, Create, or SignUp?
+    async execute(data: SignUpRequest) {  // Inconsistent!
+        const account = new User(data)  // Another term!
+        await this.userRepo.save(account)
+    }
+}
+
+class CustomerController {  // Yet another term!
+    async register(req: Request) {
+        await this.registerClient.execute(req.body)
+    }
+}
+
+// ✅ GOOD: Ubiquitous Language
+class Customer {  // Agreed term: Customer
+    private readonly customerId: CustomerId
+    private readonly registrationDate: Date
+}
+
+class Order {
+    private readonly customerId: CustomerId  // Consistent: Customer
+    private readonly orderedAt: Date  // Consistent: ordered
+}
+
+class RegisterCustomer {  // Consistent: Register + Customer
+    async execute(request: RegisterCustomerRequest) {
+        const customer = Customer.register(
+            Email.from(request.email),
+            CustomerName.from(request.name)
+        )
+
+        await this.customerRepo.save(customer)
+
+        return RegisterCustomerResponse.from(customer)
+    }
+}
+
+class CustomerController {  // Consistent: Customer
+    async register(req: Request) {
+        const response = await this.registerCustomer.execute(req.body)
+        return res.json(response)
+    }
+}
+
+/**
+ * Ubiquitous Language Dictionary:
+ *
+ * - Customer: Person who can place orders (NOT user, client, account)
+ * - Register: Create new customer account (NOT signup, create)
+ * - Order: Purchase request (NOT purchase, cart)
+ * - OrderedAt: When order was placed (NOT purchaseDate, createdAt)
+ * - OrderItem: Individual item in order (NOT lineItem, product)
+ */
+```
+
+**Planned Features:**
+- Detect synonyms for same concepts (User/Customer/Client)
+- Check inconsistent verbs (Create/Register/SignUp)
+- Validate business terms vs technical terms
+- Require Ubiquitous Language glossary
+- Check naming consistency across layers
+- Suggest standardized terminology
 
 ---
 
@@ -344,4 +1746,4 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 ---
 
 **Last Updated:** 2025-11-24
-**Current Version:** 0.1.0
+**Current Version:** 0.2.0

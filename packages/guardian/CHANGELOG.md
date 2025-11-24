@@ -5,6 +5,47 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-11-24
+
+### Added
+
+**🔌 Framework Leak Detection**
+
+Major new feature to detect framework-specific imports in domain layer, ensuring Clean Architecture compliance.
+
+- ✅ **Framework Leak Detector**
+  - Detects 250+ framework patterns across 12 categories
+  - HTTP frameworks: Express, Fastify, Koa, Hapi, NestJS, etc.
+  - ORMs/Databases: Prisma, TypeORM, Sequelize, Mongoose, Drizzle, etc.
+  - Loggers: Winston, Pino, Bunyan, Log4js, etc.
+  - Caches: Redis, IORedis, Memcached, etc.
+  - Message Queues: Bull, BullMQ, KafkaJS, RabbitMQ, etc.
+  - And 7 more categories (HTTP clients, validation, DI, email, storage, testing, templates)
+
+- ✅ **Smart Violation Reporting**
+  - Framework type categorization
+  - Detailed suggestions for proper abstraction
+  - CLI output with severity indicators
+  - Integration with existing violation pipeline
+
+- ✅ **Comprehensive Test Coverage**
+  - 35 new tests for framework leak detection
+  - 100% coverage of detection logic
+  - Examples for all major framework types
+
+- ✅ **Documentation & Examples**
+  - New bad architecture examples showing framework leaks
+  - Updated README with framework leak detection section
+  - Integration guides for preventing framework coupling
+
+### Changed
+
+- Updated test count: 159 → 194 tests across 7 files
+- Updated examples: 36 → 38 files (29 good + 9 bad)
+- CLI now reports 5 types of violations (added framework leaks)
+
+---
+
 ## [0.1.0] - 2025-11-24
 
 ### Added

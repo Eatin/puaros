@@ -72,6 +72,15 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Prevents "new Repository()" anti-pattern
 - 📚 *Based on: Martin Fowler's Repository Pattern, DDD (Evans 2003)* → [Why?](./docs/WHY.md#repository-pattern)
 
+🔒 **Aggregate Boundary Validation** ✨ NEW
+- Detects direct entity references across DDD aggregates
+- Enforces reference-by-ID or Value Object pattern
+- Prevents tight coupling between aggregates
+- Supports multiple folder structures (domain/aggregates/*, domain/*, domain/entities/*)
+- Filters allowed imports (value-objects, events, repositories, services)
+- Critical severity for maintaining aggregate independence
+- 📚 *Based on: Domain-Driven Design (Evans 2003), Implementing DDD (Vernon 2013)* → [Why?](./docs/WHY.md#aggregate-boundaries)
+
 🏗️ **Clean Architecture Enforcement**
 - Built with DDD principles
 - Layered architecture (Domain, Application, Infrastructure)

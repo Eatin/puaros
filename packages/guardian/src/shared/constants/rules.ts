@@ -10,6 +10,7 @@ export const RULES = {
     ENTITY_EXPOSURE: "entity-exposure",
     DEPENDENCY_DIRECTION: "dependency-direction",
     REPOSITORY_PATTERN: "repository-pattern",
+    AGGREGATE_BOUNDARY: "aggregate-boundary",
 } as const
 
 /**

@@ -155,6 +155,7 @@ program
                 entityExposureViolations,
                 dependencyDirectionViolations,
                 repositoryPatternViolations,
+                aggregateBoundaryViolations,
             } = result
 
             const minSeverity: SeverityLevel | undefined = options.onlyCritical
@@ -183,6 +184,10 @@ program
                 )
                 repositoryPatternViolations = filterBySeverity(
                     repositoryPatternViolations,
+                    minSeverity,
+                )
+                aggregateBoundaryViolations = filterBySeverity(
+                    aggregateBoundaryViolations,
                     minSeverity,
                 )
 
@@ -374,6 +379,35 @@ program
                 )
             }
 
+            // Aggregate boundary violations
+            if (options.architecture && aggregateBoundaryViolations.length > 0) {
+                console.log(
+                    `\n🔒 Found ${String(aggregateBoundaryViolations.length)} aggregate boundary violation(s)`,
+                )
+
+                displayGroupedViolations(
+                    aggregateBoundaryViolations,
+                    (ab, index) => {
+                        const location = ab.line ? `${ab.file}:${String(ab.line)}` : ab.file
+                        console.log(`${String(index + 1)}. ${location}`)
+                        console.log(`   Severity: ${SEVERITY_LABELS[ab.severity]}`)
+                        console.log(`   From Aggregate: ${ab.fromAggregate}`)
+                        console.log(`   To Aggregate: ${ab.toAggregate}`)
+                        console.log(`   Entity: ${ab.entityName}`)
+                        console.log(`   Import: ${ab.importPath}`)
+                        console.log(`   ${ab.message}`)
+                        console.log("   💡 Suggestion:")
+                        ab.suggestion.split("\n").forEach((line) => {
+                            if (line.trim()) {
+                                console.log(`      ${line}`)
+                            }
+                        })
+                        console.log("")
+                    },
+                    limit,
+                )
+            }
+
             // Hardcode violations
             if (options.hardcode && hardcodeViolations.length > 0) {
                 console.log(
@@ -407,7 +441,8 @@ program
                 frameworkLeakViolations.length +
                 entityExposureViolations.length +
                 dependencyDirectionViolations.length +
-                repositoryPatternViolations.length
+                repositoryPatternViolations.length +
+                aggregateBoundaryViolations.length
 
             if (totalIssues === 0) {
                 console.log(CLI_MESSAGES.NO_ISSUES)

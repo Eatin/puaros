@@ -8,6 +8,7 @@ import { IFrameworkLeakDetector } from "../../domain/services/IFrameworkLeakDete
 import { IEntityExposureDetector } from "../../domain/services/IEntityExposureDetector"
 import { IDependencyDirectionDetector } from "../../domain/services/IDependencyDirectionDetector"
 import { IRepositoryPatternDetector } from "../../domain/services/RepositoryPatternDetectorService"
+import { IAggregateBoundaryDetector } from "../../domain/services/IAggregateBoundaryDetector"
 import { SourceFile } from "../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../domain/entities/DependencyGraph"
 import { ProjectPath } from "../../domain/value-objects/ProjectPath"
@@ -41,6 +42,7 @@ export interface AnalyzeProjectResponse {
     entityExposureViolations: EntityExposureViolation[]
     dependencyDirectionViolations: DependencyDirectionViolation[]
     repositoryPatternViolations: RepositoryPatternViolation[]
+    aggregateBoundaryViolations: AggregateBoundaryViolation[]
     metrics: ProjectMetrics
 }
 
@@ -149,6 +151,19 @@ export interface RepositoryPatternViolation {
     severity: SeverityLevel
 }
 
+export interface AggregateBoundaryViolation {
+    rule: typeof RULES.AGGREGATE_BOUNDARY
+    fromAggregate: string
+    toAggregate: string
+    entityName: string
+    importPath: string
+    file: string
+    line?: number
+    message: string
+    suggestion: string
+    severity: SeverityLevel
+}
+
 export interface ProjectMetrics {
     totalFiles: number
     totalFunctions: number
@@ -172,6 +187,7 @@ export class AnalyzeProject extends UseCase<
         private readonly entityExposureDetector: IEntityExposureDetector,
         private readonly dependencyDirectionDetector: IDependencyDirectionDetector,
         private readonly repositoryPatternDetector: IRepositoryPatternDetector,
+        private readonly aggregateBoundaryDetector: IAggregateBoundaryDetector,
     ) {
         super()
     }
@@ -234,6 +250,9 @@ export class AnalyzeProject extends UseCase<
             const repositoryPatternViolations = this.sortBySeverity(
                 this.detectRepositoryPatternViolations(sourceFiles),
             )
+            const aggregateBoundaryViolations = this.sortBySeverity(
+                this.detectAggregateBoundaryViolations(sourceFiles),
+            )
             const metrics = this.calculateMetrics(sourceFiles, totalFunctions, dependencyGraph)
 
             return ResponseDto.ok({
@@ -247,6 +266,7 @@ export class AnalyzeProject extends UseCase<
                 entityExposureViolations,
                 dependencyDirectionViolations,
                 repositoryPatternViolations,
+                aggregateBoundaryViolations,
                 metrics,
             })
         } catch (error) {
@@ -525,6 +545,37 @@ export class AnalyzeProject extends UseCase<
                     message: violation.getMessage(),
                     suggestion: violation.getSuggestion(),
                     severity: VIOLATION_SEVERITY_MAP.REPOSITORY_PATTERN,
+                })
+            }
+        }
+
+        return violations
+    }
+
+    private detectAggregateBoundaryViolations(
+        sourceFiles: SourceFile[],
+    ): AggregateBoundaryViolation[] {
+        const violations: AggregateBoundaryViolation[] = []
+
+        for (const file of sourceFiles) {
+            const boundaryViolations = this.aggregateBoundaryDetector.detectViolations(
+                file.content,
+                file.path.relative,
+                file.layer,
+            )
+
+            for (const violation of boundaryViolations) {
+                violations.push({
+                    rule: RULES.AGGREGATE_BOUNDARY,
+                    fromAggregate: violation.fromAggregate,
+                    toAggregate: violation.toAggregate,
+                    entityName: violation.entityName,
+                    importPath: violation.importPath,
+                    file: file.path.relative,
+                    line: violation.line,
+                    message: violation.getMessage(),
+                    suggestion: violation.getSuggestion(),
+                    severity: VIOLATION_SEVERITY_MAP.AGGREGATE_BOUNDARY,
                 })
             }
         }

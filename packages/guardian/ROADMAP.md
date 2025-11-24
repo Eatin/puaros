@@ -256,11 +256,10 @@ Internal refactoring to eliminate hardcoded values and improve maintainability:
 
 ---
 
-## Future Roadmap
+## Version 0.7.0 - Aggregate Boundary Validation 🔒 ✅ RELEASED
 
-### Version 0.6.0 - Aggregate Boundary Validation 🔒
-**Target:** Q1 2026
-**Priority:** MEDIUM
+**Released:** 2025-11-24
+**Priority:** CRITICAL
 
 Validate aggregate boundaries in DDD:
 
@@ -286,12 +285,19 @@ class Order {
 }
 ```
 
-**Planned Features:**
-- Detect entity references across aggregates
-- Allow only ID or Value Object references
-- Detect circular dependencies between aggregates
-- Validate aggregate root access patterns
-- Support for aggregate folder structure
+**Implemented Features:**
+- ✅ Detect entity references across aggregates
+- ✅ Allow only ID or Value Object references from other aggregates
+- ✅ Filter allowed imports (value-objects, events, repositories, services)
+- ✅ Support for multiple aggregate folder structures (domain/aggregates/name, domain/name, domain/entities/name)
+- ✅ 41 comprehensive tests with 100% pass rate
+- ✅ Examples of good and bad patterns
+- ✅ CLI output with 🔒 icon and detailed violation info
+- ✅ Critical severity level for aggregate boundary violations
+
+---
+
+## Future Roadmap
 
 ---
 

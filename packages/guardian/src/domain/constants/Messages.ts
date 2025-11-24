@@ -48,3 +48,11 @@ export const REPOSITORY_PATTERN_MESSAGES = {
     SUGGESTION_DELETE: "remove or delete",
     SUGGESTION_QUERY: "find or search",
 }
+
+export const AGGREGATE_VIOLATION_MESSAGES = {
+    USE_ID_REFERENCE: "1. Reference other aggregates by ID (UserId, OrderId) instead of entity",
+    USE_VALUE_OBJECT:
+        "2. Use Value Objects to store needed data from other aggregates (CustomerInfo, ProductSummary)",
+    AVOID_DIRECT_REFERENCE: "3. Avoid direct entity references to maintain aggregate independence",
+    MAINTAIN_INDEPENDENCE: "4. Each aggregate should be independently modifiable and deployable",
+}

@@ -16,6 +16,10 @@ This document provides authoritative sources, academic papers, industry standard
 8. [General Software Quality Standards](#8-general-software-quality-standards)
 9. [Code Complexity Metrics](#9-code-complexity-metrics)
 10. [Additional Authoritative Sources](#10-additional-authoritative-sources)
+11. [Anemic Domain Model Detection](#11-anemic-domain-model-detection)
+12. [Aggregate Boundary Validation (DDD Tactical Patterns)](#12-aggregate-boundary-validation-ddd-tactical-patterns)
+13. [Secret Detection & Security](#13-secret-detection--security)
+14. [Severity-Based Prioritization & Technical Debt](#14-severity-based-prioritization--technical-debt)
 
 ---
 
@@ -503,22 +507,318 @@ This document provides authoritative sources, academic papers, industry standard
 
 ---
 
+## 11. Anemic Domain Model Detection
+
+### Martin Fowler's Original Blog Post (2003)
+
+**Blog Post: "Anemic Domain Model"** (November 25, 2003)
+- Author: Martin Fowler
+- Published: November 25, 2003
+- Described as an anti-pattern related to domain driven design and application architecture
+- Basic symptom: domain objects have hardly any behavior, making them little more than bags of getters and setters
+- Reference: [Martin Fowler - Anemic Domain Model](https://martinfowler.com/bliki/AnemicDomainModel.html)
+
+**Key Problems Identified:**
+- "The basic symptom of an Anemic Domain Model is that at first blush it looks like the real thing"
+- "There are objects, many named after the nouns in the domain space, and these objects are connected with the rich relationships and structure that true domain models have"
+- "The catch comes when you look at the behavior, and you realize that there is hardly any behavior on these objects"
+- "This is contrary to the basic idea of object-oriented design; which is to combine data and process together"
+
+**Why It's an Anti-pattern:**
+- Fowler argues that anemic domain models incur all of the costs of a domain model, without yielding any of the benefits
+- The logic that should be in a domain object is domain logic - validations, calculations, business rules
+- Separating data from behavior violates core OOP principles
+- Reference: [Wikipedia - Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model)
+
+### Rich Domain Model vs Transaction Script
+
+**Martin Fowler: Transaction Script Pattern**
+- Transaction Script organizes business logic by procedures where each procedure handles a single request
+- Good for simple logic with not-null checks and basic calculations
+- Reference: [Martin Fowler - Transaction Script](https://martinfowler.com/eaaCatalog/transactionScript.html)
+
+**When to Use Rich Domain Model:**
+- If you have complicated and everchanging business rules involving validation, calculations, and derivations
+- Object model handles complex domain logic better than procedural scripts
+- Reference: [InformIT - Domain Logic Patterns](https://www.informit.com/articles/article.aspx?p=1398617&seqNum=2)
+
+**Comparison:**
+- Transaction Script is better for simple logic
+- Domain Model is better when things get complicated with complex business rules
+- You can refactor from Transaction Script to Domain Model, but it's a harder change
+- Reference: [Medium - Transaction Script vs Domain Model](https://medium.com/@vibstudio_7040/transaction-script-active-record-and-domain-model-the-good-the-bad-and-the-ugly-c5b80a733305)
+
+### Domain-Driven Design Context
+
+**Eric Evans: Domain-Driven Design** (2003)
+- Entities should have both identity and behavior
+- Rich domain models place business logic within domain entities
+- Anemic models violate DDD principles by separating data from behavior
+- Reference: Already covered in Section 10 - [Domain-Driven Design Book](#domain-driven-design)
+
+**Community Discussion:**
+- Some argue anemic models can follow SOLID design principles
+- However, consensus among DDD practitioners aligns with Fowler's anti-pattern view
+- Reference: [Stack Overflow - Anemic Domain Model Anti-Pattern](https://stackoverflow.com/questions/6293981/concrete-examples-on-why-the-anemic-domain-model-is-considered-an-anti-pattern)
+
+---
+
+## 12. Aggregate Boundary Validation (DDD Tactical Patterns)
+
+### Eric Evans: Domain-Driven Design (2003)
+
+**Original Book Definition:**
+- Aggregate: "A cluster of associated objects that we treat as a unit for the purpose of data changes"
+- An aggregate defines a consistency boundary around one or more entities
+- Exactly one entity in an aggregate is the root
+- Reference: [Microsoft Learn - Tactical DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-ddd)
+
+**DDD Reference Document** (2015)
+- Official Domain-Driven Design Reference by Eric Evans
+- Contains comprehensive definitions of Aggregates and boundaries
+- Reference: [Domain Language - DDD Reference PDF](https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf)
+
+### Vaughn Vernon: Implementing Domain-Driven Design (2013)
+
+**Chapter 10: Aggregates** (Page 347)
+- Author: Vaughn Vernon
+- Publisher: Addison-Wesley
+- ISBN: 978-0321834577
+- Available at: [Amazon - Implementing DDD](https://www.amazon.com/Implementing-Domain-Driven-Design-Vaughn-Vernon/dp/0321834577)
+
+**Key Rules from the Chapter:**
+- **Rule: Model True Invariants in Consistency Boundaries**
+- **Rule: Design Small Aggregates**
+- **Rule: Reference Other Aggregates by Identity**
+- **Rule: Use Eventual Consistency Outside the Boundary**
+
+**Effective Aggregate Design Series:**
+- Three-part essay series by Vaughn Vernon
+- Available as downloadable PDFs
+- Licensed under Creative Commons Attribution-NoDerivs 3.0
+- Reference: [Kalele - Effective Aggregate Design](https://kalele.io/effective-aggregate-design/)
+
+**Appendix A: Aggregates and Event Sourcing:**
+- Additional coverage of aggregate patterns
+- Practical implementation guidance
+- Reference: Available in the book
+
+### Tactical DDD Patterns
+
+**Microsoft Azure Architecture Center:**
+- "Using tactical DDD to design microservices"
+- Official Microsoft documentation on aggregate boundaries
+- Comprehensive guide for microservices architecture
+- Reference: [Microsoft Learn - Tactical DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-ddd)
+
+**SOCADK Design Practice Repository:**
+- Summaries of artifacts, templates, and techniques for tactical DDD
+- Practical examples of aggregate boundary enforcement
+- Reference: [SOCADK - Tactical DDD](https://socadk.github.io/design-practice-repository/activities/DPR-TacticDDD.html)
+
+### Why Aggregate Boundaries Matter
+
+**Transactional Boundary:**
+- What makes it an aggregate is the transactional boundary
+- Changes to aggregate must be atomic
+- Ensures consistency within the boundary
+- Reference: [Medium - Mastering Aggregate Design](https://medium.com/ssense-tech/ddd-beyond-the-basics-mastering-aggregate-design-26591e218c8c)
+
+**Cross-Aggregate References:**
+- Aggregates should only reference other aggregates by ID, not direct entity references
+- Prevents tight coupling between aggregates
+- Maintains clear boundaries
+- Reference: [Lev Gorodinski - Two Sides of DDD](http://gorodinski.com/blog/2013/03/11/the-two-sides-of-domain-driven-design/)
+
+---
+
+## 13. Secret Detection & Security
+
+### OWASP Standards
+
+**OWASP Secrets Management Cheat Sheet**
+- Official OWASP best practices and guidelines for secrets management
+- Comprehensive coverage of hardcoded credentials risks
+- Reference: [OWASP - Secrets Management](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
+
+**OWASP DevSecOps Guideline**
+- Section on Secrets Management (v-0.2)
+- Integration with CI/CD pipelines
+- Reference: [OWASP - DevSecOps Secrets](https://owasp.org/www-project-devsecops-guideline/latest/01a-Secrets-Management)
+
+**OWASP Password Management: Hardcoded Password**
+- Vulnerability documentation on hardcoded passwords
+- "It is never a good idea to hardcode a password"
+- Makes fixing the problem extremely difficult
+- Reference: [OWASP - Hardcoded Password Vulnerability](https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_password)
+
+### Key Security Principles
+
+**Don't Hardcode Secrets:**
+- Secrets should not be hardcoded
+- Should not be unencrypted
+- Should not be stored in source code
+- Reference: [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
+
+**Centralized Management:**
+- Growing need to centralize storage, provisioning, auditing, rotation, and management of secrets
+- Control access and prevent secrets from leaking
+- Use purpose-built tools for encryption-at-rest
+- Reference: [OWASP SAMM - Secret Management](https://owaspsamm.org/model/implementation/secure-deployment/stream-b/)
+
+**Prevention Tools:**
+- Use pre-commit hooks to prevent secrets from entering codebase
+- Automated scanning in CI/CD pipelines
+- Reference: [GitHub OWASP Secrets Management](https://github.com/dominikdesmit/owasp-secrets-management)
+
+### GitHub Secret Scanning
+
+**Official GitHub Documentation:**
+- About Secret Scanning: Automated detection of secrets in repositories
+- Scans for patterns and heuristics matching known types of secrets
+- Reference: [GitHub Docs - Secret Scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning)
+
+**How It Works:**
+- Automatically scans repository contents for sensitive data (API keys, passwords, tokens)
+- Scans commits, issues, and pull requests continuously
+- Real-time alerts to repository administrators
+- Reference: [GitHub Docs - Keeping Secrets Secure](https://docs.github.com/en/code-security/secret-scanning)
+
+**AI-Powered Detection:**
+- Copilot Secret Scanning uses large language models (LLMs)
+- Identifies unstructured secrets (generic passwords) in source code
+- Enhances detection beyond pattern matching
+- Reference: [GitHub Docs - Copilot Secret Scanning](https://docs.github.com/en/code-security/secret-scanning/copilot-secret-scanning)
+
+**Supported Patterns:**
+- 350+ secret patterns detected
+- AWS, GitHub, NPM, SSH, GCP, Slack, Basic Auth, JWT tokens
+- Reference: [GitHub Docs - Supported Patterns](https://docs.github.com/en/code-security/secret-scanning/introduction/supported-secret-scanning-patterns)
+
+### Mobile Security
+
+**OWASP Mobile Security:**
+- "Secrets security is the most important issue for mobile applications"
+- Only safe way: keep secrets off the client side entirely
+- Move sensitive information to backend
+- Reference: [GitGuardian - OWASP Top 10 Mobile](https://blog.gitguardian.com/owasp-top-10-for-mobile-secrets/)
+
+### Third-Party Tools
+
+**GitGuardian:**
+- Secrets security and non-human identity governance
+- Enterprise-grade secret detection
+- Reference: [GitGuardian Official Site](https://www.gitguardian.com/)
+
+**Yelp detect-secrets:**
+- Open-source enterprise-friendly secret detection
+- Prevent secrets in code
+- Reference: [GitHub - Yelp detect-secrets](https://github.com/Yelp/detect-secrets)
+
+---
+
+## 14. Severity-Based Prioritization & Technical Debt
+
+### Academic Research on Technical Debt Prioritization
+
+**Systematic Literature Review** (2020)
+- Title: "A systematic literature review on Technical Debt prioritization"
+- Analyzed 557 unique papers, included 44 primary studies
+- Finding: "Technical Debt prioritization research is preliminary and there is no consensus on what the important factors are and how to measure them"
+- Reference: [ScienceDirect - TD Prioritization](https://www.sciencedirect.com/science/article/pii/S016412122030220X)
+
+**IEEE Conference Paper** (2021)
+- Title: "Technical Debt Prioritization: Taxonomy, Methods Results, and Practical Characteristics"
+- Systematic mapping review of 112 studies, resulting in 51 unique papers
+- Classified methods in two-level taxonomy with 10 categories
+- Reference: [IEEE Xplore - TD Prioritization](https://ieeexplore.ieee.org/document/9582595/)
+
+**Identifying Severity of Technical Debt** (2023)
+- Journal: Software Quality Journal
+- Title: "Identifying the severity of technical debt issues based on semantic and structural information"
+- Problem: "Existing studies mainly focus on detecting TD through source code or comments but usually ignore the severity degree of TD issues"
+- Proposed approach combining semantic and structural information
+- Reference: [Springer - TD Severity](https://link.springer.com/article/10.1007/s11219-023-09651-3)
+
+### SonarQube Severity Classification
+
+**Current Severity Levels** (SonarQube 10.2+)
+- Severity levels: **info, low, medium, high, and blocker**
+- Reference: [SonarQube Docs - Metrics Definition](https://docs.sonarsource.com/sonarqube-server/user-guide/code-metrics/metrics-definition)
+
+**High/Blocker Severity:**
+- An issue with significant probability of severe unintended consequences
+- Should be fixed immediately
+- Includes bugs leading to production crashes
+- Security flaws allowing attackers to extract sensitive data or execute malicious code
+- Reference: [SonarQube Docs - Metrics](https://docs.sonarsource.com/sonarqube-server/10.8/user-guide/code-metrics/metrics-definition)
+
+**Medium Severity:**
+- Quality flaw that can highly impact developer's productivity
+- Uncovered code, duplicated blocks, unused parameters
+- Reference: [SonarQube Documentation](https://docs.sonarsource.com/sonarqube-server/10.8/user-guide/code-metrics/metrics-definition)
+
+**Low Severity:**
+- Quality flaw with slight impact on developer productivity
+- Lines too long, switch statements with few cases
+- Reference: [SonarQube Documentation](https://docs.sonarsource.com/sonarqube-server/10.8/user-guide/code-metrics/metrics-definition)
+
+**Info Severity:**
+- No expected impact on application
+- Informational purposes only
+- Reference: [SonarQube Documentation](https://docs.sonarsource.com/sonarqube-server/10.8/user-guide/code-metrics/metrics-definition)
+
+### Legacy SonarQube Classification (pre-10.2)
+
+**Five Severity Levels:**
+- **BLOCKER**: Bug with high probability to impact behavior in production (memory leak, unclosed JDBC connection)
+- **CRITICAL**: Bug with low probability to impact production behavior OR security flaw (empty catch block, SQL injection)
+- **MAJOR**: Quality flaw highly impacting developer productivity (uncovered code, duplicated blocks, unused parameters)
+- **MINOR**: Quality flaw slightly impacting developer productivity (lines too long, switch statements < 3 cases)
+- **INFO**: Informational only
+- Reference: [SonarQube Community - Severity Categories](https://community.sonarsource.com/t/sonarqube-severity-categories/115287)
+
+### Research on Impact and Effectiveness
+
+**Empirical Study** (2020)
+- Title: "Some SonarQube issues have a significant but small effect on faults and changes"
+- Published in: ScienceDirect (Information and Software Technology)
+- Large-scale empirical study on SonarQube issue impact
+- Reference: [ScienceDirect - SonarQube Issues](https://www.sciencedirect.com/science/article/abs/pii/S0164121220301734)
+
+**Machine Learning for Prioritization** (2024)
+- Recent approaches: "Development teams could integrate models into CI/CD pipelines"
+- Automatically flag potential TD issues during code reviews
+- Prioritize based on severity
+- Reference: [arXiv - Technical Debt Management](https://arxiv.org/html/2403.06484v1)
+
+### Multiple-Case Study
+
+**Aligning TD with Business Objectives** (2018)
+- Title: "Aligning Technical Debt Prioritization with Business Objectives: A Multiple-Case Study"
+- Demonstrates importance of priority-based technical debt management
+- Reference: [ResearchGate - TD Business Alignment](https://www.researchgate.net/publication/328903587_Aligning_Technical_Debt_Prioritization_with_Business_Objectives_A_Multiple-Case_Study)
+
+---
+
 ## Conclusion
 
 The code quality detection rules implemented in Guardian are firmly grounded in:
 
-1. **Academic Research**: Peer-reviewed papers on software maintainability, complexity metrics, and code quality
-2. **Industry Standards**: ISO/IEC 25010, SonarQube rules, Google and Airbnb style guides
+1. **Academic Research**: Peer-reviewed papers on software maintainability, complexity metrics, code quality, technical debt prioritization, and severity classification
+2. **Industry Standards**: ISO/IEC 25010, SonarQube rules, OWASP security guidelines, Google and Airbnb style guides
 3. **Authoritative Books**:
    - Robert C. Martin's "Clean Architecture" (2017)
+   - Vaughn Vernon's "Implementing Domain-Driven Design" (2013)
    - Eric Evans' "Domain-Driven Design" (2003)
    - Martin Fowler's "Patterns of Enterprise Application Architecture" (2002)
    - Martin Fowler's "Refactoring" (1999, 2018)
    - Steve McConnell's "Code Complete" (1993, 2004)
-4. **Expert Guidance**: Martin Fowler, Robert C. Martin (Uncle Bob), Eric Evans, Alistair Cockburn, Kent Beck
-5. **Open Source Tools**: ArchUnit, SonarQube, ESLint - widely adopted in enterprise environments
+4. **Expert Guidance**: Martin Fowler, Robert C. Martin (Uncle Bob), Eric Evans, Vaughn Vernon, Alistair Cockburn, Kent Beck
+5. **Security Standards**: OWASP Secrets Management, GitHub Secret Scanning, GitGuardian best practices
+6. **Open Source Tools**: ArchUnit, SonarQube, ESLint, Secretlint - widely adopted in enterprise environments
 
-These rules represent decades of software engineering wisdom, empirical research, and battle-tested practices from the world's leading software organizations and thought leaders.
+These rules represent decades of software engineering wisdom, empirical research, security best practices, and battle-tested practices from the world's leading software organizations and thought leaders.
 
 ---
 
@@ -545,8 +845,8 @@ These rules represent decades of software engineering wisdom, empirical research
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-11-24
+**Document Version**: 1.1
+**Last Updated**: 2025-11-26
 **Questions or want to contribute research?**
 - 📧 Email: fozilbek.samiyev@gmail.com
 - 🐙 GitHub: https://github.com/samiyev/puaros/issues

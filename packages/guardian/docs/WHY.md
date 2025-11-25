@@ -10,6 +10,10 @@ Guardian's detection rules are not invented - they're based on decades of softwa
 - [Entity Exposure](#entity-exposure)
 - [Repository Pattern](#repository-pattern)
 - [Naming Conventions](#naming-conventions)
+- [Anemic Domain Model Detection](#anemic-domain-model-detection)
+- [Aggregate Boundary Validation](#aggregate-boundary-validation)
+- [Secret Detection](#secret-detection)
+- [Severity-Based Prioritization](#severity-based-prioritization)
 - [Full Research Citations](#full-research-citations)
 
 ---
@@ -319,6 +323,192 @@ Consistent naming:
 
 ---
 
+## Anemic Domain Model Detection
+
+### Why it matters
+
+Anemic domain models violate core OOP principles:
+- ❌ **No behavior** - Entities become data bags with only getters/setters
+- ❌ **Logic in services** - Business logic scattered across service layers
+- ❌ **Violates OOP** - Separates data from behavior
+- ❌ **Higher complexity** - Loses benefits of domain modeling
+
+### Who says so?
+
+**Martin Fowler's Original Anti-Pattern:**
+- **Blog Post: "Anemic Domain Model"** (November 25, 2003)
+  > "The basic symptom of an Anemic Domain Model is that at first blush it looks like the real thing. There are objects, many named after the nouns in the domain space... The catch comes when you look at the behavior, and you realize that there is hardly any behavior on these objects."
+  - Published over 20 years ago, still relevant today
+  - [Read Fowler's post](https://martinfowler.com/bliki/AnemicDomainModel.html)
+
+**Why It's an Anti-pattern:**
+> "This is contrary to the basic idea of object-oriented design; which is to combine data and process together."
+- Incurs all costs of domain model without any benefits
+- Logic should be in domain objects: validations, calculations, business rules
+- [Wikipedia - Anemic Domain Model](https://en.wikipedia.org/wiki/Anemic_domain_model)
+
+**Rich Domain Model vs Transaction Script:**
+- **Transaction Script**: Good for simple logic (Fowler, 2002)
+- **Rich Domain Model**: Better for complex, ever-changing business rules
+- Can refactor from Transaction Script to Domain Model, but it's harder than starting right
+- [Martin Fowler - Transaction Script](https://martinfowler.com/eaaCatalog/transactionScript.html)
+
+**Domain-Driven Design Context:**
+- **Eric Evans (2003)**: Entities should have both identity AND behavior
+- Anemic models violate DDD by separating data from behavior
+- [Stack Overflow discussion](https://stackoverflow.com/questions/6293981/concrete-examples-on-why-the-anemic-domain-model-is-considered-an-anti-pattern)
+
+[Read full research →](./RESEARCH_CITATIONS.md#11-anemic-domain-model-detection)
+
+---
+
+## Aggregate Boundary Validation
+
+### Why it matters
+
+Proper aggregate boundaries ensure:
+- ✅ **Consistency** - Atomic changes within boundaries
+- ✅ **Low coupling** - Aggregates are loosely connected
+- ✅ **Clear transactions** - One aggregate = one transaction
+- ✅ **Maintainability** - Boundaries prevent complexity spread
+
+### The Rules
+
+**Vaughn Vernon's Four Rules (2013):**
+1. **Model True Invariants in Consistency Boundaries**
+2. **Design Small Aggregates**
+3. **Reference Other Aggregates by Identity**
+4. **Use Eventual Consistency Outside the Boundary**
+
+### Who says so?
+
+**Eric Evans: Domain-Driven Design (2003)**
+- **Original Definition**:
+  > "A cluster of associated objects that we treat as a unit for the purpose of data changes"
+- An aggregate defines a consistency boundary
+- Exactly one entity is the aggregate root
+- [Microsoft Learn - Tactical DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-ddd)
+
+**Vaughn Vernon: Implementing Domain-Driven Design (2013)**
+- **Chapter 10: Aggregates** (Page 347)
+- ISBN: 978-0321834577
+- Comprehensive rules for aggregate design
+- Three-part essay series: "Effective Aggregate Design"
+- [Available at Kalele](https://kalele.io/effective-aggregate-design/)
+
+**Why Boundaries Matter:**
+- **Transactional Boundary**: Changes must be atomic
+- **Reference by ID**: No direct entity references across aggregates
+- **Prevents tight coupling**: Maintains clear boundaries
+- [Medium - Mastering Aggregate Design](https://medium.com/ssense-tech/ddd-beyond-the-basics-mastering-aggregate-design-26591e218c8c)
+
+**Microsoft Azure Documentation:**
+- Official guide for microservices architecture
+- Comprehensive aggregate boundary patterns
+- [Microsoft Learn - Tactical DDD](https://learn.microsoft.com/en-us/azure/architecture/microservices/model/tactical-ddd)
+
+[Read full research →](./RESEARCH_CITATIONS.md#12-aggregate-boundary-validation-ddd-tactical-patterns)
+
+---
+
+## Secret Detection
+
+### Why it matters
+
+Hardcoded secrets create critical security risks:
+- 🔴 **Data breaches** - Exposed credentials lead to unauthorized access
+- 🔴 **Production incidents** - Leaked tokens cause service disruptions
+- 🔴 **Compliance violations** - GDPR, PCI-DSS, SOC 2 requirements
+- 🔴 **Impossible to rotate** - Secrets in code are difficult to change
+
+### Who says so?
+
+**OWASP Security Standards:**
+- **OWASP Secrets Management Cheat Sheet**
+  > "Secrets should not be hardcoded, should not be unencrypted, and should not be stored in source code."
+  - Official best practices from OWASP Foundation
+  - [Read the cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
+
+- **OWASP Hardcoded Password Vulnerability**
+  > "It is never a good idea to hardcode a password, as it allows all of the project's developers to view the password and makes fixing the problem extremely difficult."
+  - [OWASP Documentation](https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_password)
+
+**GitHub Secret Scanning:**
+- **Official GitHub Documentation**
+  - Automatically scans 350+ secret patterns
+  - Detects AWS, GitHub, NPM, SSH, GCP, Slack tokens
+  - AI-powered detection with Copilot Secret Scanning
+  - [GitHub Docs](https://docs.github.com/code-security/secret-scanning/about-secret-scanning)
+
+**Key Security Principles:**
+- **Centralized Management**: Use purpose-built secret management tools
+- **Prevention Tools**: Pre-commit hooks to prevent secrets entering codebase
+- **Encryption at Rest**: Never store secrets in plaintext
+- [OWASP SAMM - Secret Management](https://owaspsamm.org/model/implementation/secure-deployment/stream-b/)
+
+**Mobile Security:**
+- OWASP: "Secrets security is the most important issue for mobile applications"
+- Only safe way: keep secrets off the client side entirely
+- [GitGuardian - OWASP Top 10 Mobile](https://blog.gitguardian.com/owasp-top-10-for-mobile-secrets/)
+
+[Read full research →](./RESEARCH_CITATIONS.md#13-secret-detection--security)
+
+---
+
+## Severity-Based Prioritization
+
+### Why it matters
+
+Severity classification enables:
+- ✅ **Focus on critical issues** - Fix what matters most first
+- ✅ **Reduced technical debt** - Prioritize based on impact
+- ✅ **Better CI/CD integration** - Fail builds on critical issues only
+- ✅ **Team efficiency** - Don't waste time on low-impact issues
+
+### Who says so?
+
+**Academic Research:**
+- **Systematic Literature Review (2020)**
+  - Title: "A systematic literature review on Technical Debt prioritization"
+  - Analyzed 557 papers, included 44 primary studies
+  - Finding: Need for consensus on severity factors
+  - [ScienceDirect](https://www.sciencedirect.com/science/article/pii/S016412122030220X)
+
+- **IEEE Conference Paper (2021)**
+  - "Technical Debt Prioritization: Taxonomy, Methods Results"
+  - Reviewed 112 studies
+  - Classified methods in 10 categories
+  - [IEEE Xplore](https://ieeexplore.ieee.org/document/9582595/)
+
+- **Software Quality Journal (2023)**
+  - "Identifying the severity of technical debt issues"
+  - Problem: Most studies ignore severity degree
+  - Proposed semantic + structural approach
+  - [Springer](https://link.springer.com/article/10.1007/s11219-023-09651-3)
+
+**SonarQube Industry Standard:**
+- **Current Classification (10.2+)**:
+  - **Blocker/High**: Severe unintended consequences, fix immediately
+  - **Medium**: Impacts developer productivity
+  - **Low**: Slight impact on productivity
+  - **Info**: No expected impact
+  - [SonarQube Docs](https://docs.sonarsource.com/sonarqube-server/user-guide/code-metrics/metrics-definition)
+
+**Real-World Impact:**
+- Development teams integrate models into CI/CD pipelines
+- Automatically flag potential TD issues during code reviews
+- Prioritize based on severity
+- [arXiv - Technical Debt Management](https://arxiv.org/html/2403.06484v1)
+
+**Business Alignment:**
+- "Aligning Technical Debt Prioritization with Business Objectives" (2018)
+- Multiple-case study demonstrating importance
+- [ResearchGate](https://www.researchgate.net/publication/328903587_Aligning_Technical_Debt_Prioritization_with_Business_Objectives_A_Multiple-Case_Study)
+
+[Read full research →](./RESEARCH_CITATIONS.md#14-severity-based-prioritization--technical-debt)
+
+---
+
 ## Full Research Citations
 
 For complete academic papers, books, and authoritative sources, see:
@@ -354,8 +544,9 @@ Guardian's rules align with international standards:
 
 Guardian's rules are backed by:
 
-✅ **5 Seminal Books** (1993-2017)
+✅ **6 Seminal Books** (1993-2017)
 - Clean Architecture (Robert C. Martin, 2017)
+- Implementing Domain-Driven Design (Vaughn Vernon, 2013)
 - Domain-Driven Design (Eric Evans, 2003)
 - Patterns of Enterprise Application Architecture (Martin Fowler, 2002)
 - Refactoring (Martin Fowler, 1999)
@@ -363,8 +554,15 @@ Guardian's rules are backed by:
 
 ✅ **Academic Research** (1976-2024)
 - MIT Course 6.031
-- ScienceDirect peer-reviewed studies
+- ScienceDirect peer-reviewed studies (2020-2023)
+- IEEE Conference papers on Technical Debt
+- Software Quality Journal (2023)
 - Cyclomatic Complexity (Thomas McCabe, 1976)
+
+✅ **Security Standards**
+- OWASP Secrets Management Cheat Sheet
+- GitHub Secret Scanning (350+ patterns)
+- OWASP Top 10 for Mobile
 
 ✅ **International Standards**
 - ISO/IEC 25010:2011
@@ -373,10 +571,11 @@ Guardian's rules are backed by:
 - Google, Microsoft, Airbnb style guides
 - SonarQube (400,000+ organizations)
 - AWS documentation
+- GitHub security practices
 
 ✅ **Thought Leaders**
 - Martin Fowler, Robert C. Martin (Uncle Bob), Eric Evans
-- Alistair Cockburn, Kent Beck, Thomas McCabe
+- Vaughn Vernon, Alistair Cockburn, Kent Beck, Thomas McCabe
 
 ---
 
@@ -388,4 +587,4 @@ Guardian's rules are backed by:
 
 ---
 
-*Last updated: 2025-11-24*
+*Last updated: 2025-11-26*

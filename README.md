@@ -4,7 +4,7 @@ A TypeScript monorepo for code quality and analysis tools.
 
 ## Packages
 
-- **[@puaros/guardian](./packages/guardian)** - Code quality guardian for vibe coders and enterprise teams. Detects hardcoded values, circular dependencies, and architecture violations. Perfect for AI-assisted development and enforcing Clean Architecture at scale.
+- **[@puaros/guardian](./packages/guardian)** - Research-backed code quality guardian for vibe coders and enterprise teams. Detects hardcoded values, secrets, circular dependencies, architecture violations, and anemic domain models. Every rule is based on academic research, industry standards (OWASP, SonarQube), and authoritative books (Martin Fowler, Uncle Bob, Eric Evans). Perfect for AI-assisted development and enforcing Clean Architecture at scale.
 
 ## Prerequisites
 
@@ -146,6 +146,21 @@ The `@puaros/guardian` package is a code quality analyzer for both individual de
 - **Architecture Governance**: Enforces Clean Architecture boundaries across teams
 - **CLI Tool**: Command-line interface with `guardian` command
 - **CI/CD Integration**: JSON/Markdown output for automation pipelines
+
+### 📚 Research-Backed Rules
+
+Guardian's detection rules are based on decades of software engineering research and industry best practices:
+
+- **Academic Research**: MIT Course 6.031, ScienceDirect peer-reviewed studies (2020-2023), IEEE papers on Technical Debt
+- **Industry Standards**: SonarQube (400,000+ organizations), Google/Airbnb/Microsoft style guides, OWASP security standards
+- **Authoritative Books**:
+  - Clean Architecture (Robert C. Martin, 2017)
+  - Implementing Domain-Driven Design (Vaughn Vernon, 2013)
+  - Domain-Driven Design (Eric Evans, 2003)
+  - Patterns of Enterprise Application Architecture (Martin Fowler, 2002)
+- **Security Standards**: OWASP Secrets Management, GitHub Secret Scanning (350+ patterns)
+
+**Every rule links to research citations** - see [Why Guardian's Rules Matter](./packages/guardian/docs/WHY.md) and [Full Research Citations](./packages/guardian/docs/RESEARCH_CITATIONS.md) for complete academic papers, books, and expert references.
 
 ### Use Cases
 

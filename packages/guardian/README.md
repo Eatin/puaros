@@ -79,7 +79,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Supports multiple folder structures (domain/aggregates/*, domain/*, domain/entities/*)
 - Filters allowed imports (value-objects, events, repositories, services)
 - Critical severity for maintaining aggregate independence
-- 📚 *Based on: Domain-Driven Design (Evans 2003), Implementing DDD (Vernon 2013)* → [Why?](./docs/WHY.md#aggregate-boundaries)
+- 📚 *Based on: Domain-Driven Design (Evans 2003), Implementing DDD (Vernon 2013)* → [Why?](./docs/WHY.md#aggregate-boundary-validation)
 
 🔐 **Secret Detection** ✨ NEW in v0.8.0
 - Detects 350+ types of hardcoded secrets using industry-standard Secretlint
@@ -88,7 +88,25 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Context-aware remediation suggestions for each secret type
 - Prevents credentials from reaching version control
 - Integrates seamlessly with existing detectors
-- 📚 *Based on: OWASP Top 10, CWE-798 (Hardcoded Credentials), NIST Security Guidelines* → [Learn more](https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_password)
+- 📚 *Based on: OWASP Secrets Management, GitHub Secret Scanning (350+ patterns), security standards* → [Why?](./docs/WHY.md#secret-detection)
+
+🩺 **Anemic Domain Model Detection** ✨ NEW in v0.9.0
+- Detects entities with only getters/setters (data bags without behavior)
+- Identifies public setters anti-pattern in domain entities
+- Calculates methods-to-properties ratio for behavioral analysis
+- Enforces rich domain models over anemic models
+- Suggests moving business logic from services to entities
+- Medium severity - architectural code smell
+- 📚 *Based on: Martin Fowler's "Anemic Domain Model" (2003), DDD (Evans 2003), Transaction Script vs Domain Model patterns* → [Why?](./docs/WHY.md#anemic-domain-model-detection)
+
+🎯 **Severity-Based Prioritization**
+- Automatic sorting by severity: CRITICAL → HIGH → MEDIUM → LOW
+- Filter by severity level: `--only-critical` or `--min-severity high`
+- Focus on what matters most: secrets and circular dependencies first
+- Visual severity indicators with color-coded labels (🔴🟠🟡🟢)
+- Smart categorization based on impact to production
+- Enables gradual technical debt reduction
+- 📚 *Based on: SonarQube severity classification, IEEE/ScienceDirect research on Technical Debt prioritization* → [Why?](./docs/WHY.md#severity-based-prioritization)
 
 🏗️ **Clean Architecture Enforcement**
 - Built with DDD principles

@@ -361,7 +361,7 @@ cli/
 - ✅ Reduce `cli/index.ts` from 484 to 260 lines (46% reduction)
 - ✅ CLI output identical to before
 - ✅ All 345 tests pass, no breaking changes
-- [ ] Publish to npm
+- ✅ Publish to npm
 
 ---
 

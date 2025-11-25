@@ -468,4 +468,102 @@ const b = 2`
             expect(result[0].context).toContain("5000")
         })
     })
+
+    describe("TypeScript type contexts (false positive reduction)", () => {
+        it("should NOT detect strings in union types", () => {
+            const code = `type Status = 'active' | 'inactive' | 'pending'`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in interface property types", () => {
+            const code = `interface Config { mode: 'development' | 'production' }`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in type aliases", () => {
+            const code = `type Theme = 'light' | 'dark'`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in type assertions", () => {
+            const code = `const mode = getMode() as 'read' | 'write'`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in Symbol() calls", () => {
+            const code = `const TOKEN = Symbol('MY_TOKEN')`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in multiple Symbol() calls", () => {
+            const code = `
+                export const LOGGER = Symbol('LOGGER')
+                export const DATABASE = Symbol('DATABASE')
+                export const CACHE = Symbol('CACHE')
+            `
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in import() calls", () => {
+            const code = `const module = import('../../path/to/module.js')`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in typeof checks", () => {
+            const code = `if (typeof x === 'string') { }`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should NOT detect strings in reverse typeof checks", () => {
+            const code = `if ('number' === typeof count) { }`
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should skip tokens.ts files completely", () => {
+            const code = `
+                export const LOGGER = Symbol('LOGGER')
+                export const DATABASE = Symbol('DATABASE')
+                const url = "http://localhost:8080"
+            `
+            const result = detector.detectAll(code, "src/di/tokens.ts")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should skip tokens.js files completely", () => {
+            const code = `const TOKEN = Symbol('TOKEN')`
+            const result = detector.detectAll(code, "src/di/tokens.js")
+
+            expect(result).toHaveLength(0)
+        })
+
+        it("should detect real magic strings even with type contexts nearby", () => {
+            const code = `
+                type Mode = 'read' | 'write'
+                const apiKey = "secret-key-12345"
+            `
+            const result = detector.detectMagicStrings(code, "test.ts")
+
+            expect(result.length).toBeGreaterThan(0)
+            expect(result.some((r) => r.value === "secret-key-12345")).toBe(true)
+        })
+    })
 })

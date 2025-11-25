@@ -27,6 +27,19 @@ export class HardcodeDetector implements IHardcodeDetector {
     private readonly ALLOWED_STRING_PATTERNS = [/^[a-z]$/i, /^\/$/, /^\\$/, /^\s+$/, /^,$/, /^\.$/]
 
     /**
+     * Patterns to detect TypeScript type contexts where strings should be ignored
+     */
+    private readonly TYPE_CONTEXT_PATTERNS = [
+        /^\s*type\s+\w+\s*=/i, // type Foo = ...
+        /^\s*interface\s+\w+/i, // interface Foo { ... }
+        /^\s*\w+\s*:\s*['"`]/, // property: 'value' (in type or interface)
+        /\s+as\s+['"`]/, // ... as 'type'
+        /Record<.*,\s*import\(/, // Record with import type
+        /typeof\s+\w+\s*===\s*['"`]/, // typeof x === 'string'
+        /['"`]\s*===\s*typeof\s+\w+/, // 'string' === typeof x
+    ]
+
+    /**
      * Detects all hardcoded values (both numbers and strings) in the given code
      *
      * @param code - Source code to analyze
@@ -43,14 +56,15 @@ export class HardcodeDetector implements IHardcodeDetector {
     }
 
     /**
-     * Check if a file is a constants definition file
+     * Check if a file is a constants definition file or DI tokens file
      */
     private isConstantsFile(filePath: string): boolean {
         const _fileName = filePath.split("/").pop() ?? ""
         const constantsPatterns = [
             /^constants?\.(ts|js)$/i,
             /constants?\/.*\.(ts|js)$/i,
-            /\/(constants|config|settings|defaults)\.ts$/i,
+            /\/(constants|config|settings|defaults|tokens)\.ts$/i,
+            /\/di\/tokens\.(ts|js)$/i,
         ]
         return constantsPatterns.some((pattern) => pattern.test(filePath))
     }
@@ -341,6 +355,18 @@ export class HardcodeDetector implements IHardcodeDetector {
             return false
         }
 
+        if (this.isInTypeContext(line)) {
+            return false
+        }
+
+        if (this.isInSymbolCall(line, value)) {
+            return false
+        }
+
+        if (this.isInImportCall(line, value)) {
+            return false
+        }
+
         if (value.includes(DETECTION_KEYWORDS.HTTP) || value.includes(DETECTION_KEYWORDS.API)) {
             return true
         }
@@ -387,5 +413,47 @@ export class HardcodeDetector implements IHardcodeDetector {
         const start = Math.max(0, index - 30)
         const end = Math.min(line.length, index + 30)
         return line.substring(start, end)
+    }
+
+    /**
+     * Check if a line is in a TypeScript type definition context
+     * Examples:
+     * - type Foo = 'a' | 'b'
+     * - interface Bar { prop: 'value' }
+     * - Record<X, import('path')>
+     * - ... as 'type'
+     */
+    private isInTypeContext(line: string): boolean {
+        const trimmedLine = line.trim()
+
+        if (this.TYPE_CONTEXT_PATTERNS.some((pattern) => pattern.test(trimmedLine))) {
+            return true
+        }
+
+        if (trimmedLine.includes("|") && /['"`][^'"`]+['"`]\s*\|/.test(trimmedLine)) {
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * Check if a string is inside a Symbol() call
+     * Example: Symbol('TOKEN_NAME')
+     */
+    private isInSymbolCall(line: string, stringValue: string): boolean {
+        const symbolPattern = new RegExp(
+            `Symbol\\s*\\(\\s*['"\`]${stringValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}['"\`]\\s*\\)`,
+        )
+        return symbolPattern.test(line)
+    }
+
+    /**
+     * Check if a string is inside an import() call
+     * Example: import('../../path/to/module.js')
+     */
+    private isInImportCall(line: string, stringValue: string): boolean {
+        const importPattern = /import\s*\(\s*['"`][^'"`]+['"`]\s*\)/
+        return importPattern.test(line) && line.includes(stringValue)
     }
 }

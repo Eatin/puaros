@@ -301,7 +301,97 @@ class Order {
 
 ---
 
-### Version 0.8.0 - Anemic Domain Model Detection 🩺
+### Version 0.8.0 - Secret Detection 🔐
+**Target:** Q1 2025
+**Priority:** CRITICAL
+
+Detect hardcoded secrets (API keys, tokens, credentials) using industry-standard Secretlint library.
+
+**🎯 SecretDetector - NEW standalone detector:**
+
+```typescript
+// ❌ CRITICAL: Hardcoded AWS credentials
+const AWS_KEY = "AKIA1234567890ABCDEF"  // VIOLATION!
+const AWS_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"  // VIOLATION!
+
+// ❌ CRITICAL: Hardcoded GitHub token
+const GITHUB_TOKEN = "ghp_1234567890abcdefghijklmnopqrstuv"  // VIOLATION!
+
+// ❌ CRITICAL: SSH Private Key in code
+const privateKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEA...`  // VIOLATION!
+
+// ❌ CRITICAL: NPM token
+//registry.npmjs.org/:_authToken=npm_abc123xyz  // VIOLATION!
+
+// ✅ GOOD: Use environment variables
+const AWS_KEY = process.env.AWS_ACCESS_KEY_ID
+const AWS_SECRET = process.env.AWS_SECRET_ACCESS_KEY
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN
+```
+
+**Planned Features:**
+- ✅ **SecretDetector** - Standalone detector (separate from HardcodeDetector)
+- ✅ **Secretlint Integration** - Industry-standard library (@secretlint/node)
+- ✅ **350+ Secret Patterns** - AWS, GitHub, NPM, SSH, GCP, Slack, Basic Auth, etc.
+- ✅ **CRITICAL Severity** - All secret violations marked as critical
+- ✅ **Smart Suggestions** - Context-aware remediation per secret type
+- ✅ **Clean Architecture** - New ISecretDetector interface, SecretViolation value object
+- ✅ **CLI Integration** - New "🔐 Secrets" section in output
+- ✅ **Parallel Execution** - Runs alongside existing detectors
+
+**Secret Types Detected:**
+- AWS Access Keys & Secret Keys
+- GitHub Tokens (ghp_, github_pat_, gho_, etc.)
+- NPM tokens in .npmrc and code
+- SSH Private Keys
+- GCP Service Account credentials
+- Slack tokens (xoxb-, xoxp-, etc.)
+- Basic Auth credentials
+- JWT tokens
+- Private encryption keys
+
+**Architecture:**
+```typescript
+// New domain layer
+interface ISecretDetector {
+    detectAll(code: string, filePath: string): Promise<SecretViolation[]>
+}
+
+class SecretViolation {
+    file: string
+    line: number
+    secretType: string  // AWS, GitHub, NPM, etc.
+    message: string
+    severity: "critical"
+    suggestion: string  // Context-aware guidance
+}
+
+// New infrastructure implementation
+class SecretDetector implements ISecretDetector {
+    // Uses @secretlint/node internally
+}
+```
+
+**Why Secretlint?**
+- ✅ Actively maintained (updates weekly)
+- ✅ TypeScript native
+- ✅ Pluggable architecture
+- ✅ Low false positives
+- ✅ Industry standard
+
+**Why NOT custom implementation?**
+- ❌ No good npm library for magic numbers/strings
+- ❌ Our HardcodeDetector is better than existing solutions
+- ✅ Secretlint is perfect for secrets (don't reinvent the wheel)
+- ✅ Two focused detectors better than one bloated detector
+
+**Impact:**
+Guardian will now catch critical security issues BEFORE they reach production, complementing existing magic number/string detection.
+
+---
+
+### Version 0.9.0 - Anemic Domain Model Detection 🩺
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -342,7 +432,7 @@ class Order {
 
 ---
 
-### Version 0.8.0 - Domain Event Usage Validation 📢
+### Version 0.10.0 - Domain Event Usage Validation 📢
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -381,7 +471,7 @@ class Order {
 
 ---
 
-### Version 0.9.0 - Value Object Immutability Check 🔐
+### Version 0.11.0 - Value Object Immutability Check 🔐
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -424,7 +514,7 @@ class Email {
 
 ---
 
-### Version 0.10.0 - Use Case Single Responsibility 🎯
+### Version 0.12.0 - Use Case Single Responsibility 🎯
 **Target:** Q2 2026
 **Priority:** LOW
 
@@ -461,7 +551,7 @@ class SendWelcomeEmail {
 
 ---
 
-### Version 0.11.0 - Interface Segregation Validation 🔌
+### Version 0.13.0 - Interface Segregation Validation 🔌
 **Target:** Q2 2026
 **Priority:** LOW
 
@@ -506,7 +596,7 @@ interface IUserExporter {
 
 ---
 
-### Version 0.12.0 - Port-Adapter Pattern Validation 🔌
+### Version 0.14.0 - Port-Adapter Pattern Validation 🔌
 **Target:** Q2 2026
 **Priority:** MEDIUM
 
@@ -545,7 +635,7 @@ class TwilioAdapter implements INotificationPort {
 
 ---
 
-### Version 0.13.0 - Configuration File Support ⚙️
+### Version 0.15.0 - Configuration File Support ⚙️
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -596,7 +686,7 @@ export default {
 
 ---
 
-### Version 0.14.0 - Command Query Separation (CQS/CQRS) 📝
+### Version 0.16.0 - Command Query Separation (CQS/CQRS) 📝
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -657,7 +747,7 @@ class GetUser {  // Query
 
 ---
 
-### Version 0.15.0 - Factory Pattern Validation 🏭
+### Version 0.17.0 - Factory Pattern Validation 🏭
 **Target:** Q3 2026
 **Priority:** LOW
 
@@ -740,7 +830,7 @@ class Order {
 
 ---
 
-### Version 0.16.0 - Specification Pattern Detection 🔍
+### Version 0.18.0 - Specification Pattern Detection 🔍
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -812,7 +902,7 @@ class ApproveOrder {
 
 ---
 
-### Version 0.17.0 - Layered Service Anti-pattern Detection ⚠️
+### Version 0.19.0 - Layered Service Anti-pattern Detection ⚠️
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -889,7 +979,7 @@ class OrderService {
 
 ---
 
-### Version 0.18.0 - Bounded Context Leak Detection 🚧
+### Version 0.20.0 - Bounded Context Leak Detection 🚧
 **Target:** Q3 2026
 **Priority:** LOW
 
@@ -954,7 +1044,7 @@ class ProductPriceChangedHandler {
 
 ---
 
-### Version 0.19.0 - Transaction Script vs Domain Model Detection 📜
+### Version 0.21.0 - Transaction Script vs Domain Model Detection 📜
 **Target:** Q3 2026
 **Priority:** LOW
 
@@ -1021,7 +1111,7 @@ class Order {
 
 ---
 
-### Version 0.20.0 - Persistence Ignorance Validation 💾
+### Version 0.22.0 - Persistence Ignorance Validation 💾
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -1107,7 +1197,7 @@ class UserEntityMapper {
 
 ---
 
-### Version 0.21.0 - Null Object Pattern Detection 🎭
+### Version 0.23.0 - Null Object Pattern Detection 🎭
 **Target:** Q3 2026
 **Priority:** LOW
 
@@ -1189,7 +1279,7 @@ class ProcessOrder {
 
 ---
 
-### Version 0.22.0 - Primitive Obsession in Methods 🔢
+### Version 0.24.0 - Primitive Obsession in Methods 🔢
 **Target:** Q3 2026
 **Priority:** MEDIUM
 
@@ -1256,7 +1346,7 @@ class Order {
 
 ---
 
-### Version 0.23.0 - Service Locator Anti-pattern 🔍
+### Version 0.25.0 - Service Locator Anti-pattern 🔍
 **Target:** Q4 2026
 **Priority:** MEDIUM
 
@@ -1316,7 +1406,7 @@ class CreateUser {
 
 ---
 
-### Version 0.24.0 - Double Dispatch Pattern Validation 🎯
+### Version 0.26.0 - Double Dispatch Pattern Validation 🎯
 **Target:** Q4 2026
 **Priority:** LOW
 
@@ -1393,7 +1483,7 @@ class ShippingCostCalculator implements IOrderItemVisitor {
 
 ---
 
-### Version 0.25.0 - Entity Identity Validation 🆔
+### Version 0.27.0 - Entity Identity Validation 🆔
 **Target:** Q4 2026
 **Priority:** MEDIUM
 
@@ -1486,7 +1576,7 @@ class UserId {
 
 ---
 
-### Version 0.26.0 - Saga Pattern Detection 🔄
+### Version 0.28.0 - Saga Pattern Detection 🔄
 **Target:** Q4 2026
 **Priority:** LOW
 
@@ -1584,7 +1674,7 @@ abstract class SagaStep {
 
 ---
 
-### Version 0.27.0 - Anti-Corruption Layer Detection 🛡️
+### Version 0.29.0 - Anti-Corruption Layer Detection 🛡️
 **Target:** Q4 2026
 **Priority:** MEDIUM
 
@@ -1670,7 +1760,7 @@ interface IOrderSyncPort {
 
 ---
 
-### Version 0.28.0 - Ubiquitous Language Validation 📖
+### Version 0.30.0 - Ubiquitous Language Validation 📖
 **Target:** Q4 2026
 **Priority:** HIGH
 

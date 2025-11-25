@@ -5,6 +5,45 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.9] - 2025-11-25
+
+### Changed
+
+- ♻️ **Refactored large detectors** - significantly improved maintainability and reduced complexity:
+  - **AggregateBoundaryDetector**: Reduced from 381 to 162 lines (57% reduction)
+  - **HardcodeDetector**: Reduced from 459 to 89 lines (81% reduction)
+  - **RepositoryPatternDetector**: Reduced from 479 to 106 lines (78% reduction)
+  - Extracted 13 focused strategy classes for single responsibilities
+  - All 519 tests pass, no breaking changes
+  - Zero ESLint errors (1 pre-existing warning unrelated to refactoring)
+  - Improved code organization and separation of concerns
+
+### Added
+
+- 🏗️ **13 new strategy classes** for focused responsibilities:
+  - `FolderRegistry` - Centralized DDD folder name management
+  - `AggregatePathAnalyzer` - Path parsing and aggregate extraction
+  - `ImportValidator` - Import validation logic
+  - `BraceTracker` - Brace and bracket counting
+  - `ConstantsFileChecker` - Constants file detection
+  - `ExportConstantAnalyzer` - Export const analysis
+  - `MagicNumberMatcher` - Magic number detection
+  - `MagicStringMatcher` - Magic string detection
+  - `OrmTypeMatcher` - ORM type matching
+  - `MethodNameValidator` - Repository method validation
+  - `RepositoryFileAnalyzer` - File role detection
+  - `RepositoryViolationDetector` - Violation detection logic
+  - Enhanced testability with smaller, focused classes
+
+### Improved
+
+- 📊 **Code quality metrics**:
+  - Reduced cyclomatic complexity across all three detectors
+  - Better separation of concerns with strategy pattern
+  - More maintainable and extensible codebase
+  - Easier to add new detection patterns
+  - Improved code readability and self-documentation
+
 ## [0.7.8] - 2025-11-25
 
 ### Added

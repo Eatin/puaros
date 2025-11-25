@@ -5,6 +5,19 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.6] - 2025-11-25
+
+### Changed
+
+- ♻️ **Refactored CLI module** - improved maintainability and separation of concerns:
+  - Split 484-line `cli/index.ts` into focused modules
+  - Created `cli/groupers/ViolationGrouper.ts` for severity grouping and filtering (29 lines)
+  - Created `cli/formatters/OutputFormatter.ts` for violation formatting (190 lines)
+  - Created `cli/formatters/StatisticsFormatter.ts` for metrics and summary (58 lines)
+  - Reduced `cli/index.ts` from 484 to 260 lines (46% reduction)
+  - All 345 tests pass, CLI output identical to before
+  - No breaking changes
+
 ## [0.7.5] - 2025-11-25
 
 ### Changed

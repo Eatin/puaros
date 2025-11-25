@@ -11,92 +11,11 @@ import {
     CLI_MESSAGES,
     CLI_OPTIONS,
     DEFAULT_EXCLUDES,
-    SEVERITY_DISPLAY_LABELS,
-    SEVERITY_SECTION_HEADERS,
 } from "./constants"
-import { SEVERITY_LEVELS, SEVERITY_ORDER, type SeverityLevel } from "../shared/constants"
-
-const SEVERITY_LABELS: Record<SeverityLevel, string> = {
-    [SEVERITY_LEVELS.CRITICAL]: SEVERITY_DISPLAY_LABELS.CRITICAL,
-    [SEVERITY_LEVELS.HIGH]: SEVERITY_DISPLAY_LABELS.HIGH,
-    [SEVERITY_LEVELS.MEDIUM]: SEVERITY_DISPLAY_LABELS.MEDIUM,
-    [SEVERITY_LEVELS.LOW]: SEVERITY_DISPLAY_LABELS.LOW,
-}
-
-const SEVERITY_HEADER: Record<SeverityLevel, string> = {
-    [SEVERITY_LEVELS.CRITICAL]: SEVERITY_SECTION_HEADERS.CRITICAL,
-    [SEVERITY_LEVELS.HIGH]: SEVERITY_SECTION_HEADERS.HIGH,
-    [SEVERITY_LEVELS.MEDIUM]: SEVERITY_SECTION_HEADERS.MEDIUM,
-    [SEVERITY_LEVELS.LOW]: SEVERITY_SECTION_HEADERS.LOW,
-}
-
-function groupBySeverity<T extends { severity: SeverityLevel }>(
-    violations: T[],
-): Map<SeverityLevel, T[]> {
-    const grouped = new Map<SeverityLevel, T[]>()
-
-    for (const violation of violations) {
-        const existing = grouped.get(violation.severity) ?? []
-        existing.push(violation)
-        grouped.set(violation.severity, existing)
-    }
-
-    return grouped
-}
-
-function filterBySeverity<T extends { severity: SeverityLevel }>(
-    violations: T[],
-    minSeverity?: SeverityLevel,
-): T[] {
-    if (!minSeverity) {
-        return violations
-    }
-
-    const minSeverityOrder = SEVERITY_ORDER[minSeverity]
-    return violations.filter((v) => SEVERITY_ORDER[v.severity] <= minSeverityOrder)
-}
-
-function displayGroupedViolations<T extends { severity: SeverityLevel }>(
-    violations: T[],
-    displayFn: (v: T, index: number) => void,
-    limit?: number,
-): void {
-    const grouped = groupBySeverity(violations)
-    const severities: SeverityLevel[] = [
-        SEVERITY_LEVELS.CRITICAL,
-        SEVERITY_LEVELS.HIGH,
-        SEVERITY_LEVELS.MEDIUM,
-        SEVERITY_LEVELS.LOW,
-    ]
-
-    let totalDisplayed = 0
-    const totalAvailable = violations.length
-
-    for (const severity of severities) {
-        const items = grouped.get(severity)
-        if (items && items.length > 0) {
-            console.warn(SEVERITY_HEADER[severity])
-            console.warn(`Found ${String(items.length)} issue(s)\n`)
-
-            const itemsToDisplay =
-                limit !== undefined ? items.slice(0, limit - totalDisplayed) : items
-            itemsToDisplay.forEach((item, index) => {
-                displayFn(item, totalDisplayed + index)
-            })
-            totalDisplayed += itemsToDisplay.length
-
-            if (limit !== undefined && totalDisplayed >= limit) {
-                break
-            }
-        }
-    }
-
-    if (limit !== undefined && totalAvailable > limit) {
-        console.warn(
-            `\n⚠️  Showing first ${String(limit)} of ${String(totalAvailable)} issues (use --limit to adjust)\n`,
-        )
-    }
-}
+import { SEVERITY_LEVELS, type SeverityLevel } from "../shared/constants"
+import { ViolationGrouper } from "./groupers/ViolationGrouper"
+import { OutputFormatter } from "./formatters/OutputFormatter"
+import { StatisticsFormatter } from "./formatters/StatisticsFormatter"
 
 const program = new Command()
 
@@ -150,6 +69,10 @@ program
     .option(CLI_OPTIONS.ONLY_CRITICAL, CLI_DESCRIPTIONS.ONLY_CRITICAL_OPTION, false)
     .option(CLI_OPTIONS.LIMIT, CLI_DESCRIPTIONS.LIMIT_OPTION)
     .action(async (path: string, options) => {
+        const grouper = new ViolationGrouper()
+        const outputFormatter = new OutputFormatter()
+        const statsFormatter = new StatisticsFormatter()
+
         try {
             console.log(CLI_MESSAGES.ANALYZING)
 
@@ -182,270 +105,159 @@ program
                 : undefined
 
             if (minSeverity) {
-                violations = filterBySeverity(violations, minSeverity)
-                hardcodeViolations = filterBySeverity(hardcodeViolations, minSeverity)
-                circularDependencyViolations = filterBySeverity(
+                violations = grouper.filterBySeverity(violations, minSeverity)
+                hardcodeViolations = grouper.filterBySeverity(hardcodeViolations, minSeverity)
+                circularDependencyViolations = grouper.filterBySeverity(
                     circularDependencyViolations,
                     minSeverity,
                 )
-                namingViolations = filterBySeverity(namingViolations, minSeverity)
-                frameworkLeakViolations = filterBySeverity(frameworkLeakViolations, minSeverity)
-                entityExposureViolations = filterBySeverity(entityExposureViolations, minSeverity)
-                dependencyDirectionViolations = filterBySeverity(
+                namingViolations = grouper.filterBySeverity(namingViolations, minSeverity)
+                frameworkLeakViolations = grouper.filterBySeverity(
+                    frameworkLeakViolations,
+                    minSeverity,
+                )
+                entityExposureViolations = grouper.filterBySeverity(
+                    entityExposureViolations,
+                    minSeverity,
+                )
+                dependencyDirectionViolations = grouper.filterBySeverity(
                     dependencyDirectionViolations,
                     minSeverity,
                 )
-                repositoryPatternViolations = filterBySeverity(
+                repositoryPatternViolations = grouper.filterBySeverity(
                     repositoryPatternViolations,
                     minSeverity,
                 )
-                aggregateBoundaryViolations = filterBySeverity(
+                aggregateBoundaryViolations = grouper.filterBySeverity(
                     aggregateBoundaryViolations,
                     minSeverity,
                 )
 
-                if (options.onlyCritical) {
-                    console.log("\n🔴 Filtering: Showing only CRITICAL severity issues\n")
-                } else {
-                    console.log(
-                        `\n⚠️  Filtering: Showing ${minSeverity.toUpperCase()} severity and above\n`,
-                    )
-                }
+                statsFormatter.displaySeverityFilterMessage(
+                    options.onlyCritical,
+                    options.minSeverity,
+                )
             }
 
-            // Display metrics
-            console.log(CLI_MESSAGES.METRICS_HEADER)
-            console.log(`   ${CLI_LABELS.FILES_ANALYZED} ${String(metrics.totalFiles)}`)
-            console.log(`   ${CLI_LABELS.TOTAL_FUNCTIONS} ${String(metrics.totalFunctions)}`)
-            console.log(`   ${CLI_LABELS.TOTAL_IMPORTS} ${String(metrics.totalImports)}`)
+            statsFormatter.displayMetrics(metrics)
 
-            if (Object.keys(metrics.layerDistribution).length > 0) {
-                console.log(CLI_MESSAGES.LAYER_DISTRIBUTION_HEADER)
-                for (const [layer, count] of Object.entries(metrics.layerDistribution)) {
-                    console.log(`   ${layer}: ${String(count)} ${CLI_LABELS.FILES}`)
-                }
-            }
-
-            // Architecture violations
             if (options.architecture && violations.length > 0) {
                 console.log(
                     `\n${CLI_MESSAGES.VIOLATIONS_HEADER} ${String(violations.length)} ${CLI_LABELS.ARCHITECTURE_VIOLATIONS}`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     violations,
-                    (v, index) => {
-                        console.log(`${String(index + 1)}. ${v.file}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[v.severity]}`)
-                        console.log(`   Rule: ${v.rule}`)
-                        console.log(`   ${v.message}`)
-                        console.log("")
+                    (v, i) => {
+                        outputFormatter.formatArchitectureViolation(v, i)
                     },
                     limit,
                 )
             }
 
-            // Circular dependency violations
             if (options.architecture && circularDependencyViolations.length > 0) {
                 console.log(
                     `\n${CLI_MESSAGES.CIRCULAR_DEPS_HEADER} ${String(circularDependencyViolations.length)} ${CLI_LABELS.CIRCULAR_DEPENDENCIES}`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     circularDependencyViolations,
-                    (cd, index) => {
-                        console.log(`${String(index + 1)}. ${cd.message}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[cd.severity]}`)
-                        console.log("   Cycle path:")
-                        cd.cycle.forEach((file, i) => {
-                            console.log(`     ${String(i + 1)}. ${file}`)
-                        })
-                        console.log(
-                            `     ${String(cd.cycle.length + 1)}. ${cd.cycle[0]} (back to start)`,
-                        )
-                        console.log("")
+                    (cd, i) => {
+                        outputFormatter.formatCircularDependency(cd, i)
                     },
                     limit,
                 )
             }
 
-            // Naming convention violations
             if (options.architecture && namingViolations.length > 0) {
                 console.log(
                     `\n${CLI_MESSAGES.NAMING_VIOLATIONS_HEADER} ${String(namingViolations.length)} ${CLI_LABELS.NAMING_VIOLATIONS}`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     namingViolations,
-                    (nc, index) => {
-                        console.log(`${String(index + 1)}. ${nc.file}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[nc.severity]}`)
-                        console.log(`   File: ${nc.fileName}`)
-                        console.log(`   Layer: ${nc.layer}`)
-                        console.log(`   Type: ${nc.type}`)
-                        console.log(`   Message: ${nc.message}`)
-                        if (nc.suggestion) {
-                            console.log(`   💡 Suggestion: ${nc.suggestion}`)
-                        }
-                        console.log("")
+                    (nc, i) => {
+                        outputFormatter.formatNamingViolation(nc, i)
                     },
                     limit,
                 )
             }
 
-            // Framework leak violations
             if (options.architecture && frameworkLeakViolations.length > 0) {
                 console.log(
                     `\n🏗️ Found ${String(frameworkLeakViolations.length)} framework leak(s)`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     frameworkLeakViolations,
-                    (fl, index) => {
-                        console.log(`${String(index + 1)}. ${fl.file}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[fl.severity]}`)
-                        console.log(`   Package: ${fl.packageName}`)
-                        console.log(`   Category: ${fl.categoryDescription}`)
-                        console.log(`   Layer: ${fl.layer}`)
-                        console.log(`   Rule: ${fl.rule}`)
-                        console.log(`   ${fl.message}`)
-                        console.log(`   💡 Suggestion: ${fl.suggestion}`)
-                        console.log("")
+                    (fl, i) => {
+                        outputFormatter.formatFrameworkLeak(fl, i)
                     },
                     limit,
                 )
             }
 
-            // Entity exposure violations
             if (options.architecture && entityExposureViolations.length > 0) {
                 console.log(
                     `\n🎭 Found ${String(entityExposureViolations.length)} entity exposure(s)`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     entityExposureViolations,
-                    (ee, index) => {
-                        const location = ee.line ? `${ee.file}:${String(ee.line)}` : ee.file
-                        console.log(`${String(index + 1)}. ${location}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[ee.severity]}`)
-                        console.log(`   Entity: ${ee.entityName}`)
-                        console.log(`   Return Type: ${ee.returnType}`)
-                        if (ee.methodName) {
-                            console.log(`   Method: ${ee.methodName}`)
-                        }
-                        console.log(`   Layer: ${ee.layer}`)
-                        console.log(`   Rule: ${ee.rule}`)
-                        console.log(`   ${ee.message}`)
-                        console.log("   💡 Suggestion:")
-                        ee.suggestion.split("\n").forEach((line) => {
-                            if (line.trim()) {
-                                console.log(`      ${line}`)
-                            }
-                        })
-                        console.log("")
+                    (ee, i) => {
+                        outputFormatter.formatEntityExposure(ee, i)
                     },
                     limit,
                 )
             }
 
-            // Dependency direction violations
             if (options.architecture && dependencyDirectionViolations.length > 0) {
                 console.log(
                     `\n⚠️ Found ${String(dependencyDirectionViolations.length)} dependency direction violation(s)`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     dependencyDirectionViolations,
-                    (dd, index) => {
-                        console.log(`${String(index + 1)}. ${dd.file}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[dd.severity]}`)
-                        console.log(`   From Layer: ${dd.fromLayer}`)
-                        console.log(`   To Layer: ${dd.toLayer}`)
-                        console.log(`   Import: ${dd.importPath}`)
-                        console.log(`   ${dd.message}`)
-                        console.log(`   💡 Suggestion: ${dd.suggestion}`)
-                        console.log("")
+                    (dd, i) => {
+                        outputFormatter.formatDependencyDirection(dd, i)
                     },
                     limit,
                 )
             }
 
-            // Repository pattern violations
             if (options.architecture && repositoryPatternViolations.length > 0) {
                 console.log(
                     `\n📦 Found ${String(repositoryPatternViolations.length)} repository pattern violation(s)`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     repositoryPatternViolations,
-                    (rp, index) => {
-                        console.log(`${String(index + 1)}. ${rp.file}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[rp.severity]}`)
-                        console.log(`   Layer: ${rp.layer}`)
-                        console.log(`   Type: ${rp.violationType}`)
-                        console.log(`   Details: ${rp.details}`)
-                        console.log(`   ${rp.message}`)
-                        console.log(`   💡 Suggestion: ${rp.suggestion}`)
-                        console.log("")
+                    (rp, i) => {
+                        outputFormatter.formatRepositoryPattern(rp, i)
                     },
                     limit,
                 )
             }
 
-            // Aggregate boundary violations
             if (options.architecture && aggregateBoundaryViolations.length > 0) {
                 console.log(
                     `\n🔒 Found ${String(aggregateBoundaryViolations.length)} aggregate boundary violation(s)`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     aggregateBoundaryViolations,
-                    (ab, index) => {
-                        const location = ab.line ? `${ab.file}:${String(ab.line)}` : ab.file
-                        console.log(`${String(index + 1)}. ${location}`)
-                        console.log(`   Severity: ${SEVERITY_LABELS[ab.severity]}`)
-                        console.log(`   From Aggregate: ${ab.fromAggregate}`)
-                        console.log(`   To Aggregate: ${ab.toAggregate}`)
-                        console.log(`   Entity: ${ab.entityName}`)
-                        console.log(`   Import: ${ab.importPath}`)
-                        console.log(`   ${ab.message}`)
-                        console.log("   💡 Suggestion:")
-                        ab.suggestion.split("\n").forEach((line) => {
-                            if (line.trim()) {
-                                console.log(`      ${line}`)
-                            }
-                        })
-                        console.log("")
+                    (ab, i) => {
+                        outputFormatter.formatAggregateBoundary(ab, i)
                     },
                     limit,
                 )
             }
 
-            // Hardcode violations
             if (options.hardcode && hardcodeViolations.length > 0) {
                 console.log(
                     `\n${CLI_MESSAGES.HARDCODE_VIOLATIONS_HEADER} ${String(hardcodeViolations.length)} ${CLI_LABELS.HARDCODE_VIOLATIONS}`,
                 )
-
-                displayGroupedViolations(
+                outputFormatter.displayGroupedViolations(
                     hardcodeViolations,
-                    (hc, index) => {
-                        console.log(
-                            `${String(index + 1)}. ${hc.file}:${String(hc.line)}:${String(hc.column)}`,
-                        )
-                        console.log(`   Severity: ${SEVERITY_LABELS[hc.severity]}`)
-                        console.log(`   Type: ${hc.type}`)
-                        console.log(`   Value: ${JSON.stringify(hc.value)}`)
-                        console.log(`   Context: ${hc.context.trim()}`)
-                        console.log(`   💡 Suggested: ${hc.suggestion.constantName}`)
-                        console.log(`   📁 Location: ${hc.suggestion.location}`)
-                        console.log("")
+                    (hc, i) => {
+                        outputFormatter.formatHardcodeViolation(hc, i)
                     },
                     limit,
                 )
             }
 
-            // Summary
             const totalIssues =
                 violations.length +
                 hardcodeViolations.length +
@@ -457,26 +269,9 @@ program
                 repositoryPatternViolations.length +
                 aggregateBoundaryViolations.length
 
-            if (totalIssues === 0) {
-                console.log(CLI_MESSAGES.NO_ISSUES)
-                process.exit(0)
-            } else {
-                console.log(
-                    `${CLI_MESSAGES.ISSUES_TOTAL} ${String(totalIssues)} ${CLI_LABELS.ISSUES_TOTAL}`,
-                )
-                console.log(CLI_MESSAGES.TIP)
-
-                if (options.verbose) {
-                    console.log(CLI_MESSAGES.HELP_FOOTER)
-                }
-
-                process.exit(1)
-            }
+            statsFormatter.displaySummary(totalIssues, options.verbose)
         } catch (error) {
-            console.error(`\n❌ ${CLI_MESSAGES.ERROR_PREFIX}`)
-            console.error(error instanceof Error ? error.message : String(error))
-            console.error("")
-            process.exit(1)
+            statsFormatter.displayError(error instanceof Error ? error.message : String(error))
         }
     })
 

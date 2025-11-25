@@ -333,32 +333,34 @@ application/use-cases/
 
 ---
 
-### Version 0.7.6 - Refactor CLI Module 🔧
+### Version 0.7.6 - Refactor CLI Module 🔧 ✅ RELEASED
 
+**Released:** 2025-11-25
 **Priority:** MEDIUM
 **Scope:** Single session (~128K tokens)
 
-Split `cli/index.ts` (470 lines) into focused formatters.
+Split `cli/index.ts` (484 lines) into focused formatters.
 
 **Problem:**
-- CLI file has 470 lines
+- CLI file has 484 lines
 - Mixing: command setup, formatting, grouping, statistics
 
 **Solution:**
 ```
 cli/
-├── index.ts                  # Commands only (~100 lines)
+├── index.ts                  # Commands only (260 lines)
 ├── formatters/
-│   ├── OutputFormatter.ts    # Violation formatting
-│   └── StatisticsFormatter.ts
+│   ├── OutputFormatter.ts    # Violation formatting (190 lines)
+│   └── StatisticsFormatter.ts # Metrics & summary (58 lines)
 ├── groupers/
-│   └── ViolationGrouper.ts   # Sorting & grouping
+│   └── ViolationGrouper.ts   # Sorting & grouping (29 lines)
 ```
 
 **Deliverables:**
-- [ ] Extract formatters and groupers
-- [ ] Reduce `cli/index.ts` to ~100-150 lines
-- [ ] CLI output identical to before
+- ✅ Extract formatters and groupers
+- ✅ Reduce `cli/index.ts` from 484 to 260 lines (46% reduction)
+- ✅ CLI output identical to before
+- ✅ All 345 tests pass, no breaking changes
 - [ ] Publish to npm
 
 ---

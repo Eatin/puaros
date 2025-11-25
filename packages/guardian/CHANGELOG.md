@@ -5,7 +5,20 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.5-beta.1] - 2025-11-25
+## [0.7.5] - 2025-11-25
+
+### Changed
+
+- ♻️ **Refactored AnalyzeProject use-case** - improved maintainability and testability:
+  - Split 615-line God Use-Case into focused pipeline components
+  - Created `FileCollectionStep.ts` for file scanning and basic parsing (66 lines)
+  - Created `ParsingStep.ts` for AST parsing and dependency graph construction (51 lines)
+  - Created `DetectionPipeline.ts` for running all 7 detectors (371 lines)
+  - Created `ResultAggregator.ts` for building response DTO (81 lines)
+  - Reduced `AnalyzeProject.ts` from 615 to 245 lines (60% reduction)
+  - All 345 tests pass, no breaking changes
+  - Improved separation of concerns and single responsibility
+  - Easier to test and modify individual pipeline steps
 
 ### Added
 

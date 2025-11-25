@@ -60,3 +60,12 @@ export const AGGREGATE_VIOLATION_MESSAGES = {
     AVOID_DIRECT_REFERENCE: "3. Avoid direct entity references to maintain aggregate independence",
     MAINTAIN_INDEPENDENCE: "4. Each aggregate should be independently modifiable and deployable",
 }
+
+export const SECRET_VIOLATION_MESSAGES = {
+    USE_ENV_VARIABLES: "1. Use environment variables for sensitive data (process.env.API_KEY)",
+    USE_SECRET_MANAGER:
+        "2. Use secret management services (AWS Secrets Manager, HashiCorp Vault, etc.)",
+    NEVER_COMMIT_SECRETS: "3. Never commit secrets to version control",
+    ROTATE_IF_EXPOSED: "4. If secret was committed, rotate it immediately",
+    USE_GITIGNORE: "5. Add secret files to .gitignore (.env, credentials.json, etc.)",
+}

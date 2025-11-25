@@ -452,8 +452,9 @@ Refactored largest detectors to reduce complexity and improve maintainability.
 
 ---
 
-### Version 0.8.0 - Secret Detection 🔐
-**Target:** Q1 2025
+### Version 0.8.0 - Secret Detection 🔐 ✅ RELEASED
+
+**Released:** 2025-11-25
 **Priority:** CRITICAL
 
 Detect hardcoded secrets (API keys, tokens, credentials) using industry-standard Secretlint library.

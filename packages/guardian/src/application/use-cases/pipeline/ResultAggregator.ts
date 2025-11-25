@@ -12,6 +12,7 @@ import type {
     NamingConventionViolation,
     ProjectMetrics,
     RepositoryPatternViolation,
+    SecretViolation,
 } from "../AnalyzeProject"
 
 export interface AggregationRequest {
@@ -27,6 +28,7 @@ export interface AggregationRequest {
     dependencyDirectionViolations: DependencyDirectionViolation[]
     repositoryPatternViolations: RepositoryPatternViolation[]
     aggregateBoundaryViolations: AggregateBoundaryViolation[]
+    secretViolations: SecretViolation[]
 }
 
 /**
@@ -52,6 +54,7 @@ export class ResultAggregator {
             dependencyDirectionViolations: request.dependencyDirectionViolations,
             repositoryPatternViolations: request.repositoryPatternViolations,
             aggregateBoundaryViolations: request.aggregateBoundaryViolations,
+            secretViolations: request.secretViolations,
             metrics,
         }
     }

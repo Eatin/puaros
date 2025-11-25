@@ -5,6 +5,39 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-11-25
+
+### Added
+
+- 🔐 **Secret Detection** - NEW CRITICAL security feature using industry-standard Secretlint:
+  - Detects 350+ types of hardcoded secrets (AWS keys, GitHub tokens, NPM tokens, SSH keys, API keys, etc.)
+  - All secrets marked as **CRITICAL severity** for immediate attention
+  - Context-aware remediation suggestions for each secret type
+  - Integrated seamlessly with existing detectors
+  - New `SecretDetector` infrastructure component using `@secretlint/node`
+  - New `SecretViolation` value object with rich examples
+  - New `ISecretDetector` domain interface
+  - CLI output with "🔐 Found X hardcoded secrets - CRITICAL SECURITY RISK" section
+  - Added dependencies: `@secretlint/node`, `@secretlint/core`, `@secretlint/types`, `@secretlint/secretlint-rule-preset-recommend`
+
+### Changed
+
+- 🔄 **Pipeline async support** - `DetectionPipeline.execute()` now async for secret detection
+- 📊 **Test suite expanded** - Added 47 new tests (23 for SecretViolation, 24 for SecretDetector)
+  - Total: 566 tests (was 519), 100% pass rate
+  - Coverage: 93.3% statements, 83.74% branches, 98.17% functions
+  - SecretViolation: 100% coverage
+- 📝 **Documentation updated**:
+  - README.md: Added Secret Detection section with examples
+  - ROADMAP.md: Marked v0.8.0 as released
+  - Updated package description to mention secrets detection
+
+### Security
+
+- 🛡️ **Prevents credentials in version control** - catches AWS, GitHub, NPM, SSH, Slack, GCP secrets before commit
+- ⚠️ **CRITICAL violations** - all hardcoded secrets immediately flagged with highest severity
+- 💡 **Smart remediation** - provides specific guidance per secret type (environment variables, secret managers, etc.)
+
 ## [0.7.9] - 2025-11-25
 
 ### Changed

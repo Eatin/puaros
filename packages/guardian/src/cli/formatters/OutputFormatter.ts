@@ -9,6 +9,7 @@ import type {
     HardcodeViolation,
     NamingConventionViolation,
     RepositoryPatternViolation,
+    SecretViolation,
 } from "../../application/use-cases/AnalyzeProject"
 import { SEVERITY_DISPLAY_LABELS, SEVERITY_SECTION_HEADERS } from "../constants"
 import { ViolationGrouper } from "../groupers/ViolationGrouper"
@@ -170,6 +171,22 @@ export class OutputFormatter {
         console.log(`   ${ab.message}`)
         console.log("   💡 Suggestion:")
         ab.suggestion.split("\n").forEach((line) => {
+            if (line.trim()) {
+                console.log(`      ${line}`)
+            }
+        })
+        console.log("")
+    }
+
+    formatSecretViolation(sv: SecretViolation, index: number): void {
+        const location = `${sv.file}:${String(sv.line)}:${String(sv.column)}`
+        console.log(`${String(index + 1)}. ${location}`)
+        console.log(`   Severity: ${SEVERITY_LABELS[sv.severity]} ⚠️`)
+        console.log(`   Secret Type: ${sv.secretType}`)
+        console.log(`   ${sv.message}`)
+        console.log("   🔐 CRITICAL: Rotate this secret immediately!")
+        console.log("   💡 Suggestion:")
+        sv.suggestion.split("\n").forEach((line) => {
             if (line.trim()) {
                 console.log(`      ${line}`)
             }

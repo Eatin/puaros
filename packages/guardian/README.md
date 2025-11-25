@@ -72,7 +72,7 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Prevents "new Repository()" anti-pattern
 - 📚 *Based on: Martin Fowler's Repository Pattern, DDD (Evans 2003)* → [Why?](./docs/WHY.md#repository-pattern)
 
-🔒 **Aggregate Boundary Validation** ✨ NEW
+🔒 **Aggregate Boundary Validation**
 - Detects direct entity references across DDD aggregates
 - Enforces reference-by-ID or Value Object pattern
 - Prevents tight coupling between aggregates
@@ -80,6 +80,15 @@ Code quality guardian for vibe coders and enterprise teams - because AI writes f
 - Filters allowed imports (value-objects, events, repositories, services)
 - Critical severity for maintaining aggregate independence
 - 📚 *Based on: Domain-Driven Design (Evans 2003), Implementing DDD (Vernon 2013)* → [Why?](./docs/WHY.md#aggregate-boundaries)
+
+🔐 **Secret Detection** ✨ NEW in v0.8.0
+- Detects 350+ types of hardcoded secrets using industry-standard Secretlint
+- Catches AWS keys, GitHub tokens, NPM tokens, SSH keys, API keys, and more
+- All secrets marked as **CRITICAL severity** - immediate security risk
+- Context-aware remediation suggestions for each secret type
+- Prevents credentials from reaching version control
+- Integrates seamlessly with existing detectors
+- 📚 *Based on: OWASP Top 10, CWE-798 (Hardcoded Credentials), NIST Security Guidelines* → [Learn more](https://owasp.org/www-community/vulnerabilities/Use_of_hard-coded_password)
 
 🏗️ **Clean Architecture Enforcement**
 - Built with DDD principles
@@ -366,6 +375,15 @@ const result = await analyzeProject({
 })
 
 console.log(`Found ${result.hardcodeViolations.length} hardcoded values`)
+console.log(`Found ${result.secretViolations.length} hardcoded secrets 🔐`)
+
+// Check for critical security issues first!
+result.secretViolations.forEach((violation) => {
+    console.log(`🔐 CRITICAL: ${violation.file}:${violation.line}`)
+    console.log(`  Secret Type: ${violation.secretType}`)
+    console.log(`  ${violation.message}`)
+    console.log(`  ⚠️  Rotate this secret immediately!`)
+})
 
 result.hardcodeViolations.forEach((violation) => {
     console.log(`${violation.file}:${violation.line}`)
@@ -394,9 +412,9 @@ npx @samiyev/guardian check ./src --verbose
 npx @samiyev/guardian check ./src --no-hardcode  # Skip hardcode detection
 npx @samiyev/guardian check ./src --no-architecture  # Skip architecture checks
 
-# Filter by severity
-npx @samiyev/guardian check ./src --min-severity high  # Show high, critical only
-npx @samiyev/guardian check ./src --only-critical      # Show only critical issues
+# Filter by severity (perfect for finding secrets first!)
+npx @samiyev/guardian check ./src --only-critical      # Show only critical issues (secrets, circular deps)
+npx @samiyev/guardian check ./src --min-severity high  # Show high and critical only
 
 # Limit detailed output (useful for large codebases)
 npx @samiyev/guardian check ./src --limit 10           # Show first 10 violations per category

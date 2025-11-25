@@ -9,6 +9,7 @@ import { IEntityExposureDetector } from "../../domain/services/IEntityExposureDe
 import { IDependencyDirectionDetector } from "../../domain/services/IDependencyDirectionDetector"
 import { IRepositoryPatternDetector } from "../../domain/services/RepositoryPatternDetectorService"
 import { IAggregateBoundaryDetector } from "../../domain/services/IAggregateBoundaryDetector"
+import { ISecretDetector } from "../../domain/services/ISecretDetector"
 import { SourceFile } from "../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../domain/entities/DependencyGraph"
 import { FileCollectionStep } from "./pipeline/FileCollectionStep"
@@ -42,6 +43,7 @@ export interface AnalyzeProjectResponse {
     dependencyDirectionViolations: DependencyDirectionViolation[]
     repositoryPatternViolations: RepositoryPatternViolation[]
     aggregateBoundaryViolations: AggregateBoundaryViolation[]
+    secretViolations: SecretViolation[]
     metrics: ProjectMetrics
 }
 
@@ -163,6 +165,17 @@ export interface AggregateBoundaryViolation {
     severity: SeverityLevel
 }
 
+export interface SecretViolation {
+    rule: typeof RULES.SECRET_EXPOSURE
+    secretType: string
+    file: string
+    line: number
+    column: number
+    message: string
+    suggestion: string
+    severity: SeverityLevel
+}
+
 export interface ProjectMetrics {
     totalFiles: number
     totalFunctions: number
@@ -193,6 +206,7 @@ export class AnalyzeProject extends UseCase<
         dependencyDirectionDetector: IDependencyDirectionDetector,
         repositoryPatternDetector: IRepositoryPatternDetector,
         aggregateBoundaryDetector: IAggregateBoundaryDetector,
+        secretDetector: ISecretDetector,
     ) {
         super()
         this.fileCollectionStep = new FileCollectionStep(fileScanner)
@@ -205,6 +219,7 @@ export class AnalyzeProject extends UseCase<
             dependencyDirectionDetector,
             repositoryPatternDetector,
             aggregateBoundaryDetector,
+            secretDetector,
         )
         this.resultAggregator = new ResultAggregator()
     }
@@ -224,7 +239,7 @@ export class AnalyzeProject extends UseCase<
                 rootDir: request.rootDir,
             })
 
-            const detectionResult = this.detectionPipeline.execute({
+            const detectionResult = await this.detectionPipeline.execute({
                 sourceFiles,
                 dependencyGraph,
             })

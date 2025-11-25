@@ -92,6 +92,7 @@ program
                 dependencyDirectionViolations,
                 repositoryPatternViolations,
                 aggregateBoundaryViolations,
+                secretViolations,
             } = result
 
             const minSeverity: SeverityLevel | undefined = options.onlyCritical
@@ -132,6 +133,7 @@ program
                     aggregateBoundaryViolations,
                     minSeverity,
                 )
+                secretViolations = grouper.filterBySeverity(secretViolations, minSeverity)
 
                 statsFormatter.displaySeverityFilterMessage(
                     options.onlyCritical,
@@ -245,6 +247,19 @@ program
                 )
             }
 
+            if (secretViolations.length > 0) {
+                console.log(
+                    `\n🔐 Found ${String(secretViolations.length)} hardcoded secret(s) - CRITICAL SECURITY RISK`,
+                )
+                outputFormatter.displayGroupedViolations(
+                    secretViolations,
+                    (sv, i) => {
+                        outputFormatter.formatSecretViolation(sv, i)
+                    },
+                    limit,
+                )
+            }
+
             if (options.hardcode && hardcodeViolations.length > 0) {
                 console.log(
                     `\n${CLI_MESSAGES.HARDCODE_VIOLATIONS_HEADER} ${String(hardcodeViolations.length)} ${CLI_LABELS.HARDCODE_VIOLATIONS}`,
@@ -267,7 +282,8 @@ program
                 entityExposureViolations.length +
                 dependencyDirectionViolations.length +
                 repositoryPatternViolations.length +
-                aggregateBoundaryViolations.length
+                aggregateBoundaryViolations.length +
+                secretViolations.length
 
             statsFormatter.displaySummary(totalIssues, options.verbose)
         } catch (error) {

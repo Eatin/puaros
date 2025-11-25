@@ -12,6 +12,7 @@ import { IEntityExposureDetector } from "./domain/services/IEntityExposureDetect
 import { IDependencyDirectionDetector } from "./domain/services/IDependencyDirectionDetector"
 import { IRepositoryPatternDetector } from "./domain/services/RepositoryPatternDetectorService"
 import { IAggregateBoundaryDetector } from "./domain/services/IAggregateBoundaryDetector"
+import { ISecretDetector } from "./domain/services/ISecretDetector"
 import { FileScanner } from "./infrastructure/scanners/FileScanner"
 import { CodeParser } from "./infrastructure/parsers/CodeParser"
 import { HardcodeDetector } from "./infrastructure/analyzers/HardcodeDetector"
@@ -21,6 +22,7 @@ import { EntityExposureDetector } from "./infrastructure/analyzers/EntityExposur
 import { DependencyDirectionDetector } from "./infrastructure/analyzers/DependencyDirectionDetector"
 import { RepositoryPatternDetector } from "./infrastructure/analyzers/RepositoryPatternDetector"
 import { AggregateBoundaryDetector } from "./infrastructure/analyzers/AggregateBoundaryDetector"
+import { SecretDetector } from "./infrastructure/analyzers/SecretDetector"
 import { ERROR_MESSAGES } from "./shared/constants"
 
 /**
@@ -79,6 +81,7 @@ export async function analyzeProject(
         new DependencyDirectionDetector()
     const repositoryPatternDetector: IRepositoryPatternDetector = new RepositoryPatternDetector()
     const aggregateBoundaryDetector: IAggregateBoundaryDetector = new AggregateBoundaryDetector()
+    const secretDetector: ISecretDetector = new SecretDetector()
     const useCase = new AnalyzeProject(
         fileScanner,
         codeParser,
@@ -89,6 +92,7 @@ export async function analyzeProject(
         dependencyDirectionDetector,
         repositoryPatternDetector,
         aggregateBoundaryDetector,
+        secretDetector,
     )
 
     const result = await useCase.execute(options)

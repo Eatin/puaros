@@ -1,7 +1,7 @@
 {
     "name": "@samiyev/guardian",
-    "version": "0.7.9",
-    "description": "Research-backed code quality guardian for AI-assisted development. Detects hardcodes, circular deps, framework leaks, entity exposure, and 8 architecture violations. Enforces Clean Architecture/DDD principles. Works with GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline, and any AI coding tool.",
+    "version": "0.8.0",
+    "description": "Research-backed code quality guardian for AI-assisted development. Detects hardcodes, secrets, circular deps, framework leaks, entity exposure, and 9 architecture violations. Enforces Clean Architecture/DDD principles. Works with GitHub Copilot, Cursor, Windsurf, Claude, ChatGPT, Cline, and any AI coding tool.",
     "keywords": [
         "puaros",
         "guardian",
@@ -82,6 +82,10 @@
         "guardian": "./bin/guardian.js"
     },
     "dependencies": {
+        "@secretlint/core": "^11.2.5",
+        "@secretlint/node": "^11.2.5",
+        "@secretlint/secretlint-rule-preset-recommend": "^11.2.5",
+        "@secretlint/types": "^11.2.5",
         "commander": "^12.1.0",
         "simple-git": "^3.30.0",
         "tree-sitter": "^0.21.1",

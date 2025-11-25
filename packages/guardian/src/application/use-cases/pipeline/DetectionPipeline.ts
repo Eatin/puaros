@@ -5,6 +5,7 @@ import { IEntityExposureDetector } from "../../../domain/services/IEntityExposur
 import { IDependencyDirectionDetector } from "../../../domain/services/IDependencyDirectionDetector"
 import { IRepositoryPatternDetector } from "../../../domain/services/RepositoryPatternDetectorService"
 import { IAggregateBoundaryDetector } from "../../../domain/services/IAggregateBoundaryDetector"
+import { ISecretDetector } from "../../../domain/services/ISecretDetector"
 import { SourceFile } from "../../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../../domain/entities/DependencyGraph"
 import {
@@ -25,6 +26,7 @@ import type {
     HardcodeViolation,
     NamingConventionViolation,
     RepositoryPatternViolation,
+    SecretViolation,
 } from "../AnalyzeProject"
 
 export interface DetectionRequest {
@@ -42,6 +44,7 @@ export interface DetectionResult {
     dependencyDirectionViolations: DependencyDirectionViolation[]
     repositoryPatternViolations: RepositoryPatternViolation[]
     aggregateBoundaryViolations: AggregateBoundaryViolation[]
+    secretViolations: SecretViolation[]
 }
 
 /**
@@ -56,9 +59,12 @@ export class DetectionPipeline {
         private readonly dependencyDirectionDetector: IDependencyDirectionDetector,
         private readonly repositoryPatternDetector: IRepositoryPatternDetector,
         private readonly aggregateBoundaryDetector: IAggregateBoundaryDetector,
+        private readonly secretDetector: ISecretDetector,
     ) {}
 
-    public execute(request: DetectionRequest): DetectionResult {
+    public async execute(request: DetectionRequest): Promise<DetectionResult> {
+        const secretViolations = await this.detectSecrets(request.sourceFiles)
+
         return {
             violations: this.sortBySeverity(this.detectViolations(request.sourceFiles)),
             hardcodeViolations: this.sortBySeverity(this.detectHardcode(request.sourceFiles)),
@@ -83,6 +89,7 @@ export class DetectionPipeline {
             aggregateBoundaryViolations: this.sortBySeverity(
                 this.detectAggregateBoundaryViolations(request.sourceFiles),
             ),
+            secretViolations: this.sortBySeverity(secretViolations),
         }
     }
 
@@ -358,6 +365,32 @@ export class DetectionPipeline {
                     message: violation.getMessage(),
                     suggestion: violation.getSuggestion(),
                     severity: VIOLATION_SEVERITY_MAP.AGGREGATE_BOUNDARY,
+                })
+            }
+        }
+
+        return violations
+    }
+
+    private async detectSecrets(sourceFiles: SourceFile[]): Promise<SecretViolation[]> {
+        const violations: SecretViolation[] = []
+
+        for (const file of sourceFiles) {
+            const secretViolations = await this.secretDetector.detectAll(
+                file.content,
+                file.path.relative,
+            )
+
+            for (const secret of secretViolations) {
+                violations.push({
+                    rule: RULES.SECRET_EXPOSURE,
+                    secretType: secret.secretType,
+                    file: file.path.relative,
+                    line: secret.line,
+                    column: secret.column,
+                    message: secret.getMessage(),
+                    suggestion: secret.getSuggestion(),
+                    severity: "critical",
                 })
             }
         }

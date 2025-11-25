@@ -11,6 +11,7 @@ export const RULES = {
     DEPENDENCY_DIRECTION: "dependency-direction",
     REPOSITORY_PATTERN: "repository-pattern",
     AGGREGATE_BOUNDARY: "aggregate-boundary",
+    SECRET_EXPOSURE: "secret-exposure",
 } as const
 
 /**

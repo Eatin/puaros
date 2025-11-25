@@ -5,6 +5,19 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.5-beta.1] - 2025-11-25
+
+### Added
+
+- 🤖 **AI Agent Instructions in CLI help** - dedicated section for AI coding assistants:
+  - Step-by-step workflow: scan → fix → verify → expand scope
+  - Recommended commands for each step (`--only-critical --limit 5`)
+  - Output format description for easy parsing
+  - Priority order guidance (CRITICAL → HIGH → MEDIUM → LOW)
+  - Helps Claude, Copilot, Cursor, and other AI agents immediately take action
+
+Run `guardian --help` to see the new "AI AGENT INSTRUCTIONS" section.
+
 ## [0.7.4] - 2025-11-25
 
 ### Fixed

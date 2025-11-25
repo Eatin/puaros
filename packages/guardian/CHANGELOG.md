@@ -5,6 +5,21 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.4] - 2025-11-25
+
+### Fixed
+
+- 🐛 **TypeScript-aware hardcode detection** - dramatically reduces false positives by 35.7%:
+  - Ignore strings in TypeScript union types (`type Status = 'active' | 'inactive'`)
+  - Ignore strings in interface property types (`interface { mode: 'development' | 'production' }`)
+  - Ignore strings in type assertions (`as 'read' | 'write'`)
+  - Ignore strings in typeof checks (`typeof x === 'string'`)
+  - Ignore strings in Symbol() calls for DI tokens (`Symbol('LOGGER')`)
+  - Ignore strings in dynamic import() calls (`import('../../module.js')`)
+  - Exclude tokens.ts/tokens.js files completely (DI container files)
+  - Tested on real-world TypeScript project: 985 → 633 issues (352 false positives eliminated)
+- ✅ **Added 13 new tests** for TypeScript type context filtering
+
 ## [0.7.3] - 2025-11-25
 
 ### Fixed

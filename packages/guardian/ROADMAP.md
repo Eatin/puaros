@@ -301,6 +301,129 @@ class Order {
 
 ---
 
+### Version 0.7.5 - Refactor AnalyzeProject Use-Case 🔧
+
+**Priority:** HIGH
+**Scope:** Single session (~128K tokens)
+
+Split `AnalyzeProject.ts` (614 lines) into focused pipeline components.
+
+**Problem:**
+- God Use-Case with 614 lines
+- Mixing: file scanning, parsing, detection, aggregation
+- Hard to test and modify individual steps
+
+**Solution:**
+```
+application/use-cases/
+├── AnalyzeProject.ts          # Orchestrator (~100 lines)
+├── pipeline/
+│   ├── FileCollectionStep.ts  # File scanning
+│   ├── ParsingStep.ts         # AST + dependency graph
+│   ├── DetectionPipeline.ts   # All 7 detectors
+│   └── ResultAggregator.ts    # Build response DTO
+```
+
+**Deliverables:**
+- [ ] Extract 4 pipeline components
+- [ ] Reduce `AnalyzeProject.ts` to ~100 lines
+- [ ] All tests pass, no breaking changes
+- [ ] Publish to npm
+
+---
+
+### Version 0.7.6 - Refactor CLI Module 🔧
+
+**Priority:** MEDIUM
+**Scope:** Single session (~128K tokens)
+
+Split `cli/index.ts` (470 lines) into focused formatters.
+
+**Problem:**
+- CLI file has 470 lines
+- Mixing: command setup, formatting, grouping, statistics
+
+**Solution:**
+```
+cli/
+├── index.ts                  # Commands only (~100 lines)
+├── formatters/
+│   ├── OutputFormatter.ts    # Violation formatting
+│   └── StatisticsFormatter.ts
+├── groupers/
+│   └── ViolationGrouper.ts   # Sorting & grouping
+```
+
+**Deliverables:**
+- [ ] Extract formatters and groupers
+- [ ] Reduce `cli/index.ts` to ~100-150 lines
+- [ ] CLI output identical to before
+- [ ] Publish to npm
+
+---
+
+### Version 0.7.7 - Improve Test Coverage 🧪
+
+**Priority:** MEDIUM
+**Scope:** Single session (~128K tokens)
+
+Increase coverage for under-tested domain files.
+
+**Current State:**
+| File | Coverage |
+|------|----------|
+| SourceFile.ts | 46% |
+| ProjectPath.ts | 50% |
+| ValueObject.ts | 25% |
+| RepositoryViolation.ts | 58% |
+
+**Deliverables:**
+- [ ] SourceFile.ts → 80%+
+- [ ] ProjectPath.ts → 80%+
+- [ ] ValueObject.ts → 80%+
+- [ ] RepositoryViolation.ts → 80%+
+- [ ] Publish to npm
+
+---
+
+### Version 0.7.8 - Add E2E Tests 🧪
+
+**Priority:** MEDIUM
+**Scope:** Single session (~128K tokens)
+
+Add integration tests for full pipeline and CLI.
+
+**Deliverables:**
+- [ ] E2E test: `AnalyzeProject` full pipeline
+- [ ] CLI smoke test (spawn process, check output)
+- [ ] Test `examples/good-architecture/` → 0 violations
+- [ ] Test `examples/bad/` → specific violations
+- [ ] Test JSON output format
+- [ ] Publish to npm
+
+---
+
+### Version 0.7.9 - Refactor Large Detectors 🔧 (Optional)
+
+**Priority:** LOW
+**Scope:** Single session (~128K tokens)
+
+Refactor largest detectors to reduce complexity.
+
+**Targets:**
+| Detector | Lines | Complexity |
+|----------|-------|------------|
+| RepositoryPatternDetector | 479 | 35 |
+| HardcodeDetector | 459 | 41 |
+| AggregateBoundaryDetector | 381 | 47 |
+
+**Deliverables:**
+- [ ] Extract regex patterns into strategies
+- [ ] Reduce cyclomatic complexity < 25
+- [ ] Publish to npm
+
+---
+
 ### Version 0.8.0 - Secret Detection 🔐
 **Target:** Q1 2025
 **Priority:** CRITICAL
@@ -1947,5 +2070,5 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 
 ---
 
-**Last Updated:** 2025-11-24
-**Current Version:** 0.6.0
+**Last Updated:** 2025-11-25
+**Current Version:** 0.7.4

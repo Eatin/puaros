@@ -5,6 +5,26 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.7] - 2025-11-25
+
+### Added
+
+- 🧪 **Comprehensive test coverage for under-tested domain files**:
+  - Added 31 tests for `SourceFile.ts` - coverage improved from 46% to 100%
+  - Added 31 tests for `ProjectPath.ts` - coverage improved from 50% to 100%
+  - Added 18 tests for `ValueObject.ts` - coverage improved from 25% to 100%
+  - Added 32 tests for `RepositoryViolation.ts` - coverage improved from 58% to 92.68%
+  - Total test count increased from 345 to 457 tests
+  - Overall coverage improved to 95.4% statements, 86.25% branches, 96.68% functions
+  - All tests pass with no breaking changes
+
+### Changed
+
+- 📊 **Improved code quality and maintainability**:
+  - Enhanced test suite for core domain entities and value objects
+  - Better coverage of edge cases and error handling
+  - Increased confidence in domain layer correctness
+
 ## [0.7.6] - 2025-11-25
 
 ### Changed

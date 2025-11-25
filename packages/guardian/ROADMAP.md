@@ -365,26 +365,29 @@ cli/
 
 ---
 
-### Version 0.7.7 - Improve Test Coverage 🧪
+### Version 0.7.7 - Improve Test Coverage 🧪 ✅ RELEASED
 
+**Released:** 2025-11-25
 **Priority:** MEDIUM
 **Scope:** Single session (~128K tokens)
 
 Increase coverage for under-tested domain files.
 
-**Current State:**
-| File | Coverage |
-|------|----------|
-| SourceFile.ts | 46% |
-| ProjectPath.ts | 50% |
-| ValueObject.ts | 25% |
-| RepositoryViolation.ts | 58% |
+**Results:**
+| File | Before | After |
+|------|--------|-------|
+| SourceFile.ts | 46% | 100% ✅ |
+| ProjectPath.ts | 50% | 100% ✅ |
+| ValueObject.ts | 25% | 100% ✅ |
+| RepositoryViolation.ts | 58% | 92.68% ✅ |
 
 **Deliverables:**
-- [ ] SourceFile.ts → 80%+
-- [ ] ProjectPath.ts → 80%+
-- [ ] ValueObject.ts → 80%+
-- [ ] RepositoryViolation.ts → 80%+
+- ✅ SourceFile.ts → 100% (31 tests)
+- ✅ ProjectPath.ts → 100% (31 tests)
+- ✅ ValueObject.ts → 100% (18 tests)
+- ✅ RepositoryViolation.ts → 92.68% (32 tests)
+- ✅ All 457 tests passing
+- ✅ Overall coverage: 95.4% statements, 86.25% branches, 96.68% functions
 - [ ] Publish to npm
 
 ---
@@ -2074,4 +2077,4 @@ Until we reach 1.0.0, minor version bumps (0.x.0) may include breaking changes a
 ---
 
 **Last Updated:** 2025-11-25
-**Current Version:** 0.7.4
+**Current Version:** 0.7.7

@@ -392,19 +392,23 @@ Increase coverage for under-tested domain files.
 
 ---
 
-### Version 0.7.8 - Add E2E Tests 🧪
+### Version 0.7.8 - Add E2E Tests 🧪 ✅ RELEASED
 
+**Released:** 2025-11-25
 **Priority:** MEDIUM
 **Scope:** Single session (~128K tokens)
 
 Add integration tests for full pipeline and CLI.
 
 **Deliverables:**
-- [ ] E2E test: `AnalyzeProject` full pipeline
-- [ ] CLI smoke test (spawn process, check output)
-- [ ] Test `examples/good-architecture/` → 0 violations
-- [ ] Test `examples/bad/` → specific violations
-- [ ] Test JSON output format
+- ✅ E2E test: `AnalyzeProject` full pipeline (21 tests)
+- ✅ CLI smoke test (spawn process, check output) (22 tests)
+- ✅ Test `examples/good-architecture/` → 0 violations
+- ✅ Test `examples/bad/` → specific violations
+- ✅ Test JSON output format (19 tests)
+- ✅ 519 total tests (519 passing, **100% pass rate** 🎉)
+- ✅ Comprehensive E2E coverage for API and CLI
+- ✅ 3 new E2E test files with full pipeline coverage
 - [ ] Publish to npm
 
 ---

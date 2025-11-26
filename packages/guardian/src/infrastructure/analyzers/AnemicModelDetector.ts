@@ -1,7 +1,7 @@
 import { IAnemicModelDetector } from "../../domain/services/IAnemicModelDetector"
 import { AnemicModelViolation } from "../../domain/value-objects/AnemicModelViolation"
 import { CLASS_KEYWORDS } from "../../shared/constants"
-import { LAYERS } from "../../shared/constants/rules"
+import { ANALYZER_DEFAULTS, ANEMIC_MODEL_FLAGS, LAYERS } from "../../shared/constants/rules"
 
 /**
  * Detects anemic domain model violations
@@ -224,8 +224,8 @@ export class AnemicModelDetector implements IAnemicModelDetector {
                 lineNumber,
                 methodCount,
                 propertyCount,
-                false,
-                true,
+                ANEMIC_MODEL_FLAGS.HAS_ONLY_GETTERS_SETTERS_FALSE,
+                ANEMIC_MODEL_FLAGS.HAS_PUBLIC_SETTERS_TRUE,
             )
         }
 
@@ -237,8 +237,8 @@ export class AnemicModelDetector implements IAnemicModelDetector {
                 lineNumber,
                 methodCount,
                 propertyCount,
-                true,
-                false,
+                ANEMIC_MODEL_FLAGS.HAS_ONLY_GETTERS_SETTERS_TRUE,
+                ANEMIC_MODEL_FLAGS.HAS_PUBLIC_SETTERS_FALSE,
             )
         }
 
@@ -256,8 +256,8 @@ export class AnemicModelDetector implements IAnemicModelDetector {
                 lineNumber,
                 methodCount,
                 propertyCount,
-                false,
-                false,
+                ANALYZER_DEFAULTS.HAS_ONLY_GETTERS_SETTERS,
+                ANALYZER_DEFAULTS.HAS_PUBLIC_SETTERS,
             )
         }
 

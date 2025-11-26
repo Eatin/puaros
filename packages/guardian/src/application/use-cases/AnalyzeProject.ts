@@ -11,6 +11,7 @@ import { IRepositoryPatternDetector } from "../../domain/services/RepositoryPatt
 import { IAggregateBoundaryDetector } from "../../domain/services/IAggregateBoundaryDetector"
 import { ISecretDetector } from "../../domain/services/ISecretDetector"
 import { IAnemicModelDetector } from "../../domain/services/IAnemicModelDetector"
+import { IDuplicateValueTracker } from "../../domain/services/IDuplicateValueTracker"
 import { SourceFile } from "../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../domain/entities/DependencyGraph"
 import { CollectFiles } from "./pipeline/CollectFiles"
@@ -62,8 +63,9 @@ export interface HardcodeViolation {
     type:
         | typeof HARDCODE_TYPES.MAGIC_NUMBER
         | typeof HARDCODE_TYPES.MAGIC_STRING
+        | typeof HARDCODE_TYPES.MAGIC_BOOLEAN
         | typeof HARDCODE_TYPES.MAGIC_CONFIG
-    value: string | number
+    value: string | number | boolean
     file: string
     line: number
     column: number
@@ -225,6 +227,7 @@ export class AnalyzeProject extends UseCase<
         aggregateBoundaryDetector: IAggregateBoundaryDetector,
         secretDetector: ISecretDetector,
         anemicModelDetector: IAnemicModelDetector,
+        duplicateValueTracker: IDuplicateValueTracker,
     ) {
         super()
         this.fileCollectionStep = new CollectFiles(fileScanner)
@@ -239,6 +242,7 @@ export class AnalyzeProject extends UseCase<
             aggregateBoundaryDetector,
             secretDetector,
             anemicModelDetector,
+            duplicateValueTracker,
         )
         this.resultAggregator = new AggregateResults()
     }

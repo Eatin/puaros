@@ -7,8 +7,10 @@ import { IRepositoryPatternDetector } from "../../../domain/services/RepositoryP
 import { IAggregateBoundaryDetector } from "../../../domain/services/IAggregateBoundaryDetector"
 import { ISecretDetector } from "../../../domain/services/ISecretDetector"
 import { IAnemicModelDetector } from "../../../domain/services/IAnemicModelDetector"
+import { IDuplicateValueTracker } from "../../../domain/services/IDuplicateValueTracker"
 import { SourceFile } from "../../../domain/entities/SourceFile"
 import { DependencyGraph } from "../../../domain/entities/DependencyGraph"
+import { HardcodedValue } from "../../../domain/value-objects/HardcodedValue"
 import {
     LAYERS,
     REPOSITORY_VIOLATION_TYPES,
@@ -64,6 +66,7 @@ export class ExecuteDetection {
         private readonly aggregateBoundaryDetector: IAggregateBoundaryDetector,
         private readonly secretDetector: ISecretDetector,
         private readonly anemicModelDetector: IAnemicModelDetector,
+        private readonly duplicateValueTracker: IDuplicateValueTracker,
     ) {}
 
     public async execute(request: DetectionRequest): Promise<DetectionResult> {
@@ -151,7 +154,10 @@ export class ExecuteDetection {
     }
 
     private detectHardcode(sourceFiles: SourceFile[]): HardcodeViolation[] {
-        const violations: HardcodeViolation[] = []
+        const allHardcodedValues: {
+            value: HardcodedValue
+            file: SourceFile
+        }[] = []
 
         for (const file of sourceFiles) {
             const hardcodedValues = this.hardcodeDetector.detectAll(
@@ -160,21 +166,51 @@ export class ExecuteDetection {
             )
 
             for (const hardcoded of hardcodedValues) {
-                violations.push({
-                    rule: RULES.HARDCODED_VALUE,
-                    type: hardcoded.type,
-                    value: hardcoded.value,
-                    file: file.path.relative,
-                    line: hardcoded.line,
-                    column: hardcoded.column,
-                    context: hardcoded.context,
-                    suggestion: {
-                        constantName: hardcoded.suggestConstantName(),
-                        location: hardcoded.suggestLocation(file.layer),
-                    },
-                    severity: VIOLATION_SEVERITY_MAP.HARDCODE,
-                })
+                allHardcodedValues.push({ value: hardcoded, file })
             }
+        }
+
+        this.duplicateValueTracker.clear()
+        for (const { value, file } of allHardcodedValues) {
+            this.duplicateValueTracker.track(value, file.path.relative)
+        }
+
+        const violations: HardcodeViolation[] = []
+        for (const { value, file } of allHardcodedValues) {
+            const duplicateLocations = this.duplicateValueTracker.getDuplicateLocations(
+                value.value,
+                value.type,
+            )
+            const enrichedValue = duplicateLocations
+                ? HardcodedValue.create(
+                      value.value,
+                      value.type,
+                      value.line,
+                      value.column,
+                      value.context,
+                      value.valueType,
+                      duplicateLocations.filter((loc) => loc.file !== file.path.relative),
+                  )
+                : value
+
+            if (enrichedValue.shouldSkip(file.layer)) {
+                continue
+            }
+
+            violations.push({
+                rule: RULES.HARDCODED_VALUE,
+                type: enrichedValue.type,
+                value: enrichedValue.value,
+                file: file.path.relative,
+                line: enrichedValue.line,
+                column: enrichedValue.column,
+                context: enrichedValue.context,
+                suggestion: {
+                    constantName: enrichedValue.suggestConstantName(),
+                    location: enrichedValue.suggestLocation(file.layer),
+                },
+                severity: VIOLATION_SEVERITY_MAP.HARDCODE,
+            })
         }
 
         return violations

@@ -3,6 +3,7 @@ import type { SecretLintConfigDescriptor } from "@secretlint/types"
 import { ISecretDetector } from "../../domain/services/ISecretDetector"
 import { SecretViolation } from "../../domain/value-objects/SecretViolation"
 import { SECRET_KEYWORDS, SECRET_TYPE_NAMES } from "../../domain/constants/SecretExamples"
+import { EXTERNAL_PACKAGES } from "../../shared/constants/rules"
 
 /**
  * Detects hardcoded secrets in TypeScript/JavaScript code
@@ -25,7 +26,7 @@ export class SecretDetector implements ISecretDetector {
     private readonly secretlintConfig: SecretLintConfigDescriptor = {
         rules: [
             {
-                id: "@secretlint/secretlint-rule-preset-recommend",
+                id: EXTERNAL_PACKAGES.SECRETLINT_PRESET,
             },
         ],
     }

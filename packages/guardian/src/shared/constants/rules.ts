@@ -21,6 +21,7 @@ export const RULES = {
 export const HARDCODE_TYPES = {
     MAGIC_NUMBER: "magic-number",
     MAGIC_STRING: "magic-string",
+    MAGIC_BOOLEAN: "magic-boolean",
     MAGIC_CONFIG: "magic-config",
 } as const
 
@@ -415,4 +416,84 @@ export const REPOSITORY_VIOLATION_TYPES = {
     CONCRETE_REPOSITORY_IN_USE_CASE: "concrete-repository-in-use-case",
     NEW_REPOSITORY_IN_USE_CASE: "new-repository-in-use-case",
     NON_DOMAIN_METHOD_NAME: "non-domain-method-name",
+} as const
+
+/**
+ * Detection patterns for sensitive keywords
+ */
+export const DETECTION_PATTERNS = {
+    SENSITIVE_KEYWORDS: ["password", "secret", "token", "auth", "credential"],
+    BUSINESS_KEYWORDS: ["price", "salary", "balance", "amount", "limit", "threshold", "quota"],
+    TECHNICAL_KEYWORDS: [
+        "timeout",
+        "retry",
+        "attempt",
+        "maxretries",
+        "database",
+        "connection",
+        "host",
+        "port",
+        "endpoint",
+    ],
+    MEDIUM_KEYWORDS: ["delay", "interval", "duration", "size", "count", "max", "min"],
+    UI_KEYWORDS: [
+        "padding",
+        "margin",
+        "width",
+        "height",
+        "color",
+        "style",
+        "label",
+        "title",
+        "placeholder",
+        "icon",
+        "text",
+        "display",
+    ],
+} as const
+
+/**
+ * Configuration detection keywords
+ */
+export const CONFIG_KEYWORDS = {
+    NETWORK: ["endpoint", "host", "domain", "path", "route"],
+    DATABASE: ["connection", "database"],
+    SECURITY: ["config", "secret", "token", "password", "credential"],
+    MESSAGES: ["message", "error", "warning", "text"],
+} as const
+
+/**
+ * Detection comparison values
+ */
+export const DETECTION_VALUES = {
+    BOOLEAN_TRUE: "true",
+    BOOLEAN_FALSE: "false",
+    TYPE_CONFIG: "config",
+    TYPE_GENERIC: "generic",
+} as const
+
+/**
+ * Boolean constants for analyzers
+ */
+export const ANALYZER_DEFAULTS = {
+    HAS_ONLY_GETTERS_SETTERS: false,
+    HAS_PUBLIC_SETTERS: false,
+    HAS_BUSINESS_LOGIC: false,
+} as const
+
+/**
+ * Anemic model detection flags
+ */
+export const ANEMIC_MODEL_FLAGS = {
+    HAS_ONLY_GETTERS_SETTERS_TRUE: true,
+    HAS_ONLY_GETTERS_SETTERS_FALSE: false,
+    HAS_PUBLIC_SETTERS_TRUE: true,
+    HAS_PUBLIC_SETTERS_FALSE: false,
+} as const
+
+/**
+ * External package constants
+ */
+export const EXTERNAL_PACKAGES = {
+    SECRETLINT_PRESET: "@secretlint/secretlint-rule-preset-recommend",
 } as const

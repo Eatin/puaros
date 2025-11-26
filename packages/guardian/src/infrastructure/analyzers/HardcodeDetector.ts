@@ -1,17 +1,28 @@
+import Parser from "tree-sitter"
 import { IHardcodeDetector } from "../../domain/services/IHardcodeDetector"
 import { HardcodedValue } from "../../domain/value-objects/HardcodedValue"
-import { BraceTracker } from "../strategies/BraceTracker"
+import { CodeParser } from "../parsers/CodeParser"
+import { AstBooleanAnalyzer } from "../strategies/AstBooleanAnalyzer"
+import { AstConfigObjectAnalyzer } from "../strategies/AstConfigObjectAnalyzer"
+import { AstContextChecker } from "../strategies/AstContextChecker"
+import { AstNumberAnalyzer } from "../strategies/AstNumberAnalyzer"
+import { AstStringAnalyzer } from "../strategies/AstStringAnalyzer"
 import { ConstantsFileChecker } from "../strategies/ConstantsFileChecker"
-import { ExportConstantAnalyzer } from "../strategies/ExportConstantAnalyzer"
-import { MagicNumberMatcher } from "../strategies/MagicNumberMatcher"
-import { MagicStringMatcher } from "../strategies/MagicStringMatcher"
+import { AstTreeTraverser } from "./AstTreeTraverser"
 
 /**
  * Detects hardcoded values (magic numbers and strings) in TypeScript/JavaScript code
  *
- * This detector identifies configuration values, URLs, timeouts, ports, and other
- * constants that should be extracted to configuration files. It uses pattern matching
- * and context analysis to reduce false positives.
+ * This detector uses Abstract Syntax Tree (AST) analysis via tree-sitter to identify
+ * configuration values, URLs, timeouts, ports, and other constants that should be
+ * extracted to configuration files. AST-based detection provides more accurate context
+ * understanding and reduces false positives compared to regex-based approaches.
+ *
+ * The detector uses a modular architecture with specialized components:
+ * - AstContextChecker: Checks if nodes are in specific contexts (exports, types, etc.)
+ * - AstNumberAnalyzer: Analyzes number literals to detect magic numbers
+ * - AstStringAnalyzer: Analyzes string literals to detect magic strings
+ * - AstTreeTraverser: Traverses the AST and coordinates analyzers
  *
  * @example
  * ```typescript
@@ -26,17 +37,25 @@ import { MagicStringMatcher } from "../strategies/MagicStringMatcher"
  */
 export class HardcodeDetector implements IHardcodeDetector {
     private readonly constantsChecker: ConstantsFileChecker
-    private readonly braceTracker: BraceTracker
-    private readonly exportAnalyzer: ExportConstantAnalyzer
-    private readonly numberMatcher: MagicNumberMatcher
-    private readonly stringMatcher: MagicStringMatcher
+    private readonly parser: CodeParser
+    private readonly traverser: AstTreeTraverser
 
     constructor() {
         this.constantsChecker = new ConstantsFileChecker()
-        this.braceTracker = new BraceTracker()
-        this.exportAnalyzer = new ExportConstantAnalyzer(this.braceTracker)
-        this.numberMatcher = new MagicNumberMatcher(this.exportAnalyzer)
-        this.stringMatcher = new MagicStringMatcher(this.exportAnalyzer)
+        this.parser = new CodeParser()
+
+        const contextChecker = new AstContextChecker()
+        const numberAnalyzer = new AstNumberAnalyzer(contextChecker)
+        const stringAnalyzer = new AstStringAnalyzer(contextChecker)
+        const booleanAnalyzer = new AstBooleanAnalyzer(contextChecker)
+        const configObjectAnalyzer = new AstConfigObjectAnalyzer(contextChecker)
+
+        this.traverser = new AstTreeTraverser(
+            numberAnalyzer,
+            stringAnalyzer,
+            booleanAnalyzer,
+            configObjectAnalyzer,
+        )
     }
 
     /**
@@ -51,10 +70,8 @@ export class HardcodeDetector implements IHardcodeDetector {
             return []
         }
 
-        const magicNumbers = this.numberMatcher.detect(code)
-        const magicStrings = this.stringMatcher.detect(code)
-
-        return [...magicNumbers, ...magicStrings]
+        const tree = this.parseCode(code, filePath)
+        return this.traverser.traverse(tree, code)
     }
 
     /**
@@ -69,7 +86,9 @@ export class HardcodeDetector implements IHardcodeDetector {
             return []
         }
 
-        return this.numberMatcher.detect(code)
+        const tree = this.parseCode(code, filePath)
+        const allViolations = this.traverser.traverse(tree, code)
+        return allViolations.filter((v) => v.isMagicNumber())
     }
 
     /**
@@ -84,6 +103,20 @@ export class HardcodeDetector implements IHardcodeDetector {
             return []
         }
 
-        return this.stringMatcher.detect(code)
+        const tree = this.parseCode(code, filePath)
+        const allViolations = this.traverser.traverse(tree, code)
+        return allViolations.filter((v) => v.isMagicString())
+    }
+
+    /**
+     * Parses code based on file extension
+     */
+    private parseCode(code: string, filePath: string): Parser.Tree {
+        if (filePath.endsWith(".tsx")) {
+            return this.parser.parseTsx(code)
+        } else if (filePath.endsWith(".ts")) {
+            return this.parser.parseTypeScript(code)
+        }
+        return this.parser.parseJavaScript(code)
     }
 }

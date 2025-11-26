@@ -14,6 +14,7 @@ import { IRepositoryPatternDetector } from "./domain/services/RepositoryPatternD
 import { IAggregateBoundaryDetector } from "./domain/services/IAggregateBoundaryDetector"
 import { ISecretDetector } from "./domain/services/ISecretDetector"
 import { IAnemicModelDetector } from "./domain/services/IAnemicModelDetector"
+import { IDuplicateValueTracker } from "./domain/services/IDuplicateValueTracker"
 import { FileScanner } from "./infrastructure/scanners/FileScanner"
 import { CodeParser } from "./infrastructure/parsers/CodeParser"
 import { HardcodeDetector } from "./infrastructure/analyzers/HardcodeDetector"
@@ -25,6 +26,7 @@ import { RepositoryPatternDetector } from "./infrastructure/analyzers/Repository
 import { AggregateBoundaryDetector } from "./infrastructure/analyzers/AggregateBoundaryDetector"
 import { SecretDetector } from "./infrastructure/analyzers/SecretDetector"
 import { AnemicModelDetector } from "./infrastructure/analyzers/AnemicModelDetector"
+import { DuplicateValueTracker } from "./infrastructure/analyzers/DuplicateValueTracker"
 import { ERROR_MESSAGES } from "./shared/constants"
 
 /**
@@ -85,6 +87,7 @@ export async function analyzeProject(
     const aggregateBoundaryDetector: IAggregateBoundaryDetector = new AggregateBoundaryDetector()
     const secretDetector: ISecretDetector = new SecretDetector()
     const anemicModelDetector: IAnemicModelDetector = new AnemicModelDetector()
+    const duplicateValueTracker: IDuplicateValueTracker = new DuplicateValueTracker()
     const useCase = new AnalyzeProject(
         fileScanner,
         codeParser,
@@ -97,6 +100,7 @@ export async function analyzeProject(
         aggregateBoundaryDetector,
         secretDetector,
         anemicModelDetector,
+        duplicateValueTracker,
     )
 
     const result = await useCase.execute(options)

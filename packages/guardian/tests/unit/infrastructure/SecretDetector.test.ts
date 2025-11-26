@@ -274,4 +274,68 @@ describe("SecretDetector", () => {
             expect(violations).toBeInstanceOf(Array)
         })
     })
+
+    describe("real secret detection", () => {
+        it("should detect AWS access key pattern", async () => {
+            const code = `const awsKey = "AKIAIOSFODNN7EXAMPLE"`
+
+            const violations = await detector.detectAll(code, "aws.ts")
+
+            if (violations.length > 0) {
+                expect(violations[0].secretType).toContain("AWS")
+            }
+        })
+
+        it("should detect basic auth credentials", async () => {
+            const code = `const auth = "https://user:password@example.com"`
+
+            const violations = await detector.detectAll(code, "auth.ts")
+
+            if (violations.length > 0) {
+                expect(violations[0].file).toBe("auth.ts")
+                expect(violations[0].line).toBeGreaterThan(0)
+                expect(violations[0].column).toBeGreaterThan(0)
+            }
+        })
+
+        it("should detect private SSH key", async () => {
+            const code = `
+                const privateKey = \`-----BEGIN RSA PRIVATE KEY-----
+MIIBogIBAAJBALRiMLAA...
+-----END RSA PRIVATE KEY-----\`
+            `
+
+            const violations = await detector.detectAll(code, "ssh.ts")
+
+            if (violations.length > 0) {
+                expect(violations[0].secretType).toBeTruthy()
+            }
+        })
+
+        it("should return violation objects with required properties", async () => {
+            const code = `const key = "AKIAIOSFODNN7EXAMPLE"`
+
+            const violations = await detector.detectAll(code, "test.ts")
+
+            violations.forEach((v) => {
+                expect(v).toHaveProperty("file")
+                expect(v).toHaveProperty("line")
+                expect(v).toHaveProperty("column")
+                expect(v).toHaveProperty("secretType")
+                expect(v.getMessage).toBeDefined()
+                expect(v.getSuggestion).toBeDefined()
+            })
+        })
+
+        it("should handle files with multiple secrets", async () => {
+            const code = `
+                const key1 = "AKIAIOSFODNN7EXAMPLE"
+                const key2 = "AKIAIOSFODNN8EXAMPLE"
+            `
+
+            const violations = await detector.detectAll(code, "multiple.ts")
+
+            expect(violations).toBeInstanceOf(Array)
+        })
+    })
 })

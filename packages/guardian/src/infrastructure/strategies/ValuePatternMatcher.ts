@@ -1,3 +1,5 @@
+import { VALUE_PATTERN_TYPES } from "../../shared/constants/ast-node-types"
+
 /**
  * Pattern matcher for detecting specific value types
  *
@@ -131,40 +133,40 @@ export class ValuePatternMatcher {
         | "base64"
         | null {
         if (this.isEmail(value)) {
-            return "email"
+            return VALUE_PATTERN_TYPES.EMAIL
         }
         if (this.isJwt(value)) {
-            return "api_key"
+            return VALUE_PATTERN_TYPES.API_KEY
         }
         if (this.isApiKey(value)) {
-            return "api_key"
+            return VALUE_PATTERN_TYPES.API_KEY
         }
         if (this.isUrl(value)) {
-            return "url"
+            return VALUE_PATTERN_TYPES.URL
         }
         if (this.isIpAddress(value)) {
-            return "ip_address"
+            return VALUE_PATTERN_TYPES.IP_ADDRESS
         }
         if (this.isFilePath(value)) {
-            return "file_path"
+            return VALUE_PATTERN_TYPES.FILE_PATH
         }
         if (this.isDate(value)) {
-            return "date"
+            return VALUE_PATTERN_TYPES.DATE
         }
         if (this.isUuid(value)) {
-            return "uuid"
+            return VALUE_PATTERN_TYPES.UUID
         }
         if (this.isSemver(value)) {
-            return "version"
+            return VALUE_PATTERN_TYPES.VERSION
         }
         if (this.isHexColor(value)) {
             return "color"
         }
         if (this.isMacAddress(value)) {
-            return "mac_address"
+            return VALUE_PATTERN_TYPES.MAC_ADDRESS
         }
         if (this.isBase64(value)) {
-            return "base64"
+            return VALUE_PATTERN_TYPES.BASE64
         }
         return null
     }

@@ -459,7 +459,27 @@ export const CONFIG_KEYWORDS = {
     NETWORK: ["endpoint", "host", "domain", "path", "route"],
     DATABASE: ["connection", "database"],
     SECURITY: ["config", "secret", "token", "password", "credential"],
-    MESSAGES: ["message", "error", "warning", "text"],
+    MESSAGES: [
+        "message",
+        "error",
+        "warning",
+        "text",
+        "description",
+        "suggestion",
+        "violation",
+        "expected",
+        "actual",
+    ],
+    TECHNICAL: [
+        "type",
+        "node",
+        "declaration",
+        "definition",
+        "signature",
+        "pattern",
+        "suffix",
+        "prefix",
+    ],
 } as const
 
 /**

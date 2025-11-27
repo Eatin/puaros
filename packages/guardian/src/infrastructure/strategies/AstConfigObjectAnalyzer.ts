@@ -1,6 +1,7 @@
 import Parser from "tree-sitter"
 import { HardcodedValue, HardcodeType } from "../../domain/value-objects/HardcodedValue"
 import { HARDCODE_TYPES } from "../../shared/constants/rules"
+import { AST_STRING_TYPES } from "../../shared/constants/ast-node-types"
 import { ALLOWED_NUMBERS } from "../constants/defaults"
 import { AstContextChecker } from "./AstContextChecker"
 
@@ -71,7 +72,9 @@ export class AstConfigObjectAnalyzer {
         }
 
         if (node.type === "string") {
-            const stringFragment = node.children.find((c) => c.type === "string_fragment")
+            const stringFragment = node.children.find(
+                (c) => c.type === AST_STRING_TYPES.STRING_FRAGMENT,
+            )
             return stringFragment !== undefined && stringFragment.text.length > 3
         }
 

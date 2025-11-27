@@ -1,6 +1,7 @@
 import Parser from "tree-sitter"
 import { IHardcodeDetector } from "../../domain/services/IHardcodeDetector"
 import { HardcodedValue } from "../../domain/value-objects/HardcodedValue"
+import { FILE_EXTENSIONS } from "../../shared/constants"
 import { CodeParser } from "../parsers/CodeParser"
 import { AstBooleanAnalyzer } from "../strategies/AstBooleanAnalyzer"
 import { AstConfigObjectAnalyzer } from "../strategies/AstConfigObjectAnalyzer"
@@ -112,9 +113,9 @@ export class HardcodeDetector implements IHardcodeDetector {
      * Parses code based on file extension
      */
     private parseCode(code: string, filePath: string): Parser.Tree {
-        if (filePath.endsWith(".tsx")) {
+        if (filePath.endsWith(FILE_EXTENSIONS.TYPESCRIPT_JSX)) {
             return this.parser.parseTsx(code)
-        } else if (filePath.endsWith(".ts")) {
+        } else if (filePath.endsWith(FILE_EXTENSIONS.TYPESCRIPT)) {
             return this.parser.parseTypeScript(code)
         }
         return this.parser.parseJavaScript(code)

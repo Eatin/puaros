@@ -1,4 +1,10 @@
 import Parser from "tree-sitter"
+import {
+    AST_FIELD_NAMES,
+    AST_IDENTIFIER_TYPES,
+    AST_MODIFIER_TYPES,
+    AST_VARIABLE_TYPES,
+} from "../../shared/constants/ast-node-types"
 
 /**
  * AST context checker for analyzing node contexts
@@ -29,22 +35,26 @@ export class AstContextChecker {
      * Helper to check if export statement contains "as const"
      */
     private checkExportedConstant(exportNode: Parser.SyntaxNode): boolean {
-        const declaration = exportNode.childForFieldName("declaration")
+        const declaration = exportNode.childForFieldName(AST_FIELD_NAMES.DECLARATION)
         if (!declaration) {
             return false
         }
 
-        const declarator = this.findDescendant(declaration, "variable_declarator")
+        if (declaration.type !== "lexical_declaration") {
+            return false
+        }
+
+        const declarator = this.findDescendant(declaration, AST_VARIABLE_TYPES.VARIABLE_DECLARATOR)
         if (!declarator) {
             return false
         }
 
-        const value = declarator.childForFieldName("value")
+        const value = declarator.childForFieldName(AST_FIELD_NAMES.VALUE)
         if (value?.type !== "as_expression") {
             return false
         }
 
-        const asType = value.children.find((c) => c.type === "const")
+        const asType = value.children.find((c) => c.type === AST_MODIFIER_TYPES.CONST)
         return asType !== undefined
     }
 
@@ -83,12 +93,17 @@ export class AstContextChecker {
 
             if (current.type === "call_expression") {
                 const functionNode =
-                    current.childForFieldName("function") ||
-                    current.children.find((c) => c.type === "identifier" || c.type === "import")
+                    current.childForFieldName(AST_FIELD_NAMES.FUNCTION) ||
+                    current.children.find(
+                        (c) =>
+                            c.type === AST_IDENTIFIER_TYPES.IDENTIFIER ||
+                            c.type === AST_IDENTIFIER_TYPES.IMPORT,
+                    )
 
                 if (
                     functionNode &&
-                    (functionNode.text === "import" || functionNode.type === "import")
+                    (functionNode.text === "import" ||
+                        functionNode.type === AST_IDENTIFIER_TYPES.IMPORT)
                 ) {
                     return true
                 }
@@ -229,7 +244,13 @@ export class AstContextChecker {
     public getNodeContext(node: Parser.SyntaxNode): string {
         let current: Parser.SyntaxNode | null = node
 
-        while (current && current.type !== "lexical_declaration" && current.type !== "pair") {
+        while (
+            current &&
+            current.type !== "lexical_declaration" &&
+            current.type !== "pair" &&
+            current.type !== "call_expression" &&
+            current.type !== "return_statement"
+        ) {
             current = current.parent
         }
 

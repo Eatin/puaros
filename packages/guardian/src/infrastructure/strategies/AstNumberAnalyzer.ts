@@ -1,6 +1,7 @@
 import Parser from "tree-sitter"
 import { HardcodedValue, HardcodeType } from "../../domain/value-objects/HardcodedValue"
 import { HARDCODE_TYPES } from "../../shared/constants/rules"
+import { TIMER_FUNCTIONS } from "../../shared/constants/ast-node-types"
 import { ALLOWED_NUMBERS, DETECTION_KEYWORDS } from "../constants/defaults"
 import { AstContextChecker } from "./AstContextChecker"
 
@@ -43,7 +44,12 @@ export class AstNumberAnalyzer {
             return false
         }
 
-        if (this.contextChecker.isInCallExpression(parent, ["setTimeout", "setInterval"])) {
+        if (
+            this.contextChecker.isInCallExpression(parent, [
+                TIMER_FUNCTIONS.SET_TIMEOUT,
+                TIMER_FUNCTIONS.SET_INTERVAL,
+            ])
+        ) {
             return true
         }
 

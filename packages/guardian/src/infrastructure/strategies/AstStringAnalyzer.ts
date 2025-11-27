@@ -1,6 +1,7 @@
 import Parser from "tree-sitter"
 import { HardcodedValue, HardcodeType } from "../../domain/value-objects/HardcodedValue"
 import { CONFIG_KEYWORDS, DETECTION_VALUES, HARDCODE_TYPES } from "../../shared/constants/rules"
+import { AST_STRING_TYPES } from "../../shared/constants/ast-node-types"
 import { AstContextChecker } from "./AstContextChecker"
 import { ValuePatternMatcher } from "./ValuePatternMatcher"
 
@@ -29,7 +30,9 @@ export class AstStringAnalyzer {
      * Analyzes a string node and returns a violation if it's a magic string
      */
     public analyze(node: Parser.SyntaxNode, lines: string[]): HardcodedValue | null {
-        const stringFragment = node.children.find((child) => child.type === "string_fragment")
+        const stringFragment = node.children.find(
+            (child) => child.type === AST_STRING_TYPES.STRING_FRAGMENT,
+        )
         if (!stringFragment) {
             return null
         }
@@ -108,6 +111,7 @@ export class AstStringAnalyzer {
             "key",
             ...CONFIG_KEYWORDS.MESSAGES,
             "label",
+            ...CONFIG_KEYWORDS.TECHNICAL,
         ]
 
         return configKeywords.some((keyword) => context.includes(keyword))

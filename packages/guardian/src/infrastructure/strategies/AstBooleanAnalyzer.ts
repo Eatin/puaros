@@ -1,6 +1,6 @@
 import Parser from "tree-sitter"
 import { HardcodedValue, HardcodeType } from "../../domain/value-objects/HardcodedValue"
-import { DETECTION_VALUES } from "../../shared/constants/rules"
+import { DETECTION_VALUES, HARDCODE_TYPES } from "../../shared/constants/rules"
 import { AstContextChecker } from "./AstContextChecker"
 
 /**
@@ -83,7 +83,7 @@ export class AstBooleanAnalyzer {
 
         return HardcodedValue.create(
             value,
-            "MAGIC_BOOLEAN" as HardcodeType,
+            HARDCODE_TYPES.MAGIC_BOOLEAN as HardcodeType,
             lineNumber,
             column,
             context,

@@ -119,3 +119,4 @@ export const VIOLATION_SEVERITY_MAP = {
 } as const
 
 export * from "./rules"
+export * from "./ast-node-types"

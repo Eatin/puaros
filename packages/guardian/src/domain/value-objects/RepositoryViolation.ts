@@ -1,6 +1,10 @@
 import { ValueObject } from "./ValueObject"
 import { REPOSITORY_VIOLATION_TYPES } from "../../shared/constants/rules"
-import { REPOSITORY_FALLBACK_SUGGESTIONS, REPOSITORY_PATTERN_MESSAGES } from "../constants/Messages"
+import {
+    REPOSITORY_FALLBACK_SUGGESTIONS,
+    REPOSITORY_PATTERN_MESSAGES,
+    VIOLATION_EXAMPLE_VALUES,
+} from "../constants/Messages"
 
 interface RepositoryViolationProps {
     readonly violationType:
@@ -105,16 +109,16 @@ export class RepositoryViolation extends ValueObject<RepositoryViolationProps> {
     public getMessage(): string {
         switch (this.props.violationType) {
             case REPOSITORY_VIOLATION_TYPES.ORM_TYPE_IN_INTERFACE:
-                return `Repository interface uses ORM-specific type '${this.props.ormType || "unknown"}'. Domain should not depend on infrastructure concerns.`
+                return `Repository interface uses ORM-specific type '${this.props.ormType || VIOLATION_EXAMPLE_VALUES.UNKNOWN}'. Domain should not depend on infrastructure concerns.`
 
             case REPOSITORY_VIOLATION_TYPES.CONCRETE_REPOSITORY_IN_USE_CASE:
-                return `Use case depends on concrete repository '${this.props.repositoryName || "unknown"}' instead of interface. Use dependency inversion.`
+                return `Use case depends on concrete repository '${this.props.repositoryName || VIOLATION_EXAMPLE_VALUES.UNKNOWN}' instead of interface. Use dependency inversion.`
 
             case REPOSITORY_VIOLATION_TYPES.NEW_REPOSITORY_IN_USE_CASE:
                 return `Use case creates repository with 'new ${this.props.repositoryName || "Repository"}()'. Use dependency injection instead.`
 
             case REPOSITORY_VIOLATION_TYPES.NON_DOMAIN_METHOD_NAME:
-                return `Repository method '${this.props.methodName || "unknown"}' uses technical name. Use domain language instead.`
+                return `Repository method '${this.props.methodName || VIOLATION_EXAMPLE_VALUES.UNKNOWN}' uses technical name. Use domain language instead.`
 
             default:
                 return `Repository pattern violation: ${this.props.details}`
@@ -159,8 +163,8 @@ export class RepositoryViolation extends ValueObject<RepositoryViolationProps> {
             REPOSITORY_PATTERN_MESSAGES.STEP_USE_DI,
             "",
             REPOSITORY_PATTERN_MESSAGES.EXAMPLE_PREFIX,
-            `❌ Bad: constructor(private repo: ${this.props.repositoryName || "UserRepository"})`,
-            `✅ Good: constructor(private repo: I${this.props.repositoryName?.replace(/^.*?([A-Z]\w+)$/, "$1") || "UserRepository"})`,
+            `❌ Bad: constructor(private repo: ${this.props.repositoryName || VIOLATION_EXAMPLE_VALUES.USER_REPOSITORY})`,
+            `✅ Good: constructor(private repo: I${this.props.repositoryName?.replace(/^.*?([A-Z]\w+)$/, "$1") || VIOLATION_EXAMPLE_VALUES.USER_REPOSITORY})`,
         ].join("\n")
     }
 
@@ -200,7 +204,7 @@ export class RepositoryViolation extends ValueObject<RepositoryViolationProps> {
             REPOSITORY_PATTERN_MESSAGES.STEP_AVOID_TECHNICAL,
             "",
             REPOSITORY_PATTERN_MESSAGES.EXAMPLE_PREFIX,
-            `❌ Bad: ${this.props.methodName || "findOne"}()`,
+            `❌ Bad: ${this.props.methodName || VIOLATION_EXAMPLE_VALUES.FIND_ONE}()`,
             `✅ Good: ${finalSuggestion}`,
         ].join("\n")
     }

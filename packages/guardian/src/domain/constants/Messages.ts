@@ -80,3 +80,12 @@ export const ANEMIC_MODEL_MESSAGES = {
     ENCAPSULATE_BUSINESS_RULES: "3. Encapsulate business rules inside entity methods",
     USE_DOMAIN_EVENTS: "4. Use domain events to communicate state changes",
 }
+
+/**
+ * Example values used in violation messages
+ */
+export const VIOLATION_EXAMPLE_VALUES = {
+    UNKNOWN: "unknown",
+    USER_REPOSITORY: "UserRepository",
+    FIND_ONE: "findOne",
+}

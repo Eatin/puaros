@@ -1,6 +1,21 @@
 import { ValueObject } from "./ValueObject"
 import { DETECTION_PATTERNS, HARDCODE_TYPES } from "../../shared/constants/rules"
-import { CONSTANT_NAMES, LOCATIONS, SUGGESTION_KEYWORDS } from "../constants/Suggestions"
+import {
+    API_KEY_CONTEXT_KEYWORDS,
+    BASE64_CONTEXT_KEYWORDS,
+    COLOR_CONTEXT_KEYWORDS,
+    CONFIG_CONTEXT_KEYWORDS,
+    CONSTANT_NAMES,
+    DATE_CONTEXT_KEYWORDS,
+    EMAIL_CONTEXT_KEYWORDS,
+    FILE_PATH_CONTEXT_KEYWORDS,
+    IP_CONTEXT_KEYWORDS,
+    LOCATIONS,
+    SUGGESTION_KEYWORDS,
+    URL_CONTEXT_KEYWORDS,
+    UUID_CONTEXT_KEYWORDS,
+    VERSION_CONTEXT_KEYWORDS,
+} from "../constants/Suggestions"
 
 export type HardcodeType = (typeof HARDCODE_TYPES)[keyof typeof HARDCODE_TYPES]
 
@@ -162,150 +177,165 @@ export class HardcodedValue extends ValueObject<HardcodedValueProps> {
         const valueType = this.props.valueType
 
         if (valueType === "email") {
-            if (context.includes("admin")) {
-                return "ADMIN_EMAIL"
+            if (context.includes(EMAIL_CONTEXT_KEYWORDS.ADMIN)) {
+                return CONSTANT_NAMES.ADMIN_EMAIL
             }
-            if (context.includes("support")) {
-                return "SUPPORT_EMAIL"
+            if (context.includes(EMAIL_CONTEXT_KEYWORDS.SUPPORT)) {
+                return CONSTANT_NAMES.SUPPORT_EMAIL
             }
-            if (context.includes("noreply") || context.includes("no-reply")) {
-                return "NOREPLY_EMAIL"
+            if (
+                context.includes(EMAIL_CONTEXT_KEYWORDS.NOREPLY) ||
+                context.includes(EMAIL_CONTEXT_KEYWORDS.NO_REPLY)
+            ) {
+                return CONSTANT_NAMES.NOREPLY_EMAIL
             }
-            return "DEFAULT_EMAIL"
+            return CONSTANT_NAMES.DEFAULT_EMAIL
         }
 
         if (valueType === "api_key") {
-            if (context.includes("secret")) {
-                return "API_SECRET_KEY"
+            if (context.includes(API_KEY_CONTEXT_KEYWORDS.SECRET)) {
+                return CONSTANT_NAMES.API_SECRET_KEY
             }
-            if (context.includes("public")) {
-                return "API_PUBLIC_KEY"
+            if (context.includes(API_KEY_CONTEXT_KEYWORDS.PUBLIC)) {
+                return CONSTANT_NAMES.API_PUBLIC_KEY
             }
-            return "API_KEY"
+            return CONSTANT_NAMES.API_KEY
         }
 
         if (valueType === "url") {
-            if (context.includes("api")) {
-                return "API_BASE_URL"
+            if (context.includes(URL_CONTEXT_KEYWORDS.API)) {
+                return CONSTANT_NAMES.API_BASE_URL
             }
-            if (context.includes("database") || context.includes("db")) {
-                return "DATABASE_URL"
+            if (
+                context.includes(URL_CONTEXT_KEYWORDS.DATABASE) ||
+                context.includes(URL_CONTEXT_KEYWORDS.DB)
+            ) {
+                return CONSTANT_NAMES.DATABASE_URL
             }
-            if (context.includes("mongo")) {
-                return "MONGODB_CONNECTION_STRING"
+            if (context.includes(URL_CONTEXT_KEYWORDS.MONGO)) {
+                return CONSTANT_NAMES.MONGODB_CONNECTION_STRING
             }
-            if (context.includes("postgres") || context.includes("pg")) {
-                return "POSTGRES_URL"
+            if (
+                context.includes(URL_CONTEXT_KEYWORDS.POSTGRES) ||
+                context.includes(URL_CONTEXT_KEYWORDS.PG)
+            ) {
+                return CONSTANT_NAMES.POSTGRES_URL
             }
-            return "BASE_URL"
+            return CONSTANT_NAMES.BASE_URL
         }
 
         if (valueType === "ip_address") {
-            if (context.includes("server")) {
-                return "SERVER_IP"
+            if (context.includes(IP_CONTEXT_KEYWORDS.SERVER)) {
+                return CONSTANT_NAMES.SERVER_IP
             }
-            if (context.includes("database") || context.includes("db")) {
-                return "DATABASE_HOST"
+            if (
+                context.includes(URL_CONTEXT_KEYWORDS.DATABASE) ||
+                context.includes(URL_CONTEXT_KEYWORDS.DB)
+            ) {
+                return CONSTANT_NAMES.DATABASE_HOST
             }
-            if (context.includes("redis")) {
-                return "REDIS_HOST"
+            if (context.includes(IP_CONTEXT_KEYWORDS.REDIS)) {
+                return CONSTANT_NAMES.REDIS_HOST
             }
-            return "HOST_IP"
+            return CONSTANT_NAMES.HOST_IP
         }
 
         if (valueType === "file_path") {
-            if (context.includes("log")) {
-                return "LOG_FILE_PATH"
+            if (context.includes(FILE_PATH_CONTEXT_KEYWORDS.LOG)) {
+                return CONSTANT_NAMES.LOG_FILE_PATH
             }
-            if (context.includes("config")) {
-                return "CONFIG_FILE_PATH"
+            if (context.includes(SUGGESTION_KEYWORDS.CONFIG)) {
+                return CONSTANT_NAMES.CONFIG_FILE_PATH
             }
-            if (context.includes("data")) {
-                return "DATA_DIR_PATH"
+            if (context.includes(FILE_PATH_CONTEXT_KEYWORDS.DATA)) {
+                return CONSTANT_NAMES.DATA_DIR_PATH
             }
-            if (context.includes("temp")) {
-                return "TEMP_DIR_PATH"
+            if (context.includes(FILE_PATH_CONTEXT_KEYWORDS.TEMP)) {
+                return CONSTANT_NAMES.TEMP_DIR_PATH
             }
-            return "FILE_PATH"
+            return CONSTANT_NAMES.FILE_PATH
         }
 
         if (valueType === "date") {
-            if (context.includes("deadline")) {
-                return "DEADLINE"
+            if (context.includes(DATE_CONTEXT_KEYWORDS.DEADLINE)) {
+                return CONSTANT_NAMES.DEADLINE
             }
-            if (context.includes("start")) {
-                return "START_DATE"
+            if (context.includes(DATE_CONTEXT_KEYWORDS.START)) {
+                return CONSTANT_NAMES.START_DATE
             }
-            if (context.includes("end")) {
-                return "END_DATE"
+            if (context.includes(DATE_CONTEXT_KEYWORDS.END)) {
+                return CONSTANT_NAMES.END_DATE
             }
-            if (context.includes("expir")) {
-                return "EXPIRATION_DATE"
+            if (context.includes(DATE_CONTEXT_KEYWORDS.EXPIR)) {
+                return CONSTANT_NAMES.EXPIRATION_DATE
             }
-            return "DEFAULT_DATE"
+            return CONSTANT_NAMES.DEFAULT_DATE
         }
 
         if (valueType === "uuid") {
-            if (context.includes("id") || context.includes("identifier")) {
-                return "DEFAULT_ID"
+            if (
+                context.includes(UUID_CONTEXT_KEYWORDS.ID) ||
+                context.includes(UUID_CONTEXT_KEYWORDS.IDENTIFIER)
+            ) {
+                return CONSTANT_NAMES.DEFAULT_ID
             }
-            if (context.includes("request")) {
-                return "REQUEST_ID"
+            if (context.includes(UUID_CONTEXT_KEYWORDS.REQUEST)) {
+                return CONSTANT_NAMES.REQUEST_ID
             }
-            if (context.includes("session")) {
-                return "SESSION_ID"
+            if (context.includes(UUID_CONTEXT_KEYWORDS.SESSION)) {
+                return CONSTANT_NAMES.SESSION_ID
             }
-            return "UUID_CONSTANT"
+            return CONSTANT_NAMES.UUID_CONSTANT
         }
 
         if (valueType === "version") {
-            if (context.includes("api")) {
-                return "API_VERSION"
+            if (context.includes(URL_CONTEXT_KEYWORDS.API)) {
+                return CONSTANT_NAMES.API_VERSION
             }
-            if (context.includes("app")) {
-                return "APP_VERSION"
+            if (context.includes(VERSION_CONTEXT_KEYWORDS.APP)) {
+                return CONSTANT_NAMES.APP_VERSION
             }
-            return "VERSION"
+            return CONSTANT_NAMES.VERSION
         }
 
         if (valueType === "color") {
-            if (context.includes("primary")) {
-                return "PRIMARY_COLOR"
+            if (context.includes(COLOR_CONTEXT_KEYWORDS.PRIMARY)) {
+                return CONSTANT_NAMES.PRIMARY_COLOR
             }
-            if (context.includes("secondary")) {
-                return "SECONDARY_COLOR"
+            if (context.includes(COLOR_CONTEXT_KEYWORDS.SECONDARY)) {
+                return CONSTANT_NAMES.SECONDARY_COLOR
             }
-            if (context.includes("background")) {
-                return "BACKGROUND_COLOR"
+            if (context.includes(COLOR_CONTEXT_KEYWORDS.BACKGROUND)) {
+                return CONSTANT_NAMES.BACKGROUND_COLOR
             }
-            return "COLOR_CONSTANT"
+            return CONSTANT_NAMES.COLOR_CONSTANT
         }
 
         if (valueType === "mac_address") {
-            return "MAC_ADDRESS"
+            return CONSTANT_NAMES.MAC_ADDRESS
         }
 
         if (valueType === "base64") {
-            if (context.includes("token")) {
-                return "ENCODED_TOKEN"
+            if (context.includes(BASE64_CONTEXT_KEYWORDS.TOKEN)) {
+                return CONSTANT_NAMES.ENCODED_TOKEN
             }
-            if (context.includes("key")) {
-                return "ENCODED_KEY"
+            if (context.includes(BASE64_CONTEXT_KEYWORDS.KEY)) {
+                return CONSTANT_NAMES.ENCODED_KEY
             }
-            return "BASE64_VALUE"
+            return CONSTANT_NAMES.BASE64_VALUE
         }
 
         if (valueType === "config") {
-            if (context.includes("endpoint")) {
-                return "API_ENDPOINT"
+            if (context.includes(CONFIG_CONTEXT_KEYWORDS.ENDPOINT)) {
+                return CONSTANT_NAMES.API_ENDPOINT
             }
-            if (context.includes("route")) {
-                return "ROUTE_PATH"
+            if (context.includes(CONFIG_CONTEXT_KEYWORDS.ROUTE)) {
+                return CONSTANT_NAMES.ROUTE_PATH
             }
-            if (context.includes("connection")) {
-                return "CONNECTION_STRING"
+            if (context.includes(CONFIG_CONTEXT_KEYWORDS.CONNECTION)) {
+                return CONSTANT_NAMES.CONNECTION_STRING
             }
-            return "CONFIG_VALUE"
+            return CONSTANT_NAMES.CONFIG_VALUE
         }
 
         if (value.includes(SUGGESTION_KEYWORDS.HTTP)) {
@@ -339,19 +369,19 @@ export class HardcodedValue extends ValueObject<HardcodedValueProps> {
         const valueType = this.props.valueType
 
         if (valueType === "api_key" || valueType === "url" || valueType === "ip_address") {
-            return "src/config/environment.ts"
+            return LOCATIONS.CONFIG_ENVIRONMENT
         }
 
         if (valueType === "email") {
-            return "src/config/contacts.ts"
+            return LOCATIONS.CONFIG_CONTACTS
         }
 
         if (valueType === "file_path") {
-            return "src/config/paths.ts"
+            return LOCATIONS.CONFIG_PATHS
         }
 
         if (valueType === "date") {
-            return "src/config/dates.ts"
+            return LOCATIONS.CONFIG_DATES
         }
 
         if (

@@ -447,6 +447,35 @@ Copy and use for each release:
 - [ ] Published to npm (if public release)
 ```
 
+## Working with Roadmap
+
+When the user points to `ROADMAP.md` or asks about the roadmap/next steps:
+
+1. **Read both files together:**
+   - `packages/<package>/ROADMAP.md` - to understand the planned features and milestones
+   - `packages/<package>/CHANGELOG.md` - to see what's already implemented
+
+2. **Determine current position:**
+   - Check the latest version in CHANGELOG.md
+   - Cross-reference with ROADMAP.md milestones
+   - Identify which roadmap items are already completed (present in CHANGELOG)
+
+3. **Suggest next steps:**
+   - Find the first uncompleted item in the current milestone
+   - Or identify the next milestone if current one is complete
+   - Present clear "start here" recommendation
+
+**Example workflow:**
+```
+User: "Let's work on the roadmap" or points to ROADMAP.md
+
+Claude should:
+1. Read ROADMAP.md → See milestones v0.1.0, v0.2.0, v0.3.0...
+2. Read CHANGELOG.md → See latest release is v0.1.1
+3. Compare → v0.1.0 milestone complete, v0.2.0 in progress
+4. Report → "v0.1.0 is complete. For v0.2.0, next item is: <feature>"
+```
+
 ## Common Workflows
 
 ### Adding a new CLI option

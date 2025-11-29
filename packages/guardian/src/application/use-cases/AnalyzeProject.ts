@@ -215,6 +215,7 @@ export class AnalyzeProject extends UseCase<
     private readonly detectionPipeline: ExecuteDetection
     private readonly resultAggregator: AggregateResults
 
+    // eslint-disable-next-line max-params
     constructor(
         fileScanner: IFileScanner,
         codeParser: ICodeParser,

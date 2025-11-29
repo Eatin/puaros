@@ -6,6 +6,13 @@ import { AstFunctionNameAnalyzer } from "./AstFunctionNameAnalyzer"
 import { AstInterfaceNameAnalyzer } from "./AstInterfaceNameAnalyzer"
 import { AstVariableNameAnalyzer } from "./AstVariableNameAnalyzer"
 
+type NodeAnalyzer = (
+    node: Parser.SyntaxNode,
+    layer: string,
+    filePath: string,
+    lines: string[],
+) => NamingViolation | null
+
 /**
  * AST tree traverser for detecting naming convention violations
  *
@@ -13,12 +20,16 @@ import { AstVariableNameAnalyzer } from "./AstVariableNameAnalyzer"
  * to detect naming violations in classes, interfaces, functions, and variables.
  */
 export class AstNamingTraverser {
+    private readonly nodeHandlers: Map<string, NodeAnalyzer>
+
     constructor(
         private readonly classAnalyzer: AstClassNameAnalyzer,
         private readonly interfaceAnalyzer: AstInterfaceNameAnalyzer,
         private readonly functionAnalyzer: AstFunctionNameAnalyzer,
         private readonly variableAnalyzer: AstVariableNameAnalyzer,
-    ) {}
+    ) {
+        this.nodeHandlers = this.buildNodeHandlers()
+    }
 
     /**
      * Traverses the AST tree and collects naming violations
@@ -38,6 +49,33 @@ export class AstNamingTraverser {
         return results
     }
 
+    private buildNodeHandlers(): Map<string, NodeAnalyzer> {
+        const handlers = new Map<string, NodeAnalyzer>()
+
+        handlers.set(AST_CLASS_TYPES.CLASS_DECLARATION, (node, layer, filePath, lines) =>
+            this.classAnalyzer.analyze(node, layer, filePath, lines),
+        )
+        handlers.set(AST_CLASS_TYPES.INTERFACE_DECLARATION, (node, layer, filePath, lines) =>
+            this.interfaceAnalyzer.analyze(node, layer, filePath, lines),
+        )
+
+        const functionHandler: NodeAnalyzer = (node, layer, filePath, lines) =>
+            this.functionAnalyzer.analyze(node, layer, filePath, lines)
+        handlers.set(AST_FUNCTION_TYPES.FUNCTION_DECLARATION, functionHandler)
+        handlers.set(AST_FUNCTION_TYPES.METHOD_DEFINITION, functionHandler)
+        handlers.set(AST_FUNCTION_TYPES.FUNCTION_SIGNATURE, functionHandler)
+
+        const variableHandler: NodeAnalyzer = (node, layer, filePath, lines) =>
+            this.variableAnalyzer.analyze(node, layer, filePath, lines)
+        handlers.set(AST_VARIABLE_TYPES.VARIABLE_DECLARATOR, variableHandler)
+        handlers.set(AST_VARIABLE_TYPES.REQUIRED_PARAMETER, variableHandler)
+        handlers.set(AST_VARIABLE_TYPES.OPTIONAL_PARAMETER, variableHandler)
+        handlers.set(AST_VARIABLE_TYPES.PUBLIC_FIELD_DEFINITION, variableHandler)
+        handlers.set(AST_VARIABLE_TYPES.PROPERTY_SIGNATURE, variableHandler)
+
+        return handlers
+    }
+
     /**
      * Recursively visits AST nodes
      */
@@ -49,34 +87,10 @@ export class AstNamingTraverser {
         results: NamingViolation[],
     ): void {
         const node = cursor.currentNode
+        const handler = this.nodeHandlers.get(node.type)
 
-        if (node.type === AST_CLASS_TYPES.CLASS_DECLARATION) {
-            const violation = this.classAnalyzer.analyze(node, layer, filePath, lines)
-            if (violation) {
-                results.push(violation)
-            }
-        } else if (node.type === AST_CLASS_TYPES.INTERFACE_DECLARATION) {
-            const violation = this.interfaceAnalyzer.analyze(node, layer, filePath, lines)
-            if (violation) {
-                results.push(violation)
-            }
-        } else if (
-            node.type === AST_FUNCTION_TYPES.FUNCTION_DECLARATION ||
-            node.type === AST_FUNCTION_TYPES.METHOD_DEFINITION ||
-            node.type === AST_FUNCTION_TYPES.FUNCTION_SIGNATURE
-        ) {
-            const violation = this.functionAnalyzer.analyze(node, layer, filePath, lines)
-            if (violation) {
-                results.push(violation)
-            }
-        } else if (
-            node.type === AST_VARIABLE_TYPES.VARIABLE_DECLARATOR ||
-            node.type === AST_VARIABLE_TYPES.REQUIRED_PARAMETER ||
-            node.type === AST_VARIABLE_TYPES.OPTIONAL_PARAMETER ||
-            node.type === AST_VARIABLE_TYPES.PUBLIC_FIELD_DEFINITION ||
-            node.type === AST_VARIABLE_TYPES.PROPERTY_SIGNATURE
-        ) {
-            const violation = this.variableAnalyzer.analyze(node, layer, filePath, lines)
+        if (handler) {
+            const violation = handler(node, layer, filePath, lines)
             if (violation) {
                 results.push(violation)
             }

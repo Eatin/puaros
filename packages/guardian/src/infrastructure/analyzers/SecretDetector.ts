@@ -90,80 +90,98 @@ export class SecretDetector implements ISecretDetector {
     }
 
     private extractSecretType(message: string, ruleId: string): string {
+        const lowerMessage = message.toLowerCase()
+
+        const ruleBasedType = this.extractByRuleId(ruleId, lowerMessage)
+        if (ruleBasedType) {
+            return ruleBasedType
+        }
+
+        return this.extractByMessage(lowerMessage)
+    }
+
+    private extractByRuleId(ruleId: string, lowerMessage: string): string | null {
         if (ruleId.includes(SECRET_KEYWORDS.AWS)) {
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.ACCESS_KEY)) {
-                return SECRET_TYPE_NAMES.AWS_ACCESS_KEY
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.SECRET)) {
-                return SECRET_TYPE_NAMES.AWS_SECRET_KEY
-            }
-            return SECRET_TYPE_NAMES.AWS_CREDENTIAL
+            return this.extractAwsType(lowerMessage)
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.GITHUB)) {
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.PERSONAL_ACCESS_TOKEN)) {
-                return SECRET_TYPE_NAMES.GITHUB_PERSONAL_ACCESS_TOKEN
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.OAUTH)) {
-                return SECRET_TYPE_NAMES.GITHUB_OAUTH_TOKEN
-            }
-            return SECRET_TYPE_NAMES.GITHUB_TOKEN
+            return this.extractGithubType(lowerMessage)
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.NPM)) {
             return SECRET_TYPE_NAMES.NPM_TOKEN
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.GCP) || ruleId.includes(SECRET_KEYWORDS.GOOGLE)) {
             return SECRET_TYPE_NAMES.GCP_SERVICE_ACCOUNT_KEY
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.PRIVATEKEY) || ruleId.includes(SECRET_KEYWORDS.SSH)) {
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.RSA)) {
-                return SECRET_TYPE_NAMES.SSH_RSA_PRIVATE_KEY
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.DSA)) {
-                return SECRET_TYPE_NAMES.SSH_DSA_PRIVATE_KEY
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.ECDSA)) {
-                return SECRET_TYPE_NAMES.SSH_ECDSA_PRIVATE_KEY
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.ED25519)) {
-                return SECRET_TYPE_NAMES.SSH_ED25519_PRIVATE_KEY
-            }
-            return SECRET_TYPE_NAMES.SSH_PRIVATE_KEY
+            return this.extractSshType(lowerMessage)
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.SLACK)) {
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.BOT)) {
-                return SECRET_TYPE_NAMES.SLACK_BOT_TOKEN
-            }
-            if (message.toLowerCase().includes(SECRET_KEYWORDS.USER)) {
-                return SECRET_TYPE_NAMES.SLACK_USER_TOKEN
-            }
-            return SECRET_TYPE_NAMES.SLACK_TOKEN
+            return this.extractSlackType(lowerMessage)
         }
-
         if (ruleId.includes(SECRET_KEYWORDS.BASICAUTH)) {
             return SECRET_TYPE_NAMES.BASIC_AUTH_CREDENTIALS
         }
+        return null
+    }
 
-        if (message.toLowerCase().includes(SECRET_KEYWORDS.API_KEY)) {
-            return SECRET_TYPE_NAMES.API_KEY
+    private extractAwsType(lowerMessage: string): string {
+        if (lowerMessage.includes(SECRET_KEYWORDS.ACCESS_KEY)) {
+            return SECRET_TYPE_NAMES.AWS_ACCESS_KEY
         }
-
-        if (message.toLowerCase().includes(SECRET_KEYWORDS.TOKEN)) {
-            return SECRET_TYPE_NAMES.AUTHENTICATION_TOKEN
+        if (lowerMessage.includes(SECRET_KEYWORDS.SECRET)) {
+            return SECRET_TYPE_NAMES.AWS_SECRET_KEY
         }
+        return SECRET_TYPE_NAMES.AWS_CREDENTIAL
+    }
 
-        if (message.toLowerCase().includes(SECRET_KEYWORDS.PASSWORD)) {
-            return SECRET_TYPE_NAMES.PASSWORD
+    private extractGithubType(lowerMessage: string): string {
+        if (lowerMessage.includes(SECRET_KEYWORDS.PERSONAL_ACCESS_TOKEN)) {
+            return SECRET_TYPE_NAMES.GITHUB_PERSONAL_ACCESS_TOKEN
         }
-
-        if (message.toLowerCase().includes(SECRET_KEYWORDS.SECRET)) {
-            return SECRET_TYPE_NAMES.SECRET
+        if (lowerMessage.includes(SECRET_KEYWORDS.OAUTH)) {
+            return SECRET_TYPE_NAMES.GITHUB_OAUTH_TOKEN
         }
+        return SECRET_TYPE_NAMES.GITHUB_TOKEN
+    }
 
+    private extractSshType(lowerMessage: string): string {
+        const sshTypeMap: [string, string][] = [
+            [SECRET_KEYWORDS.RSA, SECRET_TYPE_NAMES.SSH_RSA_PRIVATE_KEY],
+            [SECRET_KEYWORDS.DSA, SECRET_TYPE_NAMES.SSH_DSA_PRIVATE_KEY],
+            [SECRET_KEYWORDS.ECDSA, SECRET_TYPE_NAMES.SSH_ECDSA_PRIVATE_KEY],
+            [SECRET_KEYWORDS.ED25519, SECRET_TYPE_NAMES.SSH_ED25519_PRIVATE_KEY],
+        ]
+        for (const [keyword, typeName] of sshTypeMap) {
+            if (lowerMessage.includes(keyword)) {
+                return typeName
+            }
+        }
+        return SECRET_TYPE_NAMES.SSH_PRIVATE_KEY
+    }
+
+    private extractSlackType(lowerMessage: string): string {
+        if (lowerMessage.includes(SECRET_KEYWORDS.BOT)) {
+            return SECRET_TYPE_NAMES.SLACK_BOT_TOKEN
+        }
+        if (lowerMessage.includes(SECRET_KEYWORDS.USER)) {
+            return SECRET_TYPE_NAMES.SLACK_USER_TOKEN
+        }
+        return SECRET_TYPE_NAMES.SLACK_TOKEN
+    }
+
+    private extractByMessage(lowerMessage: string): string {
+        const messageTypeMap: [string, string][] = [
+            [SECRET_KEYWORDS.API_KEY, SECRET_TYPE_NAMES.API_KEY],
+            [SECRET_KEYWORDS.TOKEN, SECRET_TYPE_NAMES.AUTHENTICATION_TOKEN],
+            [SECRET_KEYWORDS.PASSWORD, SECRET_TYPE_NAMES.PASSWORD],
+            [SECRET_KEYWORDS.SECRET, SECRET_TYPE_NAMES.SECRET],
+        ]
+        for (const [keyword, typeName] of messageTypeMap) {
+            if (lowerMessage.includes(keyword)) {
+                return typeName
+            }
+        }
         return SECRET_TYPE_NAMES.SENSITIVE_DATA
     }
 }

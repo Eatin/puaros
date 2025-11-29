@@ -5,6 +5,26 @@ All notable changes to @samiyev/guardian will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4] - 2025-11-30
+
+### Added
+
+- **VERSION export** - Package version is now exported from index.ts, automatically read from package.json
+
+### Changed
+
+- 🔄 **Refactored SecretDetector** - Reduced cyclomatic complexity from 24 to <15:
+  - Extracted helper methods: `extractByRuleId`, `extractAwsType`, `extractGithubType`, `extractSshType`, `extractSlackType`, `extractByMessage`
+  - Used lookup arrays for SSH and message type mappings
+- 🔄 **Refactored AstNamingTraverser** - Reduced cyclomatic complexity from 17 to <15:
+  - Replaced if-else chain with Map-based node handlers
+  - Added `buildNodeHandlers()` method for cleaner architecture
+
+### Quality
+
+- ✅ **Zero lint warnings** - All ESLint warnings resolved
+- ✅ **All 616 tests pass**
+
 ## [0.9.2] - 2025-11-27
 
 ### Changed

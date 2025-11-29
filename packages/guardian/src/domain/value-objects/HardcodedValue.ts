@@ -171,6 +171,7 @@ export class HardcodedValue extends ValueObject<HardcodedValueProps> {
         return `${CONSTANT_NAMES.MAGIC_NUMBER}_${String(value)}`
     }
 
+    // eslint-disable-next-line complexity, max-lines-per-function
     private suggestStringConstantName(): string {
         const value = String(this.props.value)
         const context = this.props.context.toLowerCase()

@@ -56,6 +56,7 @@ export interface DetectionResult {
  * Pipeline step responsible for running all detectors
  */
 export class ExecuteDetection {
+    // eslint-disable-next-line max-params
     constructor(
         private readonly hardcodeDetector: IHardcodeDetector,
         private readonly namingConventionDetector: INamingConventionDetector,

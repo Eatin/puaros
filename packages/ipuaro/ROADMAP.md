@@ -1,0 +1,1331 @@
+# ipuaro Roadmap
+
+Local AI agent for codebase operations with "infinite" context feeling through lazy loading.
+
+## Project Structure (Clean Architecture)
+
+```
+packages/ipuaro/
+├── bin/
+│   └── ipuaro.js               # CLI entry point
+├── src/
+│   ├── domain/                 # Business logic (no dependencies)
+│   │   ├── entities/
+│   │   │   ├── Session.ts
+│   │   │   └── Project.ts
+│   │   ├── value-objects/
+│   │   │   ├── FileData.ts
+│   │   │   ├── FileAST.ts
+│   │   │   ├── FileMeta.ts
+│   │   │   ├── ChatMessage.ts
+│   │   │   ├── ToolCall.ts
+│   │   │   ├── ToolResult.ts
+│   │   │   └── UndoEntry.ts
+│   │   ├── services/           # Interfaces (ports)
+│   │   │   ├── IStorage.ts
+│   │   │   ├── ILLMClient.ts
+│   │   │   ├── ITool.ts
+│   │   │   └── IIndexer.ts
+│   │   └── constants/
+│   │       └── index.ts
+│   ├── application/            # Use cases & orchestration
+│   │   ├── use-cases/
+│   │   │   ├── StartSession.ts
+│   │   │   ├── HandleMessage.ts
+│   │   │   ├── IndexProject.ts
+│   │   │   ├── ExecuteTool.ts
+│   │   │   └── UndoChange.ts
+│   │   ├── dtos/
+│   │   │   ├── SessionDto.ts
+│   │   │   ├── MessageDto.ts
+│   │   │   └── ToolCallDto.ts
+│   │   ├── mappers/
+│   │   │   └── SessionMapper.ts
+│   │   └── interfaces/
+│   │       └── IToolRegistry.ts
+│   ├── infrastructure/         # External implementations
+│   │   ├── storage/
+│   │   │   ├── RedisClient.ts
+│   │   │   ├── RedisStorage.ts
+│   │   │   └── schema.ts
+│   │   ├── llm/
+│   │   │   ├── OllamaClient.ts
+│   │   │   ├── prompts.ts
+│   │   │   └── ResponseParser.ts
+│   │   ├── indexer/
+│   │   │   ├── FileScanner.ts
+│   │   │   ├── ASTParser.ts
+│   │   │   ├── MetaAnalyzer.ts
+│   │   │   ├── IndexBuilder.ts
+│   │   │   └── Watchdog.ts
+│   │   ├── tools/
+│   │   │   ├── registry.ts
+│   │   │   ├── read/
+│   │   │   │   ├── GetLinesTool.ts
+│   │   │   │   ├── GetFunctionTool.ts
+│   │   │   │   ├── GetClassTool.ts
+│   │   │   │   └── GetStructureTool.ts
+│   │   │   ├── edit/
+│   │   │   │   ├── EditLinesTool.ts
+│   │   │   │   ├── CreateFileTool.ts
+│   │   │   │   └── DeleteFileTool.ts
+│   │   │   ├── search/
+│   │   │   │   ├── FindReferencesTool.ts
+│   │   │   │   └── FindDefinitionTool.ts
+│   │   │   ├── analysis/
+│   │   │   │   ├── GetDependenciesTool.ts
+│   │   │   │   ├── GetDependentsTool.ts
+│   │   │   │   ├── GetComplexityTool.ts
+│   │   │   │   └── GetTodosTool.ts
+│   │   │   ├── git/
+│   │   │   │   ├── GitStatusTool.ts
+│   │   │   │   ├── GitDiffTool.ts
+│   │   │   │   └── GitCommitTool.ts
+│   │   │   └── run/
+│   │   │       ├── RunCommandTool.ts
+│   │   │       └── RunTestsTool.ts
+│   │   ├── security/
+│   │   │   ├── Blacklist.ts
+│   │   │   ├── Whitelist.ts
+│   │   │   └── PathValidator.ts
+│   │   └── constants/
+│   │       ├── blacklist.ts
+│   │       └── whitelist.ts
+│   ├── shared/                 # Cross-cutting concerns
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── constants/
+│   │   │   ├── config.ts
+│   │   │   └── messages.ts
+│   │   ├── utils/
+│   │   │   ├── hash.ts
+│   │   │   └── tokens.ts
+│   │   └── errors/
+│   │       └── IpuaroError.ts
+│   ├── tui/                    # Terminal UI (Ink/React)
+│   │   ├── App.tsx
+│   │   ├── components/
+│   │   │   ├── StatusBar.tsx
+│   │   │   ├── Chat.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── DiffView.tsx
+│   │   │   ├── ConfirmDialog.tsx
+│   │   │   ├── ErrorDialog.tsx
+│   │   │   └── Progress.tsx
+│   │   └── hooks/
+│   │       ├── useSession.ts
+│   │       ├── useHotkeys.ts
+│   │       └── useAutocomplete.ts
+│   └── cli/                    # CLI commands
+│       ├── index.ts
+│       └── commands/
+│           ├── start.ts
+│           ├── init.ts
+│           └── index-cmd.ts
+├── tests/
+│   ├── unit/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   ├── e2e/
+│   │   ├── cli.test.ts
+│   │   └── full-flow.test.ts
+│   └── fixtures/
+│       └── sample-project/
+├── examples/
+│   └── demo-project/
+├── config/
+│   ├── default.json
+│   ├── blacklist.json
+│   └── whitelist.json
+├── CHANGELOG.md
+├── TODO.md
+├── README.md
+├── package.json
+├── tsconfig.json
+└── vitest.config.ts
+```
+
+---
+
+## Version 0.1.0 - Foundation ⚙️
+
+**Priority:** CRITICAL
+
+### 0.1.1 - Project Setup
+
+**Dependencies:**
+```json
+{
+  "dependencies": {
+    "ink": "^4.0.0",
+    "ink-text-input": "^5.0.0",
+    "react": "^18.0.0",
+    "ioredis": "^5.0.0",
+    "tree-sitter": "^0.20.0",
+    "tree-sitter-typescript": "^0.20.0",
+    "tree-sitter-javascript": "^0.20.0",
+    "ollama": "^0.5.0",
+    "simple-git": "^3.0.0",
+    "chokidar": "^3.0.0",
+    "commander": "^11.0.0",
+    "zod": "^3.0.0",
+    "ignore": "^5.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+**Deliverables:**
+- [ ] package.json with all dependencies
+- [ ] tsconfig.json (strict, jsx react, nodenext)
+- [ ] tsup.config.ts (bundle ESM + CJS)
+- [ ] vitest.config.ts (coverage 80%)
+- [ ] bin/ipuaro.js entry point
+
+### 0.1.2 - Domain Value Objects
+
+```typescript
+// src/domain/value-objects/FileData.ts
+interface FileData {
+    lines: string[]
+    hash: string           // MD5
+    size: number
+    lastModified: number
+}
+
+// src/domain/value-objects/FileAST.ts
+interface FileAST {
+    imports: ImportInfo[]
+    exports: ExportInfo[]
+    functions: FunctionInfo[]
+    classes: ClassInfo[]
+    parseError: boolean
+}
+
+interface ImportInfo {
+    name: string
+    from: string
+    line: number
+    type: "internal" | "external" | "builtin"
+    isDefault: boolean
+}
+
+interface FunctionInfo {
+    name: string
+    lineStart: number
+    lineEnd: number
+    params: string[]
+    isAsync: boolean
+    isExported: boolean
+}
+
+interface ClassInfo {
+    name: string
+    lineStart: number
+    lineEnd: number
+    methods: MethodInfo[]
+    extends?: string
+    isExported: boolean
+}
+
+// src/domain/value-objects/ChatMessage.ts
+interface ChatMessage {
+    role: "user" | "assistant" | "tool"
+    content: string
+    timestamp: number
+    toolCalls?: ToolCall[]
+    toolResults?: ToolResult[]
+    stats?: { tokens: number; timeMs: number; toolCalls: number }
+}
+
+// src/domain/value-objects/UndoEntry.ts
+interface UndoEntry {
+    id: string
+    timestamp: number
+    filePath: string
+    previousContent: string[]
+    newContent: string[]
+    description: string
+}
+```
+
+### 0.1.3 - Domain Services (Interfaces)
+
+```typescript
+// src/domain/services/IStorage.ts
+interface IStorage {
+    getFile(path: string): Promise<FileData | null>
+    setFile(path: string, data: FileData): Promise<void>
+    deleteFile(path: string): Promise<void>
+    getAllFiles(): Promise<Map<string, FileData>>
+    getAST(path: string): Promise<FileAST | null>
+    setAST(path: string, ast: FileAST): Promise<void>
+    getSymbolIndex(): Promise<SymbolIndex>
+    setSymbolIndex(index: SymbolIndex): Promise<void>
+}
+
+// src/domain/services/ILLMClient.ts
+interface ILLMClient {
+    chat(messages: ChatMessage[], tools?: ToolDef[]): Promise<LLMResponse>
+    countTokens(text: string): Promise<number>
+    isAvailable(): Promise<boolean>
+}
+
+// src/domain/services/ITool.ts
+interface ITool {
+    name: string
+    description: string
+    parameters: ToolParameter[]
+    requiresConfirmation: boolean
+    execute(params: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult>
+}
+```
+
+### 0.1.4 - Shared Config
+
+```typescript
+// src/shared/constants/config.ts
+interface Config {
+    redis: { host: string; port: number; db: number }
+    llm: { model: string; contextWindow: number; temperature: number }
+    project: { ignorePatterns: string[]; binaryExtensions: string[] }
+    watchdog: { debounceMs: number }
+    undo: { stackSize: number }
+    edit: { autoApply: boolean }
+}
+
+// loadConfig(): reads config/default.json + .ipuaro.json
+// validates with zod schema
+```
+
+**Tests:**
+- [ ] Unit tests for value objects
+- [ ] Unit tests for config loader
+
+---
+
+## Version 0.2.0 - Redis Storage 🗄️
+
+**Priority:** CRITICAL
+
+### 0.2.1 - Redis Client
+
+```typescript
+// src/infrastructure/storage/RedisClient.ts
+class RedisClient {
+    connect(): Promise<void>      // AOF config on connect
+    disconnect(): Promise<void>
+    isConnected(): boolean
+    getClient(): Redis
+}
+
+// Redis config for AOF persistence
+// appendonly yes
+// appendfsync everysec
+```
+
+### 0.2.2 - Redis Schema
+
+```
+project:{name}:files      # Hash<path, FileData>
+project:{name}:ast        # Hash<path, FileAST>
+project:{name}:meta       # Hash<path, FileMeta>
+project:{name}:indexes    # Hash<symbols|deps_graph, JSON>
+project:{name}:config     # Hash<settings|last_indexed, JSON>
+
+session:{id}:data         # Hash<history|context|stats>
+session:{id}:undo         # List<UndoEntry> (max 10)
+sessions:list             # List<session_id>
+```
+
+**Project name format:** `{parent-folder}-{project-folder}`
+
+### 0.2.3 - Redis Storage Implementation
+
+```typescript
+// src/infrastructure/storage/RedisStorage.ts
+class RedisStorage implements IStorage {
+    constructor(private client: RedisClient, private projectName: string)
+
+    async getFile(path: string): Promise<FileData | null>
+    async setFile(path: string, data: FileData): Promise<void>
+    async deleteFile(path: string): Promise<void>
+    async getAllFiles(): Promise<Map<string, FileData>>
+    // ... all IStorage methods
+}
+```
+
+**Tests:**
+- [ ] Unit tests for RedisStorage (mock Redis)
+- [ ] Integration tests with real Redis
+
+---
+
+## Version 0.3.0 - Indexer 📂
+
+**Priority:** CRITICAL
+
+### 0.3.1 - File Scanner
+
+```typescript
+// src/infrastructure/indexer/FileScanner.ts
+class FileScanner {
+    scan(root: string): AsyncGenerator<ScanResult>
+}
+
+interface ScanResult {
+    path: string
+    type: "file" | "dir" | "symlink"
+    stats: Stats
+}
+
+// Filters: .gitignore (via ignore lib), node_modules, dist
+// Supports: .ts, .tsx, .js, .jsx, .json, .yaml
+// Only UTF-8 files (skip binary)
+// Progress callback: onProgress(current, total, file)
+```
+
+### 0.3.2 - AST Parser
+
+```typescript
+// src/infrastructure/indexer/ASTParser.ts
+class ASTParser {
+    parse(content: string, lang: "ts" | "tsx" | "js" | "jsx"): FileAST
+}
+
+// Uses tree-sitter
+// Extracts: imports, exports, functions, classes
+// On error: parseError: true, continue with partial data
+```
+
+### 0.3.3 - Meta Analyzer
+
+```typescript
+// src/infrastructure/indexer/MetaAnalyzer.ts
+class MetaAnalyzer {
+    analyze(path: string, ast: FileAST, allASTs: Map<string, FileAST>): FileMeta
+}
+
+interface FileMeta {
+    complexity: { loc: number; nesting: number; score: number }
+    dependencies: string[]    // files this imports
+    dependents: string[]      // files importing this
+    isHub: boolean            // >5 dependents
+    isEntryPoint: boolean     // index.ts or 0 dependents
+}
+```
+
+### 0.3.4 - Index Builder
+
+```typescript
+// src/infrastructure/indexer/IndexBuilder.ts
+class IndexBuilder {
+    buildSymbolIndex(asts: Map<string, FileAST>): SymbolIndex
+    buildDepsGraph(asts: Map<string, FileAST>): DepsGraph
+}
+
+// SymbolIndex: { [name]: { path, line, type } }
+// DepsGraph: { [path]: { imports: [], importedBy: [] } }
+```
+
+### 0.3.5 - Watchdog
+
+```typescript
+// src/infrastructure/indexer/Watchdog.ts
+class Watchdog {
+    start(root: string, storage: IStorage): void
+    stop(): void
+    onFileChange(callback: (path: string) => void): void
+}
+
+// chokidar with 500ms debounce
+// On change: recalc hash → update lines/AST/meta if changed
+// Silent updates (no UI notification)
+```
+
+**Tests:**
+- [ ] Unit tests for ASTParser (fixtures)
+- [ ] Unit tests for MetaAnalyzer
+- [ ] Integration tests for full indexing
+
+---
+
+## Version 0.4.0 - LLM Integration 🤖
+
+**Priority:** CRITICAL
+
+### 0.4.1 - Ollama Client
+
+```typescript
+// src/infrastructure/llm/OllamaClient.ts
+class OllamaClient implements ILLMClient {
+    constructor(config: { model: string; contextWindow: number; temperature: number })
+
+    async chat(messages: ChatMessage[], tools?: ToolDef[]): Promise<LLMResponse>
+    async countTokens(text: string): Promise<number>
+    async isAvailable(): Promise<boolean>
+    async pullModel(model: string): Promise<void>
+}
+
+interface LLMResponse {
+    content: string
+    toolCalls?: ToolCall[]
+    tokens: number
+    timeMs: number
+}
+```
+
+### 0.4.2 - System Prompt
+
+```typescript
+// src/infrastructure/llm/prompts.ts
+const SYSTEM_PROMPT: string  // EN, role + rules + tools
+
+function buildInitialContext(
+    structure: ProjectStructure,
+    asts: Map<string, FileAST>
+): string
+
+// Returns: project structure + AST metadata (NO code)
+// Code loaded lazily via tools
+```
+
+### 0.4.3 - Tool Definitions
+
+```typescript
+// src/infrastructure/llm/toolDefs.ts
+const TOOL_DEFINITIONS: ToolDef[]  // 18 tools
+
+interface ToolDef {
+    name: string
+    description: string
+    parameters: {
+        type: "object"
+        properties: Record<string, { type: string; description: string }>
+        required: string[]
+    }
+}
+
+// XML format in prompt: <tool_call name="..."><param>...</param></tool_call>
+```
+
+### 0.4.4 - Response Parser
+
+```typescript
+// src/infrastructure/llm/ResponseParser.ts
+function parseToolCalls(response: string): ToolCall[]
+
+// Parses XML tool calls from model response
+// Handles multiple tool calls in one response
+```
+
+**Tests:**
+- [ ] Unit tests for ResponseParser
+- [ ] Mock tests for OllamaClient
+
+---
+
+## Version 0.5.0 - Read Tools 📖
+
+**Priority:** HIGH
+
+4 tools for reading code without modification.
+
+### 0.5.1 - Tool Registry
+
+```typescript
+// src/infrastructure/tools/registry.ts
+class ToolRegistry implements IToolRegistry {
+    register(tool: ITool): void
+    get(name: string): ITool | undefined
+    getAll(): ITool[]
+    execute(name: string, params: Record<string, unknown>, ctx: ToolContext): Promise<ToolResult>
+}
+```
+
+### 0.5.2 - get_lines
+
+```typescript
+// src/infrastructure/tools/read/GetLinesTool.ts
+class GetLinesTool implements ITool {
+    name = "get_lines"
+    requiresConfirmation = false
+
+    // get_lines(path, start?, end?)
+    // Returns lines from Redis (or file if not indexed)
+    // Default: entire file
+}
+```
+
+### 0.5.3 - get_function
+
+```typescript
+// src/infrastructure/tools/read/GetFunctionTool.ts
+class GetFunctionTool implements ITool {
+    name = "get_function"
+    requiresConfirmation = false
+
+    // get_function(path, name)
+    // Uses AST lineStart/lineEnd to return function code
+}
+```
+
+### 0.5.4 - get_class
+
+```typescript
+// src/infrastructure/tools/read/GetClassTool.ts
+class GetClassTool implements ITool {
+    name = "get_class"
+    requiresConfirmation = false
+
+    // get_class(path, name)
+    // Uses AST lineStart/lineEnd to return class code
+}
+```
+
+### 0.5.5 - get_structure
+
+```typescript
+// src/infrastructure/tools/read/GetStructureTool.ts
+class GetStructureTool implements ITool {
+    name = "get_structure"
+    requiresConfirmation = false
+
+    // get_structure(path?)
+    // Returns folder/file tree
+    // Default: entire project
+}
+```
+
+**Tests:**
+- [ ] Unit tests for each read tool
+- [ ] Integration tests with real storage
+
+---
+
+## Version 0.6.0 - Edit Tools ✏️
+
+**Priority:** HIGH
+
+3 tools for file modifications. All require confirmation (unless autoApply).
+
+### 0.6.1 - edit_lines
+
+```typescript
+// src/infrastructure/tools/edit/EditLinesTool.ts
+class EditLinesTool implements ITool {
+    name = "edit_lines"
+    requiresConfirmation = true
+
+    // edit_lines(path, start, end, content)
+    // Replaces lines start-end with content
+    // Checks hash conflict before apply
+}
+```
+
+### 0.6.2 - create_file
+
+```typescript
+// src/infrastructure/tools/edit/CreateFileTool.ts
+class CreateFileTool implements ITool {
+    name = "create_file"
+    requiresConfirmation = true
+
+    // create_file(path, content)
+    // Creates new file
+    // Validates path inside project
+}
+```
+
+### 0.6.3 - delete_file
+
+```typescript
+// src/infrastructure/tools/edit/DeleteFileTool.ts
+class DeleteFileTool implements ITool {
+    name = "delete_file"
+    requiresConfirmation = true
+
+    // delete_file(path)
+    // Deletes file from filesystem and Redis
+}
+```
+
+**Tests:**
+- [ ] Unit tests for each edit tool
+- [ ] Integration tests with filesystem
+
+---
+
+## Version 0.7.0 - Search Tools 🔍
+
+**Priority:** HIGH
+
+### 0.7.1 - find_references
+
+```typescript
+// src/infrastructure/tools/search/FindReferencesTool.ts
+class FindReferencesTool implements ITool {
+    name = "find_references"
+    requiresConfirmation = false
+
+    // find_references(symbol)
+    // Searches SymbolIndex for all usages
+    // Returns: [{ path, line, context }]
+}
+```
+
+### 0.7.2 - find_definition
+
+```typescript
+// src/infrastructure/tools/search/FindDefinitionTool.ts
+class FindDefinitionTool implements ITool {
+    name = "find_definition"
+    requiresConfirmation = false
+
+    // find_definition(symbol)
+    // Finds where symbol is defined
+    // Returns: { path, line, type }
+}
+```
+
+**Tests:**
+- [ ] Unit tests for search tools
+
+---
+
+## Version 0.8.0 - Analysis Tools 📊
+
+**Priority:** MEDIUM
+
+### 0.8.1 - get_dependencies
+
+```typescript
+// src/infrastructure/tools/analysis/GetDependenciesTool.ts
+// get_dependencies(path)
+// Returns files this file imports (from FileMeta)
+```
+
+### 0.8.2 - get_dependents
+
+```typescript
+// src/infrastructure/tools/analysis/GetDependentsTool.ts
+// get_dependents(path)
+// Returns files that import this file
+```
+
+### 0.8.3 - get_complexity
+
+```typescript
+// src/infrastructure/tools/analysis/GetComplexityTool.ts
+// get_complexity(path?)
+// Returns complexity metrics
+// Default: all files sorted by score
+```
+
+### 0.8.4 - get_todos
+
+```typescript
+// src/infrastructure/tools/analysis/GetTodosTool.ts
+// get_todos(path?)
+// Finds TODO/FIXME comments in code
+// Returns: [{ path, line, text }]
+```
+
+**Tests:**
+- [ ] Unit tests for analysis tools
+
+---
+
+## Version 0.9.0 - Git & Run Tools 🚀
+
+**Priority:** MEDIUM
+
+### 0.9.1 - git_status
+
+```typescript
+// src/infrastructure/tools/git/GitStatusTool.ts
+// git_status()
+// Returns: { branch, staged, modified, untracked }
+```
+
+### 0.9.2 - git_diff
+
+```typescript
+// src/infrastructure/tools/git/GitDiffTool.ts
+// git_diff(path?)
+// Returns uncommitted changes
+// Default: all changes
+```
+
+### 0.9.3 - git_commit
+
+```typescript
+// src/infrastructure/tools/git/GitCommitTool.ts
+// git_commit(message, files?)
+// Creates commit
+// requiresConfirmation: true
+```
+
+### 0.9.4 - run_command
+
+```typescript
+// src/infrastructure/tools/run/RunCommandTool.ts
+// run_command(command)
+// Executes shell command with security checks:
+// 1. Check blacklist → reject
+// 2. Check whitelist → allow
+// 3. Unknown → ask user confirmation
+```
+
+### 0.9.5 - run_tests
+
+```typescript
+// src/infrastructure/tools/run/RunTestsTool.ts
+// run_tests(path?, filter?)
+// Detects test runner (vitest/jest/npm test)
+// Runs tests and returns results
+```
+
+**Tests:**
+- [ ] Unit tests for git tools
+- [ ] Unit tests for run tools
+
+---
+
+## Version 0.10.0 - Session Management 💾
+
+**Priority:** HIGH
+
+### 0.10.1 - Session Entity
+
+```typescript
+// src/domain/entities/Session.ts
+class Session {
+    id: string
+    projectName: string
+    createdAt: number
+    lastActivityAt: number
+    history: ChatMessage[]
+    context: ContextState
+    undoStack: UndoEntry[]
+    stats: SessionStats
+    inputHistory: string[]
+}
+
+interface SessionStats {
+    totalTokens: number
+    totalTime: number
+    toolCalls: number
+    editsApplied: number
+    editsRejected: number
+}
+```
+
+### 0.10.2 - Session Use Cases
+
+```typescript
+// src/application/use-cases/StartSession.ts
+class StartSession {
+    execute(projectName: string): Promise<Session>
+    // Creates new or loads latest session
+}
+
+// src/application/use-cases/HandleMessage.ts
+class HandleMessage {
+    execute(session: Session, message: string): Promise<void>
+    // Main message flow
+}
+```
+
+### 0.10.3 - Undo Use Case
+
+```typescript
+// src/application/use-cases/UndoChange.ts
+class UndoChange {
+    execute(session: Session): Promise<UndoResult>
+    // Reverts last file change from undo stack
+}
+```
+
+### 0.10.4 - Context Manager
+
+```typescript
+// src/application/use-cases/pipeline/ContextManager.ts
+class ContextManager {
+    addToContext(file: string, tokens: number): void
+    getUsage(): number  // 0-1
+    needsCompression(): boolean  // >80%
+    compress(llm: ILLMClient): Promise<void>
+}
+
+// Compression: LLM summarizes old messages + removes tool results
+```
+
+**Tests:**
+- [ ] Unit tests for session use cases
+- [ ] Integration tests for full session flow
+
+---
+
+## Version 0.11.0 - TUI Basic 🖥️
+
+**Priority:** CRITICAL
+
+### 0.11.1 - App Shell
+
+```typescript
+// src/tui/App.tsx
+function App({ projectPath }: { projectPath: string }) {
+    const [session, setSession] = useState<Session | null>(null)
+    const [status, setStatus] = useState<"ready" | "thinking" | "error">("ready")
+    const [messages, setMessages] = useState<ChatMessage[]>([])
+
+    return (
+        <Box flexDirection="column" height="100%">
+            <StatusBar ... />
+            <Chat messages={messages} isThinking={status === "thinking"} />
+            <Input onSubmit={handleSubmit} disabled={status === "thinking"} />
+        </Box>
+    )
+}
+```
+
+### 0.11.2 - StatusBar
+
+```typescript
+// src/tui/components/StatusBar.tsx
+// [ipuaro] [ctx: 12%] [project: myapp] [main] [47m] ✓
+
+interface Props {
+    contextUsage: number
+    projectName: string
+    branch: string
+    sessionTime: number
+    status: "ready" | "thinking" | "error"
+}
+```
+
+### 0.11.3 - Chat
+
+```typescript
+// src/tui/components/Chat.tsx
+// Displays message history
+// Tool calls as: [tool_name params...]
+// Stats after response: ⏱ 3.2s │ 1,247 tokens │ 1 tool call
+
+interface Props {
+    messages: ChatMessage[]
+    isThinking: boolean
+}
+```
+
+### 0.11.4 - Input
+
+```typescript
+// src/tui/components/Input.tsx
+// Prompt: > _
+// ↑/↓ for history
+// Tab for path autocomplete
+
+interface Props {
+    onSubmit: (text: string) => void
+    history: string[]
+    disabled: boolean
+}
+```
+
+**Tests:**
+- [ ] Component tests for TUI
+
+---
+
+## Version 0.12.0 - TUI Advanced 🎨
+
+**Priority:** HIGH
+
+### 0.12.1 - DiffView
+
+```typescript
+// src/tui/components/DiffView.tsx
+// Inline highlights: green added, red removed
+// Header: ┌─── path (lines X-Y) ───┐
+
+interface Props {
+    filePath: string
+    oldLines: string[]
+    newLines: string[]
+    startLine: number
+}
+```
+
+### 0.12.2 - ConfirmDialog
+
+```typescript
+// src/tui/components/ConfirmDialog.tsx
+// [Y] Apply  [N] Cancel  [E] Edit
+
+interface Props {
+    message: string
+    diff?: DiffProps
+    onSelect: (choice: "apply" | "cancel" | "edit") => void
+}
+```
+
+### 0.12.3 - ErrorDialog
+
+```typescript
+// src/tui/components/ErrorDialog.tsx
+// ❌ type: message
+// [R] Retry  [S] Skip  [A] Abort
+
+interface Props {
+    error: { type: string; message: string; recoverable: boolean }
+    onChoice: (choice: "retry" | "skip" | "abort") => void
+}
+```
+
+### 0.12.4 - Progress
+
+```typescript
+// src/tui/components/Progress.tsx
+// [=====>    ] 45% (120/267 files)
+// Used during indexing
+
+interface Props {
+    current: number
+    total: number
+    label: string
+}
+```
+
+**Tests:**
+- [ ] Component tests for dialogs
+
+---
+
+## Version 0.13.0 - Security 🔒
+
+**Priority:** HIGH
+
+### 0.13.1 - Blacklist
+
+```typescript
+// src/infrastructure/security/Blacklist.ts
+const BLACKLIST = [
+    "rm -rf", "rm -r",
+    "git push --force", "git reset --hard", "git clean -fd",
+    "npm publish", "sudo", "chmod", "chown"
+]
+
+function isBlacklisted(command: string): boolean
+// Substring match - always reject
+```
+
+### 0.13.2 - Whitelist
+
+```typescript
+// src/infrastructure/security/Whitelist.ts
+const DEFAULT_WHITELIST = [
+    "npm", "pnpm", "yarn", "git",
+    "node", "npx", "tsx",
+    "vitest", "jest", "tsc", "eslint", "prettier"
+]
+
+function isWhitelisted(command: string): boolean
+// First word match
+// User can extend via config.whitelist.user
+```
+
+### 0.13.3 - Path Validator
+
+```typescript
+// src/infrastructure/security/PathValidator.ts
+function validatePath(path: string, projectRoot: string): boolean
+// Rejects: .., absolute paths outside project
+```
+
+**Tests:**
+- [ ] Unit tests for security validators
+
+---
+
+## Version 0.14.0 - Orchestrator 🎭
+
+**Priority:** CRITICAL
+
+### 0.14.1 - HandleMessage Use Case
+
+```typescript
+// src/application/use-cases/HandleMessage.ts
+class HandleMessage {
+    constructor(
+        private storage: IStorage,
+        private llm: ILLMClient,
+        private tools: IToolRegistry
+    )
+
+    async execute(session: Session, message: string): Promise<void> {
+        // 1. Add user message to history
+        // 2. Build context: system prompt + structure + AST + history
+        // 3. Send to LLM
+        // 4. Parse tool calls
+        // 5. For each tool:
+        //    - if requiresConfirmation → emit onEdit
+        //    - else → execute
+        // 6. If tool results → repeat from step 3
+        // 7. Show final response with stats
+    }
+
+    // Events
+    onMessage: (msg: ChatMessage) => void
+    onToolCall: (call: ToolCall) => void
+    onEdit: (edit: EditRequest) => Promise<EditChoice>
+    onError: (error: IpuaroError) => Promise<ErrorChoice>
+    onStatusChange: (status: Status) => void
+}
+```
+
+### 0.14.2 - Edit Flow
+
+```typescript
+// Edit handling inside HandleMessage:
+// 1. Check hash conflict (file changed during generation?)
+// 2. If conflict → onEdit with choices: apply/skip/regenerate
+// 3. If not autoApply → onEdit with diff
+// 4. On "apply":
+//    - Save to undo stack
+//    - Apply changes to file
+//    - Update storage (lines, AST, meta)
+```
+
+**Tests:**
+- [ ] Unit tests for HandleMessage
+- [ ] E2E tests for full message flow
+
+---
+
+## Version 0.15.0 - Commands 📝
+
+**Priority:** MEDIUM
+
+7 slash commands for TUI.
+
+```typescript
+// src/tui/hooks/useCommands.ts
+
+/help       // Shows all commands and hotkeys
+/clear      // Clears chat history (keeps session)
+/undo       // Reverts last file change from undo stack
+/sessions   // list | load <id> | delete <id>
+/status     // Shows: Redis, context, model, session stats
+/reindex    // Forces full project reindexation
+/eval       // LLM self-check for hallucinations
+/auto-apply // on | off - toggle auto-apply mode
+```
+
+**Tests:**
+- [ ] Unit tests for command handlers
+
+---
+
+## Version 0.16.0 - Hotkeys & Polish ⌨️
+
+**Priority:** MEDIUM
+
+### 0.16.1 - Hotkeys
+
+```typescript
+// src/tui/hooks/useHotkeys.ts
+
+Ctrl+C  // Interrupt generation (1st), exit (2nd)
+Ctrl+D  // Exit with session save
+Ctrl+Z  // Undo (= /undo)
+↑/↓     // Input history
+Tab     // Path autocomplete
+```
+
+### 0.16.2 - Auto-compression
+
+```typescript
+// Triggered at >80% context:
+// 1. LLM summarizes old messages
+// 2. Remove tool results older than 5 messages
+// 3. Update status bar (ctx% changes)
+// No modal notification - silent
+```
+
+**Tests:**
+- [ ] Integration tests for hotkeys
+- [ ] Unit tests for compression
+
+---
+
+## Version 0.17.0 - CLI Entry Point 🚪
+
+**Priority:** HIGH
+
+### 0.17.1 - CLI Commands
+
+```typescript
+// src/cli/index.ts
+
+ipuaro [path]           // Start TUI in directory (default: cwd)
+ipuaro init             // Create .ipuaro.json config
+ipuaro index            // Index only (no TUI)
+```
+
+### 0.17.2 - CLI Options
+
+```bash
+--auto-apply            # Enable auto-apply mode
+--model <name>          # Override model (default: qwen2.5-coder:7b-instruct)
+--help                  # Show help
+--version               # Show version
+```
+
+### 0.17.3 - Onboarding
+
+```typescript
+// src/cli/commands/start.ts
+
+// On first run:
+// 1. Check Redis → error with install instructions if missing
+// 2. Check Ollama → error if unavailable
+// 3. Check model → offer to pull if missing
+// 4. Check project size → warn if >10K files, offer subdirectory
+```
+
+**Tests:**
+- [ ] E2E tests for CLI
+
+---
+
+## Version 0.18.0 - Error Handling ⚠️
+
+**Priority:** HIGH
+
+### 0.18.1 - Error Types
+
+```typescript
+// src/shared/errors/IpuaroError.ts
+type ErrorType = "redis" | "parse" | "llm" | "file" | "command" | "conflict"
+
+class IpuaroError extends Error {
+    type: ErrorType
+    recoverable: boolean
+    suggestion?: string
+}
+```
+
+### 0.18.2 - Error Handling Matrix
+
+| Error | Recoverable | Options |
+|-------|-------------|---------|
+| Redis unavailable | No | Retry / Abort |
+| AST parse failed | Yes | Skip file / Abort |
+| LLM timeout | Yes | Retry / Skip / Abort |
+| File not found | Yes | Skip / Abort |
+| Command not in whitelist | Yes | Confirm / Skip / Abort |
+| Edit conflict | Yes | Apply / Skip / Regenerate |
+
+**Tests:**
+- [ ] Unit tests for error handling
+
+---
+
+## Version 1.0.0 - Production Ready 🚀
+
+**Target:** Stable release
+
+**Checklist:**
+- [ ] All 18 tools implemented and tested
+- [ ] TUI fully functional
+- [ ] Session persistence working
+- [ ] Error handling complete
+- [ ] Performance optimized
+- [ ] Documentation complete
+- [ ] 80%+ test coverage
+- [ ] 0 ESLint errors
+- [ ] Examples working
+- [ ] CHANGELOG.md up to date
+
+---
+
+## Post 1.0 - Future 💡
+
+### 1.1.0 - Performance
+- Parallel AST parsing
+- Incremental indexing
+- Response caching
+
+### 1.2.0 - Features
+- Multiple file edits in one operation
+- Batch operations
+- Custom prompt templates
+
+### 1.3.0 - Extensibility
+- Plugin system for tools
+- Custom LLM providers (OpenAI, Anthropic)
+- IDE integration (LSP?)
+
+---
+
+## Summary Tables
+
+### Tool Summary (18 total)
+
+| Category | Tool | Confirm | Description |
+|----------|------|---------|-------------|
+| **Read** | get_lines | No | Get file lines |
+| | get_function | No | Get function by name |
+| | get_class | No | Get class by name |
+| | get_structure | No | Get project tree |
+| **Edit** | edit_lines | Yes | Replace lines |
+| | create_file | Yes | Create new file |
+| | delete_file | Yes | Delete file |
+| **Search** | find_references | No | Find symbol usages |
+| | find_definition | No | Find symbol definition |
+| **Analysis** | get_dependencies | No | File imports |
+| | get_dependents | No | Files importing this |
+| | get_complexity | No | Complexity metrics |
+| | get_todos | No | Find TODO/FIXME |
+| **Git** | git_status | No | Repository status |
+| | git_diff | No | Uncommitted changes |
+| | git_commit | Yes | Create commit |
+| **Run** | run_command | Conditional | Execute shell command |
+| | run_tests | No | Run test suite |
+
+### Redis Schema
+
+```
+# Project (5 keys per project)
+project:{name}:files      # Hash<path, FileData>
+project:{name}:ast        # Hash<path, FileAST>
+project:{name}:meta       # Hash<path, FileMeta>
+project:{name}:indexes    # Hash<name, JSON>
+project:{name}:config     # Hash<key, JSON>
+
+# Sessions (3 keys per session)
+session:{id}:data         # Hash<field, JSON>
+session:{id}:undo         # List<UndoEntry> max 10
+sessions:list             # List<session_id>
+```
+
+### Context Budget (128K window)
+
+| Component | Tokens | % |
+|-----------|--------|---|
+| System prompt | ~2,000 | 1.5% |
+| Structure + AST | ~10,000 | 8% |
+| **Available** | ~116,000 | 90% |
+
+---
+
+**Last Updated:** 2025-11-29
+**Target Version:** 1.0.0

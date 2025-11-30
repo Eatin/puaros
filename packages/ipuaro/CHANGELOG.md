@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-12-01 - Read Tools
+
+### Added
+
+- **ToolRegistry (0.5.1)**
+  - `IToolRegistry` implementation for managing tool lifecycle
+  - Methods: `register()`, `unregister()`, `get()`, `getAll()`, `getByCategory()`, `has()`
+  - `execute()`: Tool execution with validation and confirmation flow
+  - `getToolDefinitions()`: Convert tools to LLM-compatible JSON Schema format
+  - Helper methods: `getConfirmationTools()`, `getSafeTools()`, `getNames()`, `clear()`
+  - 34 unit tests
+
+- **GetLinesTool (0.5.2)**
+  - `get_lines(path, start?, end?)`: Read file lines with line numbers
+  - Reads from Redis storage or filesystem fallback
+  - Line number formatting with proper padding
+  - Path validation (must be within project root)
+  - 25 unit tests
+
+- **GetFunctionTool (0.5.3)**
+  - `get_function(path, name)`: Get function source by name
+  - Uses AST to find exact line range
+  - Returns metadata: isAsync, isExported, params, returnType
+  - Lists available functions if target not found
+  - 20 unit tests
+
+- **GetClassTool (0.5.4)**
+  - `get_class(path, name)`: Get class source by name
+  - Uses AST to find exact line range
+  - Returns metadata: isAbstract, extends, implements, methods, properties
+  - Lists available classes if target not found
+  - 19 unit tests
+
+- **GetStructureTool (0.5.5)**
+  - `get_structure(path?, depth?)`: Get directory tree
+  - ASCII tree output with 📁/📄 icons
+  - Filters: node_modules, .git, dist, coverage, etc.
+  - Directories sorted before files
+  - Stats: directory and file counts
+  - 23 unit tests
+
+### Changed
+
+- Total tests: 540 (was 419)
+- Coverage: 96%+
+
+---
+
 ## [0.4.0] - 2025-11-30 - LLM Integration
 
 ### Added

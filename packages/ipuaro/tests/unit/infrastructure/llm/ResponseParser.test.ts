@@ -127,9 +127,7 @@ describe("ResponseParser", () => {
 
     describe("formatToolCallsAsXml", () => {
         it("should format tool calls as XML", () => {
-            const toolCalls = [
-                createToolCall("1", "get_lines", { path: "src/index.ts", start: 1 }),
-            ]
+            const toolCalls = [createToolCall("1", "get_lines", { path: "src/index.ts", start: 1 })]
 
             const xml = formatToolCallsAsXml(toolCalls)
 
@@ -152,9 +150,7 @@ describe("ResponseParser", () => {
         })
 
         it("should handle object values as JSON", () => {
-            const toolCalls = [
-                createToolCall("1", "test", { data: { key: "value" } }),
-            ]
+            const toolCalls = [createToolCall("1", "test", { data: { key: "value" } })]
 
             const xml = formatToolCallsAsXml(toolCalls)
 

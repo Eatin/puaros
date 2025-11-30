@@ -63,6 +63,13 @@ describe("ChatMessage", () => {
 
             expect(msg.content).toContain("[2] Error: Not found")
         })
+
+        it("should handle error result without error message", () => {
+            const results = [{ callId: "3", success: false, executionTimeMs: 5 }]
+            const msg = createToolMessage(results)
+
+            expect(msg.content).toContain("[3] Error: Unknown error")
+        })
     })
 
     describe("createSystemMessage", () => {

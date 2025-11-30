@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-01 - Edit Tools
+
+### Added
+
+- **EditLinesTool (0.6.1)**
+  - `edit_lines(path, start, end, content)`: Replace lines in a file
+  - Hash conflict detection (prevents editing externally modified files)
+  - Confirmation required with diff preview
+  - Automatic storage update after edit
+  - 35 unit tests
+
+- **CreateFileTool (0.6.2)**
+  - `create_file(path, content)`: Create new file with content
+  - Automatic directory creation if needed
+  - Path validation (must be within project root)
+  - Prevents overwriting existing files
+  - Confirmation required before creation
+  - 26 unit tests
+
+- **DeleteFileTool (0.6.3)**
+  - `delete_file(path)`: Delete file from filesystem and storage
+  - Removes file data, AST, and meta from Redis
+  - Confirmation required with file content preview
+  - 20 unit tests
+
+### Changed
+
+- Total tests: 664 (was 540)
+- Coverage: 97.71% lines, 91.89% branches
+- Coverage thresholds: 95% lines/functions/statements, 90% branches
+
+---
+
 ## [0.5.0] - 2025-12-01 - Read Tools
 
 ### Added

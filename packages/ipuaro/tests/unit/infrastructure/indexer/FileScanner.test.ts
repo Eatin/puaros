@@ -212,6 +212,32 @@ describe("FileScanner", () => {
         })
     })
 
+    describe("empty file handling", () => {
+        it("should consider empty files as text files", async () => {
+            const emptyFile = path.join(FIXTURES_DIR, "empty-file.ts")
+            await fs.writeFile(emptyFile, "")
+
+            try {
+                const isText = await FileScanner.isTextFile(emptyFile)
+                expect(isText).toBe(true)
+            } finally {
+                await fs.unlink(emptyFile)
+            }
+        })
+
+        it("should read empty file content", async () => {
+            const emptyFile = path.join(FIXTURES_DIR, "empty-content.ts")
+            await fs.writeFile(emptyFile, "")
+
+            try {
+                const content = await FileScanner.readFileContent(emptyFile)
+                expect(content).toBe("")
+            } finally {
+                await fs.unlink(emptyFile)
+            }
+        })
+    })
+
     describe("empty directory handling", () => {
         let emptyDir: string
 

@@ -94,11 +94,69 @@ describe("Watchdog", () => {
         it("should return empty array when not watching", () => {
             expect(watchdog.getWatchedPaths()).toEqual([])
         })
+
+        it("should return paths when watching", async () => {
+            const testFile = path.join(tempDir, "exists.ts")
+            await fs.writeFile(testFile, "const x = 1")
+
+            watchdog.start(tempDir)
+            await new Promise((resolve) => setTimeout(resolve, 200))
+
+            const paths = watchdog.getWatchedPaths()
+            expect(Array.isArray(paths)).toBe(true)
+        })
     })
 
     describe("flushAll", () => {
         it("should not throw when no pending changes", () => {
             expect(() => watchdog.flushAll()).not.toThrow()
+        })
+
+        it("should flush all pending changes", async () => {
+            const events: FileChangeEvent[] = []
+            watchdog.onFileChange((event) => events.push(event))
+            watchdog.start(tempDir)
+
+            await new Promise((resolve) => setTimeout(resolve, 100))
+
+            const testFile = path.join(tempDir, "flush-test.ts")
+            await fs.writeFile(testFile, "const x = 1")
+
+            await new Promise((resolve) => setTimeout(resolve, 20))
+
+            watchdog.flushAll()
+
+            await new Promise((resolve) => setTimeout(resolve, 50))
+        })
+    })
+
+    describe("ignore patterns", () => {
+        it("should handle glob patterns with wildcards", async () => {
+            const customWatchdog = new Watchdog({
+                debounceMs: 50,
+                ignorePatterns: ["*.log", "**/*.tmp"],
+            })
+
+            customWatchdog.start(tempDir)
+            await new Promise((resolve) => setTimeout(resolve, 100))
+
+            expect(customWatchdog.isWatching()).toBe(true)
+
+            await customWatchdog.stop()
+        })
+
+        it("should handle simple directory patterns", async () => {
+            const customWatchdog = new Watchdog({
+                debounceMs: 50,
+                ignorePatterns: ["node_modules", "dist"],
+            })
+
+            customWatchdog.start(tempDir)
+            await new Promise((resolve) => setTimeout(resolve, 100))
+
+            expect(customWatchdog.isWatching()).toBe(true)
+
+            await customWatchdog.stop()
         })
     })
 

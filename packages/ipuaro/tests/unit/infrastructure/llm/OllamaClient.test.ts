@@ -301,4 +301,188 @@ describe("OllamaClient", () => {
             expect(() => client.abort()).not.toThrow()
         })
     })
+
+    describe("message conversion", () => {
+        it("should convert system messages", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [
+                {
+                    role: "system" as const,
+                    content: "You are a helpful assistant",
+                    timestamp: Date.now(),
+                },
+            ]
+
+            await client.chat(messages)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    messages: expect.arrayContaining([
+                        expect.objectContaining({
+                            role: "system",
+                            content: "You are a helpful assistant",
+                        }),
+                    ]),
+                }),
+            )
+        })
+
+        it("should convert tool result messages", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [
+                {
+                    role: "tool" as const,
+                    content: '{"result": "success"}',
+                    timestamp: Date.now(),
+                    toolResults: [
+                        { callId: "call_1", success: true, data: "success", executionTimeMs: 10 },
+                    ],
+                },
+            ]
+
+            await client.chat(messages)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    messages: expect.arrayContaining([
+                        expect.objectContaining({
+                            role: "tool",
+                            content: '{"result": "success"}',
+                        }),
+                    ]),
+                }),
+            )
+        })
+
+        it("should convert assistant messages with tool calls", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [
+                {
+                    role: "assistant" as const,
+                    content: "I will read the file",
+                    timestamp: Date.now(),
+                    toolCalls: [{ id: "call_1", name: "get_lines", params: { path: "test.ts" } }],
+                },
+            ]
+
+            await client.chat(messages)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    messages: expect.arrayContaining([
+                        expect.objectContaining({
+                            role: "assistant",
+                            content: "I will read the file",
+                            tool_calls: expect.arrayContaining([
+                                expect.objectContaining({
+                                    function: expect.objectContaining({
+                                        name: "get_lines",
+                                        arguments: { path: "test.ts" },
+                                    }),
+                                }),
+                            ]),
+                        }),
+                    ]),
+                }),
+            )
+        })
+    })
+
+    describe("response handling", () => {
+        it("should estimate tokens when eval_count is undefined", async () => {
+            mockOllamaInstance.chat.mockResolvedValue({
+                message: {
+                    role: "assistant",
+                    content: "Hello world response",
+                    tool_calls: undefined,
+                },
+                eval_count: undefined,
+                done_reason: "stop",
+            })
+
+            const client = new OllamaClient(defaultConfig)
+            const response = await client.chat([createUserMessage("Hello")])
+
+            expect(response.tokens).toBeGreaterThan(0)
+        })
+
+        it("should return length stop reason", async () => {
+            mockOllamaInstance.chat.mockResolvedValue({
+                message: {
+                    role: "assistant",
+                    content: "Truncated...",
+                    tool_calls: undefined,
+                },
+                eval_count: 100,
+                done_reason: "length",
+            })
+
+            const client = new OllamaClient(defaultConfig)
+            const response = await client.chat([createUserMessage("Hello")])
+
+            expect(response.stopReason).toBe("length")
+        })
+    })
+
+    describe("tool parameter conversion", () => {
+        it("should include enum values when present", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [createUserMessage("Get status")]
+            const tools = [
+                {
+                    name: "get_status",
+                    description: "Get status",
+                    parameters: [
+                        {
+                            name: "type",
+                            type: "string" as const,
+                            description: "Status type",
+                            required: true,
+                            enum: ["active", "inactive", "pending"],
+                        },
+                    ],
+                },
+            ]
+
+            await client.chat(messages, tools)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    tools: expect.arrayContaining([
+                        expect.objectContaining({
+                            function: expect.objectContaining({
+                                parameters: expect.objectContaining({
+                                    properties: expect.objectContaining({
+                                        type: expect.objectContaining({
+                                            enum: ["active", "inactive", "pending"],
+                                        }),
+                                    }),
+                                }),
+                            }),
+                        }),
+                    ]),
+                }),
+            )
+        })
+    })
+
+    describe("error handling", () => {
+        it("should handle ECONNREFUSED errors", async () => {
+            mockOllamaInstance.chat.mockRejectedValue(new Error("ECONNREFUSED"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(
+                /Cannot connect to Ollama/,
+            )
+        })
+
+        it("should handle generic errors with context", async () => {
+            mockOllamaInstance.pull.mockRejectedValue(new Error("Unknown error"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.pullModel("test")).rejects.toThrow(/Failed to pull model/)
+        })
+    })
 })

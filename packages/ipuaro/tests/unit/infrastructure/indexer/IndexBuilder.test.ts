@@ -605,4 +605,44 @@ export type ServiceResult<T> = { success: true; data: T } | { success: false; er
             )
         })
     })
+
+    describe("jsx to tsx resolution", () => {
+        it("should resolve .jsx imports to .tsx files", () => {
+            const mainCode = `import { Button } from "./Button.jsx"`
+            const buttonCode = `export function Button() { return null }`
+
+            const asts = new Map<string, FileAST>([
+                ["/project/src/main.ts", parser.parse(mainCode, "ts")],
+                ["/project/src/Button.tsx", parser.parse(buttonCode, "tsx")],
+            ])
+
+            const graph = builder.buildDepsGraph(asts)
+
+            expect(graph.imports.get("/project/src/main.ts")).toContain("/project/src/Button.tsx")
+        })
+    })
+
+    describe("edge cases", () => {
+        it("should handle empty deps graph for circular dependencies", () => {
+            const graph = {
+                imports: new Map<string, string[]>(),
+                importedBy: new Map<string, string[]>(),
+            }
+
+            const cycles = builder.findCircularDependencies(graph)
+            expect(cycles).toEqual([])
+        })
+
+        it("should handle single file with no imports", () => {
+            const code = `export const x = 1`
+            const asts = new Map<string, FileAST>([
+                ["/project/src/single.ts", parser.parse(code, "ts")],
+            ])
+
+            const graph = builder.buildDepsGraph(asts)
+            const cycles = builder.findCircularDependencies(graph)
+
+            expect(cycles).toEqual([])
+        })
+    })
 })

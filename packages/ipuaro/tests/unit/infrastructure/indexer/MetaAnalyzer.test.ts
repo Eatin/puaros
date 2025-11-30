@@ -544,6 +544,44 @@ const b = 2`
         })
     })
 
+    describe("dependency resolution with different extensions", () => {
+        it("should resolve imports from index files", () => {
+            const content = `import { utils } from "./utils/index"`
+            const ast = parser.parse(content, "ts")
+            const allASTs = new Map<string, FileAST>()
+            allASTs.set("/project/src/main.ts", ast)
+            allASTs.set("/project/src/utils/index.ts", createEmptyFileAST())
+
+            const meta = analyzer.analyze("/project/src/main.ts", ast, content, allASTs)
+
+            expect(meta.dependencies).toContain("/project/src/utils/index.ts")
+        })
+
+        it("should convert .js extension to .ts when resolving", () => {
+            const content = `import { helper } from "./helper.js"`
+            const ast = parser.parse(content, "ts")
+            const allASTs = new Map<string, FileAST>()
+            allASTs.set("/project/src/main.ts", ast)
+            allASTs.set("/project/src/helper.ts", createEmptyFileAST())
+
+            const meta = analyzer.analyze("/project/src/main.ts", ast, content, allASTs)
+
+            expect(meta.dependencies).toContain("/project/src/helper.ts")
+        })
+
+        it("should convert .jsx extension to .tsx when resolving", () => {
+            const content = `import { Button } from "./Button.jsx"`
+            const ast = parser.parse(content, "ts")
+            const allASTs = new Map<string, FileAST>()
+            allASTs.set("/project/src/App.tsx", ast)
+            allASTs.set("/project/src/Button.tsx", createEmptyFileAST())
+
+            const meta = analyzer.analyze("/project/src/App.tsx", ast, content, allASTs)
+
+            expect(meta.dependencies).toContain("/project/src/Button.tsx")
+        })
+    })
+
     describe("analyze", () => {
         it("should produce complete FileMeta", () => {
             const content = `import { helper } from "./helper"

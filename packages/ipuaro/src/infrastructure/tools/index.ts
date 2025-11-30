@@ -10,3 +10,8 @@ export {
     type GetStructureResult,
     type TreeNode,
 } from "./read/GetStructureTool.js"
+
+// Edit tools
+export { EditLinesTool, type EditLinesResult } from "./edit/EditLinesTool.js"
+export { CreateFileTool, type CreateFileResult } from "./edit/CreateFileTool.js"
+export { DeleteFileTool, type DeleteFileResult } from "./edit/DeleteFileTool.js"

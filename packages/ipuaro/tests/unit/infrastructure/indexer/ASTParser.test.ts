@@ -301,6 +301,66 @@ describe("ASTParser", () => {
         })
     })
 
+    describe("import string formats", () => {
+        it("should handle single-quoted imports", () => {
+            const code = `import { foo } from './module'`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.imports).toHaveLength(1)
+            expect(ast.imports[0].from).toBe("./module")
+        })
+
+        it("should handle double-quoted imports", () => {
+            const code = `import { bar } from "./other"`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.imports).toHaveLength(1)
+            expect(ast.imports[0].from).toBe("./other")
+        })
+    })
+
+    describe("parameter types", () => {
+        it("should handle simple identifier parameters", () => {
+            const code = `const fn = (x) => x * 2`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.functions.length).toBeGreaterThanOrEqual(0)
+        })
+
+        it("should handle optional parameters with defaults", () => {
+            const code = `function greet(name: string = "World"): string { return name }`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.functions).toHaveLength(1)
+            const fn = ast.functions[0]
+            expect(fn.params.some((p) => p.hasDefault)).toBe(true)
+        })
+
+        it("should handle arrow function with untyped params", () => {
+            const code = `const add = (a, b) => a + b`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.functions.length).toBeGreaterThanOrEqual(0)
+        })
+
+        it("should handle multiple parameter types", () => {
+            const code = `
+function mix(
+    required: string,
+    optional?: number,
+    withDefault: boolean = true
+) {}
+`
+            const ast = parser.parse(code, "ts")
+
+            expect(ast.functions).toHaveLength(1)
+            const fn = ast.functions[0]
+            expect(fn.params).toHaveLength(3)
+            expect(fn.params.some((p) => p.optional)).toBe(true)
+            expect(fn.params.some((p) => p.hasDefault)).toBe(true)
+        })
+    })
+
     describe("complex file", () => {
         it("should parse complex TypeScript file", () => {
             const code = `

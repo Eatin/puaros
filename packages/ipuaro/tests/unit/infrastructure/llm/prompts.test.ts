@@ -249,6 +249,445 @@ describe("prompts", () => {
         })
     })
 
+    describe("buildFileContext - edge cases", () => {
+        it("should handle empty imports", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("empty.ts", ast)
+
+            expect(context).toContain("## empty.ts")
+            expect(context).not.toContain("### Imports")
+        })
+
+        it("should handle empty exports", () => {
+            const ast: FileAST = {
+                imports: [{ name: "x", from: "./x", line: 1, type: "internal", isDefault: false }],
+                exports: [],
+                functions: [],
+                classes: [],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("no-exports.ts", ast)
+
+            expect(context).toContain("### Imports")
+            expect(context).not.toContain("### Exports")
+        })
+
+        it("should handle empty functions", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [
+                    {
+                        name: "MyClass",
+                        lineStart: 1,
+                        lineEnd: 10,
+                        methods: [],
+                        properties: [],
+                        implements: [],
+                        isExported: false,
+                        isAbstract: false,
+                    },
+                ],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("no-functions.ts", ast)
+
+            expect(context).not.toContain("### Functions")
+            expect(context).toContain("### Classes")
+        })
+
+        it("should handle empty classes", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [
+                    {
+                        name: "test",
+                        lineStart: 1,
+                        lineEnd: 5,
+                        params: [],
+                        isAsync: false,
+                        isExported: false,
+                    },
+                ],
+                classes: [],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("no-classes.ts", ast)
+
+            expect(context).toContain("### Functions")
+            expect(context).not.toContain("### Classes")
+        })
+
+        it("should handle class without extends", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [
+                    {
+                        name: "Standalone",
+                        lineStart: 1,
+                        lineEnd: 10,
+                        methods: [],
+                        properties: [],
+                        implements: ["IFoo"],
+                        isExported: false,
+                        isAbstract: false,
+                    },
+                ],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("standalone.ts", ast)
+
+            expect(context).toContain("Standalone implements IFoo")
+            expect(context).not.toContain("extends")
+        })
+
+        it("should handle class without implements", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [
+                    {
+                        name: "Child",
+                        lineStart: 1,
+                        lineEnd: 10,
+                        methods: [],
+                        properties: [],
+                        extends: "Parent",
+                        implements: [],
+                        isExported: false,
+                        isAbstract: false,
+                    },
+                ],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("child.ts", ast)
+
+            expect(context).toContain("Child extends Parent")
+            expect(context).not.toContain("implements")
+        })
+
+        it("should handle method with private visibility", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [],
+                classes: [
+                    {
+                        name: "WithPrivate",
+                        lineStart: 1,
+                        lineEnd: 20,
+                        methods: [
+                            {
+                                name: "secretMethod",
+                                lineStart: 5,
+                                lineEnd: 10,
+                                params: [],
+                                isAsync: false,
+                                visibility: "private",
+                                isStatic: false,
+                            },
+                        ],
+                        properties: [],
+                        implements: [],
+                        isExported: false,
+                        isAbstract: false,
+                    },
+                ],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("private.ts", ast)
+
+            expect(context).toContain("private secretMethod()")
+        })
+
+        it("should handle non-async function", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [],
+                functions: [
+                    {
+                        name: "syncFn",
+                        lineStart: 1,
+                        lineEnd: 5,
+                        params: [{ name: "x", optional: false, hasDefault: false }],
+                        isAsync: false,
+                        isExported: false,
+                    },
+                ],
+                classes: [],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("sync.ts", ast)
+
+            expect(context).toContain("syncFn(x)")
+            expect(context).not.toContain("async syncFn")
+        })
+
+        it("should handle export without default", () => {
+            const ast: FileAST = {
+                imports: [],
+                exports: [{ name: "foo", line: 1, isDefault: false, kind: "variable" }],
+                functions: [],
+                classes: [],
+                interfaces: [],
+                typeAliases: [],
+                parseError: false,
+            }
+
+            const context = buildFileContext("named-export.ts", ast)
+
+            expect(context).toContain("variable foo")
+            expect(context).not.toContain("(default)")
+        })
+    })
+
+    describe("buildInitialContext - edge cases", () => {
+        it("should handle nested directory names", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: [],
+                directories: ["src/components/ui"],
+            }
+            const asts = new Map<string, FileAST>()
+
+            const context = buildInitialContext(structure, asts)
+
+            expect(context).toContain("ui/")
+        })
+
+        it("should handle file with only interfaces", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["types.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "types.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [{ name: "IFoo", lineStart: 1, lineEnd: 5, isExported: true }],
+                        typeAliases: [],
+                        parseError: false,
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts)
+
+            expect(context).toContain("interface: IFoo")
+        })
+
+        it("should handle file with only type aliases", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["types.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "types.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [],
+                        typeAliases: [
+                            { name: "MyType", lineStart: 1, lineEnd: 1, isExported: true },
+                        ],
+                        parseError: false,
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts)
+
+            expect(context).toContain("type: MyType")
+        })
+
+        it("should handle file with no AST content", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["empty.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "empty.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [],
+                        typeAliases: [],
+                        parseError: false,
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts)
+
+            expect(context).toContain("- empty.ts")
+        })
+
+        it("should handle meta with only hub flag", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["hub.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "hub.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [],
+                        typeAliases: [],
+                        parseError: false,
+                    },
+                ],
+            ])
+            const metas = new Map<string, FileMeta>([
+                [
+                    "hub.ts",
+                    {
+                        complexity: { loc: 10, nesting: 1, cyclomaticComplexity: 1, score: 10 },
+                        dependencies: [],
+                        dependents: [],
+                        isHub: true,
+                        isEntryPoint: false,
+                        fileType: "source",
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts, metas)
+
+            expect(context).toContain("(hub)")
+            expect(context).not.toContain("entry")
+            expect(context).not.toContain("complex")
+        })
+
+        it("should handle meta with no flags", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["normal.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "normal.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [],
+                        typeAliases: [],
+                        parseError: false,
+                    },
+                ],
+            ])
+            const metas = new Map<string, FileMeta>([
+                [
+                    "normal.ts",
+                    {
+                        complexity: { loc: 10, nesting: 1, cyclomaticComplexity: 1, score: 10 },
+                        dependencies: [],
+                        dependents: [],
+                        isHub: false,
+                        isEntryPoint: false,
+                        fileType: "source",
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts, metas)
+
+            expect(context).toContain("- normal.ts")
+            expect(context).not.toContain("(hub")
+            expect(context).not.toContain("entry")
+            expect(context).not.toContain("complex")
+        })
+
+        it("should skip files not in AST map", () => {
+            const structure: ProjectStructure = {
+                name: "test",
+                rootPath: "/test",
+                files: ["exists.ts", "missing.ts"],
+                directories: [],
+            }
+            const asts = new Map<string, FileAST>([
+                [
+                    "exists.ts",
+                    {
+                        imports: [],
+                        exports: [],
+                        functions: [],
+                        classes: [],
+                        interfaces: [],
+                        typeAliases: [],
+                        parseError: false,
+                    },
+                ],
+            ])
+
+            const context = buildInitialContext(structure, asts)
+
+            expect(context).toContain("exists.ts")
+            expect(context).not.toContain("missing.ts")
+        })
+    })
+
     describe("truncateContext", () => {
         it("should return original context if within limit", () => {
             const context = "Short context"

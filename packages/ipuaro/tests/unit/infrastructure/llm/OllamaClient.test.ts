@@ -1,0 +1,304 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { LLMConfig } from "../../../../src/shared/constants/config.js"
+import { IpuaroError } from "../../../../src/shared/errors/IpuaroError.js"
+import { createUserMessage } from "../../../../src/domain/value-objects/ChatMessage.js"
+
+const mockChatResponse = {
+    message: {
+        role: "assistant",
+        content: "This is a test response.",
+        tool_calls: undefined,
+    },
+    eval_count: 50,
+    done_reason: "stop",
+}
+
+const mockListResponse = {
+    models: [
+        { name: "qwen2.5-coder:7b-instruct", size: 4000000000 },
+        { name: "llama2:latest", size: 3500000000 },
+    ],
+}
+
+const mockOllamaInstance = {
+    chat: vi.fn(),
+    list: vi.fn(),
+    pull: vi.fn(),
+}
+
+vi.mock("ollama", () => {
+    return {
+        Ollama: vi.fn(() => mockOllamaInstance),
+    }
+})
+
+const { OllamaClient } = await import("../../../../src/infrastructure/llm/OllamaClient.js")
+
+describe("OllamaClient", () => {
+    const defaultConfig: LLMConfig = {
+        model: "qwen2.5-coder:7b-instruct",
+        contextWindow: 128000,
+        temperature: 0.1,
+        host: "http://localhost:11434",
+        timeout: 120000,
+    }
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockOllamaInstance.chat.mockResolvedValue(mockChatResponse)
+        mockOllamaInstance.list.mockResolvedValue(mockListResponse)
+        mockOllamaInstance.pull.mockResolvedValue({})
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    describe("constructor", () => {
+        it("should create instance with config", () => {
+            const client = new OllamaClient(defaultConfig)
+            expect(client).toBeDefined()
+            expect(client.getModelName()).toBe("qwen2.5-coder:7b-instruct")
+            expect(client.getContextWindowSize()).toBe(128000)
+        })
+    })
+
+    describe("chat", () => {
+        it("should send messages and return response", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [createUserMessage("Hello, world!")]
+
+            const response = await client.chat(messages)
+
+            expect(response.content).toBe("This is a test response.")
+            expect(response.tokens).toBe(50)
+            expect(response.stopReason).toBe("end")
+            expect(response.truncated).toBe(false)
+        })
+
+        it("should convert messages to Ollama format", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [createUserMessage("Hello")]
+
+            await client.chat(messages)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    model: "qwen2.5-coder:7b-instruct",
+                    messages: expect.arrayContaining([
+                        expect.objectContaining({
+                            role: "user",
+                            content: "Hello",
+                        }),
+                    ]),
+                }),
+            )
+        })
+
+        it("should pass tools when provided", async () => {
+            const client = new OllamaClient(defaultConfig)
+            const messages = [createUserMessage("Read file")]
+            const tools = [
+                {
+                    name: "get_lines",
+                    description: "Get lines from file",
+                    parameters: [
+                        {
+                            name: "path",
+                            type: "string" as const,
+                            description: "File path",
+                            required: true,
+                        },
+                    ],
+                },
+            ]
+
+            await client.chat(messages, tools)
+
+            expect(mockOllamaInstance.chat).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    tools: expect.arrayContaining([
+                        expect.objectContaining({
+                            type: "function",
+                            function: expect.objectContaining({
+                                name: "get_lines",
+                            }),
+                        }),
+                    ]),
+                }),
+            )
+        })
+
+        it("should extract tool calls from response", async () => {
+            mockOllamaInstance.chat.mockResolvedValue({
+                message: {
+                    role: "assistant",
+                    content: "",
+                    tool_calls: [
+                        {
+                            function: {
+                                name: "get_lines",
+                                arguments: { path: "src/index.ts" },
+                            },
+                        },
+                    ],
+                },
+                eval_count: 30,
+            })
+
+            const client = new OllamaClient(defaultConfig)
+            const response = await client.chat([createUserMessage("Read file")])
+
+            expect(response.toolCalls).toHaveLength(1)
+            expect(response.toolCalls[0].name).toBe("get_lines")
+            expect(response.toolCalls[0].params).toEqual({ path: "src/index.ts" })
+            expect(response.stopReason).toBe("tool_use")
+        })
+
+        it("should handle connection errors", async () => {
+            mockOllamaInstance.chat.mockRejectedValue(new Error("fetch failed"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(IpuaroError)
+        })
+
+        it("should handle model not found errors", async () => {
+            mockOllamaInstance.chat.mockRejectedValue(new Error("model not found"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(/not found/)
+        })
+    })
+
+    describe("countTokens", () => {
+        it("should estimate tokens for text", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const count = await client.countTokens("Hello, world!")
+
+            expect(count).toBeGreaterThan(0)
+            expect(typeof count).toBe("number")
+        })
+    })
+
+    describe("isAvailable", () => {
+        it("should return true when Ollama is available", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const available = await client.isAvailable()
+
+            expect(available).toBe(true)
+        })
+
+        it("should return false when Ollama is not available", async () => {
+            mockOllamaInstance.list.mockRejectedValue(new Error("Connection refused"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            const available = await client.isAvailable()
+
+            expect(available).toBe(false)
+        })
+    })
+
+    describe("getModelName", () => {
+        it("should return configured model name", () => {
+            const client = new OllamaClient(defaultConfig)
+
+            expect(client.getModelName()).toBe("qwen2.5-coder:7b-instruct")
+        })
+    })
+
+    describe("getContextWindowSize", () => {
+        it("should return configured context window size", () => {
+            const client = new OllamaClient(defaultConfig)
+
+            expect(client.getContextWindowSize()).toBe(128000)
+        })
+    })
+
+    describe("pullModel", () => {
+        it("should pull model successfully", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.pullModel("llama2")).resolves.toBeUndefined()
+            expect(mockOllamaInstance.pull).toHaveBeenCalledWith({
+                model: "llama2",
+                stream: false,
+            })
+        })
+
+        it("should throw on pull failure", async () => {
+            mockOllamaInstance.pull.mockRejectedValue(new Error("Network error"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.pullModel("llama2")).rejects.toThrow(IpuaroError)
+        })
+    })
+
+    describe("hasModel", () => {
+        it("should return true for available model", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const has = await client.hasModel("qwen2.5-coder:7b-instruct")
+
+            expect(has).toBe(true)
+        })
+
+        it("should return true for model prefix", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const has = await client.hasModel("llama2")
+
+            expect(has).toBe(true)
+        })
+
+        it("should return false for missing model", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const has = await client.hasModel("unknown-model")
+
+            expect(has).toBe(false)
+        })
+
+        it("should return false when list fails", async () => {
+            mockOllamaInstance.list.mockRejectedValue(new Error("Error"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            const has = await client.hasModel("any-model")
+
+            expect(has).toBe(false)
+        })
+    })
+
+    describe("listModels", () => {
+        it("should return list of model names", async () => {
+            const client = new OllamaClient(defaultConfig)
+
+            const models = await client.listModels()
+
+            expect(models).toContain("qwen2.5-coder:7b-instruct")
+            expect(models).toContain("llama2:latest")
+        })
+
+        it("should throw on list failure", async () => {
+            mockOllamaInstance.list.mockRejectedValue(new Error("Network error"))
+
+            const client = new OllamaClient(defaultConfig)
+
+            await expect(client.listModels()).rejects.toThrow(IpuaroError)
+        })
+    })
+
+    describe("abort", () => {
+        it("should not throw when no request is in progress", () => {
+            const client = new OllamaClient(defaultConfig)
+
+            expect(() => client.abort()).not.toThrow()
+        })
+    })
+})

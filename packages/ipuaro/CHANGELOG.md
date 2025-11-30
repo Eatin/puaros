@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-11-30 - LLM Integration
+
+### Added
+
+- **OllamaClient (0.4.1)**
+  - Full `ILLMClient` implementation for Ollama SDK
+  - Chat completion with tool/function calling support
+  - Token counting via estimation (Ollama has no tokenizer API)
+  - Model management: `pullModel()`, `hasModel()`, `listModels()`
+  - Connection status check: `isAvailable()`
+  - Request abortion support: `abort()`
+  - Error handling with `IpuaroError` for connection and model errors
+  - 21 unit tests
+
+- **System Prompt & Context Builder (0.4.2)**
+  - `SYSTEM_PROMPT`: Comprehensive agent instructions with tool descriptions
+  - `buildInitialContext()`: Generates compact project overview from structure and ASTs
+  - `buildFileContext()`: Detailed file context with imports, exports, functions, classes
+  - `truncateContext()`: Token-aware context truncation
+  - Hub/entry point/complexity flags in file summaries
+  - 17 unit tests
+
+- **Tool Definitions (0.4.3)**
+  - 18 tool definitions across 6 categories:
+    - Read: `get_lines`, `get_function`, `get_class`, `get_structure`
+    - Edit: `edit_lines`, `create_file`, `delete_file`
+    - Search: `find_references`, `find_definition`
+    - Analysis: `get_dependencies`, `get_dependents`, `get_complexity`, `get_todos`
+    - Git: `git_status`, `git_diff`, `git_commit`
+    - Run: `run_command`, `run_tests`
+  - Category groupings: `READ_TOOLS`, `EDIT_TOOLS`, etc.
+  - `CONFIRMATION_TOOLS` set for tools requiring user approval
+  - Helper functions: `requiresConfirmation()`, `getToolDef()`, `getToolsByCategory()`
+  - 39 unit tests
+
+- **Response Parser (0.4.4)**
+  - XML tool call parsing: `<tool_call name="...">...</tool_call>`
+  - Parameter extraction from XML elements
+  - Type coercion: boolean, number, null, JSON arrays/objects
+  - `extractThinking()`: Extracts `<thinking>...</thinking>` blocks
+  - `hasToolCalls()`: Quick check for tool call presence
+  - `validateToolCallParams()`: Parameter validation against required list
+  - `formatToolCallsAsXml()`: Tool calls to XML for prompt injection
+  - 21 unit tests
+
+### Changed
+
+- Total tests: 419 (was 321)
+- Coverage: 96.38%
+
+---
+
 ## [0.3.1] - 2025-11-30
 
 ### Added

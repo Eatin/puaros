@@ -53,3 +53,23 @@ export {
     type TodoEntry,
     type TodoType,
 } from "./analysis/GetTodosTool.js"
+
+// Git tools
+export { GitStatusTool, type GitStatusResult, type FileStatusEntry } from "./git/GitStatusTool.js"
+
+export { GitDiffTool, type GitDiffResult, type DiffEntry } from "./git/GitDiffTool.js"
+
+export { GitCommitTool, type GitCommitResult, type CommitAuthor } from "./git/GitCommitTool.js"
+
+// Run tools
+export {
+    CommandSecurity,
+    DEFAULT_BLACKLIST,
+    DEFAULT_WHITELIST,
+    type CommandClassification,
+    type SecurityCheckResult,
+} from "./run/CommandSecurity.js"
+
+export { RunCommandTool, type RunCommandResult } from "./run/RunCommandTool.js"
+
+export { RunTestsTool, type RunTestsResult, type TestRunner } from "./run/RunTestsTool.js"

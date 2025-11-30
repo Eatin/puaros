@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-12-01 - Git & Run Tools
+
+### Added
+
+- **GitStatusTool (0.9.1)**
+  - `git_status()`: Get current git repository status
+  - Returns branch name, tracking branch, ahead/behind counts
+  - Lists staged, modified, untracked, and conflicted files
+  - Detects detached HEAD state
+  - 29 unit tests
+
+- **GitDiffTool (0.9.2)**
+  - `git_diff(path?, staged?)`: Get uncommitted changes
+  - Returns file-by-file diff summary with insertions/deletions
+  - Full diff text output
+  - Optional path filter for specific files/directories
+  - Staged-only mode (`--cached`)
+  - Handles binary files
+  - 25 unit tests
+
+- **GitCommitTool (0.9.3)**
+  - `git_commit(message, files?)`: Create a git commit
+  - Requires user confirmation before commit
+  - Optional file staging before commit
+  - Returns commit hash, summary, author info
+  - Validates staged files exist
+  - 26 unit tests
+
+- **CommandSecurity**
+  - Security module for shell command validation
+  - Blacklist: dangerous commands always blocked (rm -rf, sudo, git push --force, etc.)
+  - Whitelist: safe commands allowed without confirmation (npm, node, git status, etc.)
+  - Classification: `allowed`, `blocked`, `requires_confirmation`
+  - Git subcommand awareness (safe read operations vs write operations)
+  - Extensible via `addToBlacklist()` and `addToWhitelist()`
+  - 65 unit tests
+
+- **RunCommandTool (0.9.4)**
+  - `run_command(command, timeout?)`: Execute shell commands
+  - Security-first design with blacklist/whitelist checks
+  - Blocked commands rejected immediately
+  - Unknown commands require user confirmation
+  - Configurable timeout (default 30s, max 10min)
+  - Output truncation for large outputs
+  - Returns stdout, stderr, exit code, duration
+  - 40 unit tests
+
+- **RunTestsTool (0.9.5)**
+  - `run_tests(path?, filter?, watch?)`: Run project tests
+  - Auto-detects test runner: vitest, jest, mocha, npm test
+  - Detects by config files and package.json dependencies
+  - Path filtering for specific test files/directories
+  - Name pattern filtering (`-t` / `--grep`)
+  - Watch mode support
+  - Returns pass/fail status, exit code, output
+  - 48 unit tests
+
+### Changed
+
+- Total tests: 1086 (was 853)
+- Coverage: 98.08% lines, 92.21% branches
+- Git tools category now fully implemented (3/3 tools)
+- Run tools category now fully implemented (2/2 tools)
+- All 18 planned tools now implemented
+
+---
+
 ## [0.8.0] - 2025-12-01 - Analysis Tools
 
 ### Added

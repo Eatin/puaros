@@ -15,3 +15,15 @@ export {
 export { EditLinesTool, type EditLinesResult } from "./edit/EditLinesTool.js"
 export { CreateFileTool, type CreateFileResult } from "./edit/CreateFileTool.js"
 export { DeleteFileTool, type DeleteFileResult } from "./edit/DeleteFileTool.js"
+
+// Search tools
+export {
+    FindReferencesTool,
+    type FindReferencesResult,
+    type SymbolReference,
+} from "./search/FindReferencesTool.js"
+export {
+    FindDefinitionTool,
+    type FindDefinitionResult,
+    type DefinitionLocation,
+} from "./search/FindDefinitionTool.js"

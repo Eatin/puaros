@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-01 - Search Tools
+
+### Added
+
+- **FindReferencesTool (0.7.1)**
+  - `find_references(symbol, path?)`: Find all usages of a symbol across the codebase
+  - Word boundary matching with support for special characters (e.g., `$value`)
+  - Context lines around each reference (1 line before/after)
+  - Marks definition vs usage references
+  - Optional path filter for scoped searches
+  - Returns: path, line, column, context, isDefinition
+  - 37 unit tests
+
+- **FindDefinitionTool (0.7.2)**
+  - `find_definition(symbol)`: Find where a symbol is defined
+  - Uses SymbolIndex for fast lookups
+  - Returns multiple definitions (for overloads/re-exports)
+  - Suggests similar symbols when not found (Levenshtein distance)
+  - Context lines around definition (2 lines before/after)
+  - Returns: path, line, type, context
+  - 32 unit tests
+
+### Changed
+
+- Total tests: 733 (was 664)
+- Coverage: 97.71% lines, 91.84% branches
+- Search tools category now fully implemented (2/2 tools)
+
+---
+
 ## [0.6.0] - 2025-12-01 - Edit Tools
 
 ### Added

@@ -45,10 +45,7 @@ function createMockContext(storage?: IStorage): ToolContext {
 }
 
 type ExecResult = { stdout: string; stderr: string }
-type ExecFn = (
-    command: string,
-    options: Record<string, unknown>,
-) => Promise<ExecResult>
+type ExecFn = (command: string, options: Record<string, unknown>) => Promise<ExecResult>
 
 function createMockExec(options: {
     stdout?: string
@@ -127,9 +124,7 @@ describe("RunTestsTool", () => {
         })
 
         it("should return null for valid params", () => {
-            expect(
-                tool.validateParams({ path: "src", filter: "login", watch: true }),
-            ).toBeNull()
+            expect(tool.validateParams({ path: "src", filter: "login", watch: true })).toBeNull()
         })
 
         it("should return error for invalid path", () => {

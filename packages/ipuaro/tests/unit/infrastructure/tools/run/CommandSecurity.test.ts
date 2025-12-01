@@ -14,12 +14,8 @@ describe("CommandSecurity", () => {
 
     describe("constructor", () => {
         it("should use default blacklist and whitelist", () => {
-            expect(security.getBlacklist()).toEqual(
-                DEFAULT_BLACKLIST.map((c) => c.toLowerCase()),
-            )
-            expect(security.getWhitelist()).toEqual(
-                DEFAULT_WHITELIST.map((c) => c.toLowerCase()),
-            )
+            expect(security.getBlacklist()).toEqual(DEFAULT_BLACKLIST.map((c) => c.toLowerCase()))
+            expect(security.getWhitelist()).toEqual(DEFAULT_WHITELIST.map((c) => c.toLowerCase()))
         })
 
         it("should accept custom blacklist and whitelist", () => {

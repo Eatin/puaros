@@ -35,10 +35,7 @@ function createMockStorage(): IStorage {
     } as unknown as IStorage
 }
 
-function createMockContext(
-    storage?: IStorage,
-    confirmResult: boolean = true,
-): ToolContext {
+function createMockContext(storage?: IStorage, confirmResult: boolean = true): ToolContext {
     return {
         projectRoot: "/test/project",
         storage: storage ?? createMockStorage(),
@@ -47,9 +44,7 @@ function createMockContext(
     }
 }
 
-function createMockStatusResult(
-    overrides: Partial<StatusResult> = {},
-): StatusResult {
+function createMockStatusResult(overrides: Partial<StatusResult> = {}): StatusResult {
     return {
         not_added: [],
         conflicted: [],
@@ -70,9 +65,7 @@ function createMockStatusResult(
     } as StatusResult
 }
 
-function createMockCommitResult(
-    overrides: Partial<CommitResult> = {},
-): CommitResult {
+function createMockCommitResult(overrides: Partial<CommitResult> = {}): CommitResult {
     return {
         commit: "abc1234",
         branch: "main",
@@ -96,9 +89,7 @@ function createMockGit(options: {
 }): SimpleGit {
     const mockGit = {
         checkIsRepo: vi.fn().mockResolvedValue(options.isRepo ?? true),
-        status: vi.fn().mockResolvedValue(
-            options.status ?? createMockStatusResult(),
-        ),
+        status: vi.fn().mockResolvedValue(options.status ?? createMockStatusResult()),
         add: vi.fn(),
         commit: vi.fn(),
     }
@@ -112,9 +103,7 @@ function createMockGit(options: {
     if (options.error) {
         mockGit.commit.mockRejectedValue(options.error)
     } else {
-        mockGit.commit.mockResolvedValue(
-            options.commitResult ?? createMockCommitResult(),
-        )
+        mockGit.commit.mockResolvedValue(options.commitResult ?? createMockCommitResult())
     }
 
     return mockGit as unknown as SimpleGit
@@ -175,21 +164,15 @@ describe("GitCommitTool", () => {
         })
 
         it("should return null for valid message with files", () => {
-            expect(
-                tool.validateParams({ message: "fix: bug", files: ["a.ts", "b.ts"] }),
-            ).toBeNull()
+            expect(tool.validateParams({ message: "fix: bug", files: ["a.ts", "b.ts"] })).toBeNull()
         })
 
         it("should return error for non-array files", () => {
-            expect(
-                tool.validateParams({ message: "fix: bug", files: "a.ts" }),
-            ).toContain("array")
+            expect(tool.validateParams({ message: "fix: bug", files: "a.ts" })).toContain("array")
         })
 
         it("should return error for non-string in files array", () => {
-            expect(
-                tool.validateParams({ message: "fix: bug", files: [1, 2] }),
-            ).toContain("strings")
+            expect(tool.validateParams({ message: "fix: bug", files: [1, 2] })).toContain("strings")
         })
     })
 
@@ -200,10 +183,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(false)
                 expect(result.error).toContain("Not a git repository")
@@ -218,10 +198,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(false)
                 expect(result.error).toContain("Nothing to commit")
@@ -241,10 +218,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "feat: new feature" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "feat: new feature" }, ctx)
 
                 expect(result.success).toBe(true)
                 const data = result.data as GitCommitResult
@@ -268,10 +242,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(true)
                 const data = result.data as GitCommitResult
@@ -290,10 +261,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                await toolWithMock.execute(
-                    { message: "test", files: ["a.ts", "b.ts"] },
-                    ctx,
-                )
+                await toolWithMock.execute({ message: "test", files: ["a.ts", "b.ts"] }, ctx)
 
                 expect(mockGit.add).toHaveBeenCalledWith(["a.ts", "b.ts"])
             })
@@ -303,10 +271,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                await toolWithMock.execute(
-                    { message: "test", files: [] },
-                    ctx,
-                )
+                await toolWithMock.execute({ message: "test", files: [] }, ctx)
 
                 expect(mockGit.add).not.toHaveBeenCalled()
             })
@@ -337,8 +302,8 @@ describe("GitCommitTool", () => {
                 await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(ctx.requestConfirmation).toHaveBeenCalled()
-                const confirmMessage = (ctx.requestConfirmation as ReturnType<typeof vi.fn>)
-                    .mock.calls[0][0] as string
+                const confirmMessage = (ctx.requestConfirmation as ReturnType<typeof vi.fn>).mock
+                    .calls[0][0] as string
                 expect(confirmMessage).toContain("Committing")
                 expect(confirmMessage).toContain("test commit")
             })
@@ -348,10 +313,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext(undefined, false)
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(false)
                 expect(result.error).toContain("cancelled")
@@ -363,10 +325,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext(undefined, true)
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(true)
                 expect(mockGit.commit).toHaveBeenCalledWith("test commit")
@@ -381,10 +340,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(false)
                 expect(result.error).toContain("Git commit failed")
@@ -400,10 +356,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.success).toBe(false)
                 expect(result.error).toBe("string error")
@@ -416,10 +369,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.executionTimeMs).toBeGreaterThanOrEqual(0)
             })
@@ -431,10 +381,7 @@ describe("GitCommitTool", () => {
                 const toolWithMock = new GitCommitTool(() => mockGit)
                 const ctx = createMockContext()
 
-                const result = await toolWithMock.execute(
-                    { message: "test commit" },
-                    ctx,
-                )
+                const result = await toolWithMock.execute({ message: "test commit" }, ctx)
 
                 expect(result.callId).toMatch(/^git_commit-\d+$/)
             })

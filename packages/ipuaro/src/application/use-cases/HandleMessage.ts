@@ -1,0 +1,383 @@
+import { randomUUID } from "node:crypto"
+import type { Session } from "../../domain/entities/Session.js"
+import type { ILLMClient } from "../../domain/services/ILLMClient.js"
+import type { ISessionStorage } from "../../domain/services/ISessionStorage.js"
+import type { IStorage } from "../../domain/services/IStorage.js"
+import type { DiffInfo, ToolContext } from "../../domain/services/ITool.js"
+import {
+    type ChatMessage,
+    createAssistantMessage,
+    createSystemMessage,
+    createToolMessage,
+    createUserMessage,
+} from "../../domain/value-objects/ChatMessage.js"
+import type { ToolCall } from "../../domain/value-objects/ToolCall.js"
+import { createErrorResult, type ToolResult } from "../../domain/value-objects/ToolResult.js"
+import { createUndoEntry, type UndoEntry } from "../../domain/value-objects/UndoEntry.js"
+import { IpuaroError } from "../../shared/errors/IpuaroError.js"
+import type { ErrorChoice } from "../../shared/types/index.js"
+import {
+    buildInitialContext,
+    type ProjectStructure,
+    SYSTEM_PROMPT,
+} from "../../infrastructure/llm/prompts.js"
+import { parseToolCalls } from "../../infrastructure/llm/ResponseParser.js"
+import type { IToolRegistry } from "../interfaces/IToolRegistry.js"
+import { ContextManager } from "./ContextManager.js"
+
+/**
+ * Status during message handling.
+ */
+export type HandleMessageStatus =
+    | "ready"
+    | "thinking"
+    | "tool_call"
+    | "awaiting_confirmation"
+    | "error"
+
+/**
+ * Edit request for confirmation.
+ */
+export interface EditRequest {
+    toolCall: ToolCall
+    filePath: string
+    description: string
+    diff?: DiffInfo
+}
+
+/**
+ * User's choice for edit confirmation.
+ */
+export type EditChoice = "apply" | "skip" | "edit" | "abort"
+
+/**
+ * Event callbacks for HandleMessage.
+ */
+export interface HandleMessageEvents {
+    onMessage?: (message: ChatMessage) => void
+    onToolCall?: (call: ToolCall) => void
+    onToolResult?: (result: ToolResult) => void
+    onConfirmation?: (message: string, diff?: DiffInfo) => Promise<boolean>
+    onError?: (error: IpuaroError) => Promise<ErrorChoice>
+    onStatusChange?: (status: HandleMessageStatus) => void
+    onUndoEntry?: (entry: UndoEntry) => void
+}
+
+/**
+ * Options for HandleMessage.
+ */
+export interface HandleMessageOptions {
+    autoApply?: boolean
+    maxToolCalls?: number
+}
+
+const DEFAULT_MAX_TOOL_CALLS = 20
+
+/**
+ * Use case for handling a user message.
+ * Main orchestrator for the LLM interaction loop.
+ */
+export class HandleMessage {
+    private readonly storage: IStorage
+    private readonly sessionStorage: ISessionStorage
+    private readonly llm: ILLMClient
+    private readonly tools: IToolRegistry
+    private readonly contextManager: ContextManager
+    private readonly projectRoot: string
+    private projectStructure?: ProjectStructure
+
+    private events: HandleMessageEvents = {}
+    private options: HandleMessageOptions = {}
+    private aborted = false
+
+    constructor(
+        storage: IStorage,
+        sessionStorage: ISessionStorage,
+        llm: ILLMClient,
+        tools: IToolRegistry,
+        projectRoot: string,
+    ) {
+        this.storage = storage
+        this.sessionStorage = sessionStorage
+        this.llm = llm
+        this.tools = tools
+        this.projectRoot = projectRoot
+        this.contextManager = new ContextManager(llm.getContextWindowSize())
+    }
+
+    /**
+     * Set event callbacks.
+     */
+    setEvents(events: HandleMessageEvents): void {
+        this.events = events
+    }
+
+    /**
+     * Set options.
+     */
+    setOptions(options: HandleMessageOptions): void {
+        this.options = options
+    }
+
+    /**
+     * Set project structure for context building.
+     */
+    setProjectStructure(structure: ProjectStructure): void {
+        this.projectStructure = structure
+    }
+
+    /**
+     * Abort current processing.
+     */
+    abort(): void {
+        this.aborted = true
+        this.llm.abort()
+    }
+
+    /**
+     * Execute the message handling flow.
+     */
+    async execute(session: Session, message: string): Promise<void> {
+        this.aborted = false
+        this.contextManager.syncFromSession(session)
+
+        if (message.trim()) {
+            const userMessage = createUserMessage(message)
+            session.addMessage(userMessage)
+            session.addInputToHistory(message)
+            this.emitMessage(userMessage)
+        }
+
+        await this.sessionStorage.saveSession(session)
+
+        this.emitStatus("thinking")
+
+        let toolCallCount = 0
+        const maxToolCalls = this.options.maxToolCalls ?? DEFAULT_MAX_TOOL_CALLS
+
+        while (!this.aborted) {
+            const messages = await this.buildMessages(session)
+
+            const startTime = Date.now()
+            let response
+
+            try {
+                response = await this.llm.chat(messages)
+            } catch (error) {
+                await this.handleLLMError(error, session)
+                return
+            }
+
+            if (this.aborted) {
+                return
+            }
+
+            const parsed = parseToolCalls(response.content)
+            const timeMs = Date.now() - startTime
+
+            if (parsed.toolCalls.length === 0) {
+                const assistantMessage = createAssistantMessage(parsed.content, undefined, {
+                    tokens: response.tokens,
+                    timeMs,
+                    toolCalls: 0,
+                })
+                session.addMessage(assistantMessage)
+                this.emitMessage(assistantMessage)
+                this.contextManager.addTokens(response.tokens)
+                this.contextManager.updateSession(session)
+                await this.sessionStorage.saveSession(session)
+                this.emitStatus("ready")
+                return
+            }
+
+            const assistantMessage = createAssistantMessage(parsed.content, parsed.toolCalls, {
+                tokens: response.tokens,
+                timeMs,
+                toolCalls: parsed.toolCalls.length,
+            })
+            session.addMessage(assistantMessage)
+            this.emitMessage(assistantMessage)
+
+            toolCallCount += parsed.toolCalls.length
+            if (toolCallCount > maxToolCalls) {
+                const errorMsg = `Maximum tool calls (${String(maxToolCalls)}) exceeded`
+                const errorMessage = createSystemMessage(errorMsg)
+                session.addMessage(errorMessage)
+                this.emitMessage(errorMessage)
+                this.emitStatus("ready")
+                return
+            }
+
+            this.emitStatus("tool_call")
+
+            const results: ToolResult[] = []
+
+            for (const toolCall of parsed.toolCalls) {
+                if (this.aborted) {
+                    return
+                }
+
+                this.emitToolCall(toolCall)
+
+                const result = await this.executeToolCall(toolCall, session)
+                results.push(result)
+                this.emitToolResult(result)
+            }
+
+            const toolMessage = createToolMessage(results)
+            session.addMessage(toolMessage)
+
+            this.contextManager.addTokens(response.tokens)
+
+            if (this.contextManager.needsCompression()) {
+                await this.contextManager.compress(session, this.llm)
+            }
+
+            this.contextManager.updateSession(session)
+            await this.sessionStorage.saveSession(session)
+
+            this.emitStatus("thinking")
+        }
+    }
+
+    private async buildMessages(session: Session): Promise<ChatMessage[]> {
+        const messages: ChatMessage[] = []
+
+        messages.push(createSystemMessage(SYSTEM_PROMPT))
+
+        if (this.projectStructure) {
+            const asts = await this.storage.getAllASTs()
+            const metas = await this.storage.getAllMetas()
+            const context = buildInitialContext(this.projectStructure, asts, metas)
+            messages.push(createSystemMessage(context))
+        }
+
+        messages.push(...session.history)
+
+        return messages
+    }
+
+    private async executeToolCall(toolCall: ToolCall, session: Session): Promise<ToolResult> {
+        const startTime = Date.now()
+        const tool = this.tools.get(toolCall.name)
+
+        if (!tool) {
+            return createErrorResult(
+                toolCall.id,
+                `Unknown tool: ${toolCall.name}`,
+                Date.now() - startTime,
+            )
+        }
+
+        const context: ToolContext = {
+            projectRoot: this.projectRoot,
+            storage: this.storage,
+            requestConfirmation: async (msg: string, diff?: DiffInfo) => {
+                return this.handleConfirmation(msg, diff, toolCall, session)
+            },
+            onProgress: (_msg: string) => {
+                this.events.onStatusChange?.("tool_call")
+            },
+        }
+
+        try {
+            const validationError = tool.validateParams(toolCall.params)
+            if (validationError) {
+                return createErrorResult(toolCall.id, validationError, Date.now() - startTime)
+            }
+
+            const result = await tool.execute(toolCall.params, context)
+            return result
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            return createErrorResult(toolCall.id, errorMessage, Date.now() - startTime)
+        }
+    }
+
+    private async handleConfirmation(
+        msg: string,
+        diff: DiffInfo | undefined,
+        toolCall: ToolCall,
+        session: Session,
+    ): Promise<boolean> {
+        if (this.options.autoApply) {
+            if (diff) {
+                this.createUndoEntryFromDiff(diff, toolCall, session)
+            }
+            return true
+        }
+
+        this.emitStatus("awaiting_confirmation")
+
+        if (this.events.onConfirmation) {
+            const confirmed = await this.events.onConfirmation(msg, diff)
+
+            if (confirmed && diff) {
+                this.createUndoEntryFromDiff(diff, toolCall, session)
+            }
+
+            return confirmed
+        }
+
+        if (diff) {
+            this.createUndoEntryFromDiff(diff, toolCall, session)
+        }
+        return true
+    }
+
+    private createUndoEntryFromDiff(diff: DiffInfo, toolCall: ToolCall, session: Session): void {
+        const entry = createUndoEntry(
+            randomUUID(),
+            diff.filePath,
+            diff.oldLines,
+            diff.newLines,
+            `${toolCall.name}: ${diff.filePath}`,
+            toolCall.id,
+        )
+
+        session.addUndoEntry(entry)
+        void this.sessionStorage.pushUndoEntry(session.id, entry)
+        session.stats.editsApplied++
+        this.events.onUndoEntry?.(entry)
+    }
+
+    private async handleLLMError(error: unknown, session: Session): Promise<void> {
+        this.emitStatus("error")
+
+        const ipuaroError =
+            error instanceof IpuaroError
+                ? error
+                : IpuaroError.llm(error instanceof Error ? error.message : String(error))
+
+        if (this.events.onError) {
+            const choice = await this.events.onError(ipuaroError)
+
+            if (choice === "retry") {
+                this.emitStatus("thinking")
+                return this.execute(session, "")
+            }
+        }
+
+        const errorMessage = createSystemMessage(`Error: ${ipuaroError.message}`)
+        session.addMessage(errorMessage)
+        this.emitMessage(errorMessage)
+
+        this.emitStatus("ready")
+    }
+
+    private emitMessage(message: ChatMessage): void {
+        this.events.onMessage?.(message)
+    }
+
+    private emitToolCall(call: ToolCall): void {
+        this.events.onToolCall?.(call)
+    }
+
+    private emitToolResult(result: ToolResult): void {
+        this.events.onToolResult?.(result)
+    }
+
+    private emitStatus(status: HandleMessageStatus): void {
+        this.events.onStatusChange?.(status)
+    }
+}

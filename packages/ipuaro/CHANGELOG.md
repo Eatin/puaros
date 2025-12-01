@@ -5,6 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2025-12-01 - Session Management
+
+### Added
+
+- **ISessionStorage (0.10.1)**
+  - Session storage service interface
+  - Methods: saveSession, loadSession, deleteSession, listSessions
+  - Undo stack management: pushUndoEntry, popUndoEntry, getUndoStack
+  - Session lifecycle: getLatestSession, sessionExists, touchSession
+
+- **RedisSessionStorage (0.10.2)**
+  - Redis implementation of ISessionStorage
+  - Session data in Redis hashes (project, history, context, stats)
+  - Undo stack in Redis lists (max 10 entries)
+  - Sessions list for project-wide queries
+  - 22 unit tests
+
+- **ContextManager (0.10.3)**
+  - Manages context window token budget
+  - File context tracking with addToContext/removeFromContext
+  - Usage monitoring: getUsage, getAvailableTokens, getRemainingTokens
+  - Auto-compression at 80% threshold via LLM summarization
+  - Context state export for session persistence
+  - 23 unit tests
+
+- **StartSession (0.10.4)**
+  - Use case for session initialization
+  - Creates new session or loads latest for project
+  - Optional sessionId for specific session loading
+  - forceNew option to always create fresh session
+  - 10 unit tests
+
+- **HandleMessage (0.10.5)**
+  - Main orchestrator use case for message handling
+  - LLM interaction with tool calling support
+  - Edit confirmation flow with diff preview
+  - Error handling with retry/skip/abort choices
+  - Status tracking: ready, thinking, tool_call, awaiting_confirmation, error
+  - Event callbacks: onMessage, onToolCall, onToolResult, onConfirmation, onError
+  - 21 unit tests
+
+- **UndoChange (0.10.6)**
+  - Use case for reverting file changes
+  - Validates file hasn't changed since edit
+  - Restores original content from undo entry
+  - Updates storage after successful undo
+  - 12 unit tests
+
+### Changed
+
+- Total tests: 1174 (was 1086)
+- Coverage: 97.73% lines, 92.21% branches
+- Application layer now has 4 use cases implemented
+- All planned session management features complete
+
+---
+
 ## [0.9.0] - 2025-12-01 - Git & Run Tools
 
 ### Added

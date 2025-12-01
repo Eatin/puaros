@@ -35,10 +35,7 @@ function createMockStorage(): IStorage {
     } as unknown as IStorage
 }
 
-function createMockContext(
-    storage?: IStorage,
-    confirmResult: boolean = true,
-): ToolContext {
+function createMockContext(storage?: IStorage, confirmResult: boolean = true): ToolContext {
     return {
         projectRoot: "/test/project",
         storage: storage ?? createMockStorage(),
@@ -48,10 +45,7 @@ function createMockContext(
 }
 
 type ExecResult = { stdout: string; stderr: string }
-type ExecFn = (
-    command: string,
-    options: Record<string, unknown>,
-) => Promise<ExecResult>
+type ExecFn = (command: string, options: Record<string, unknown>) => Promise<ExecResult>
 
 function createMockExec(options: {
     stdout?: string
@@ -123,27 +117,19 @@ describe("RunCommandTool", () => {
         })
 
         it("should return error for non-number timeout", () => {
-            expect(
-                tool.validateParams({ command: "ls", timeout: "5000" }),
-            ).toContain("number")
+            expect(tool.validateParams({ command: "ls", timeout: "5000" })).toContain("number")
         })
 
         it("should return error for negative timeout", () => {
-            expect(tool.validateParams({ command: "ls", timeout: -1 })).toContain(
-                "positive",
-            )
+            expect(tool.validateParams({ command: "ls", timeout: -1 })).toContain("positive")
         })
 
         it("should return error for zero timeout", () => {
-            expect(tool.validateParams({ command: "ls", timeout: 0 })).toContain(
-                "positive",
-            )
+            expect(tool.validateParams({ command: "ls", timeout: 0 })).toContain("positive")
         })
 
         it("should return error for timeout > 10 minutes", () => {
-            expect(
-                tool.validateParams({ command: "ls", timeout: 600001 }),
-            ).toContain("600000")
+            expect(tool.validateParams({ command: "ls", timeout: 600001 })).toContain("600000")
         })
 
         it("should return null for valid timeout", () => {
@@ -180,10 +166,7 @@ describe("RunCommandTool", () => {
             const toolWithMock = new RunCommandTool(undefined, execFn)
             const ctx = createMockContext()
 
-            const result = await toolWithMock.execute(
-                { command: "git push --force" },
-                ctx,
-            )
+            const result = await toolWithMock.execute({ command: "git push --force" }, ctx)
 
             expect(result.success).toBe(false)
             expect(result.error).toContain("blocked")
@@ -250,10 +233,7 @@ describe("RunCommandTool", () => {
             const toolWithMock = new RunCommandTool(undefined, execFn)
             const ctx = createMockContext(undefined, true)
 
-            const result = await toolWithMock.execute(
-                { command: "custom-script" },
-                ctx,
-            )
+            const result = await toolWithMock.execute({ command: "custom-script" }, ctx)
 
             expect(result.success).toBe(true)
             const data = result.data as RunCommandResult
@@ -266,10 +246,7 @@ describe("RunCommandTool", () => {
             const toolWithMock = new RunCommandTool(undefined, execFn)
             const ctx = createMockContext(undefined, false)
 
-            const result = await toolWithMock.execute(
-                { command: "custom-script" },
-                ctx,
-            )
+            const result = await toolWithMock.execute({ command: "custom-script" }, ctx)
 
             expect(result.success).toBe(false)
             expect(result.error).toContain("cancelled")
@@ -364,10 +341,7 @@ describe("RunCommandTool", () => {
 
             await toolWithMock.execute({ command: "ls" }, ctx)
 
-            expect(execFn).toHaveBeenCalledWith(
-                "ls",
-                expect.objectContaining({ timeout: 30000 }),
-            )
+            expect(execFn).toHaveBeenCalledWith("ls", expect.objectContaining({ timeout: 30000 }))
         })
 
         it("should use custom timeout", async () => {
@@ -377,10 +351,7 @@ describe("RunCommandTool", () => {
 
             await toolWithMock.execute({ command: "ls", timeout: 5000 }, ctx)
 
-            expect(execFn).toHaveBeenCalledWith(
-                "ls",
-                expect.objectContaining({ timeout: 5000 }),
-            )
+            expect(execFn).toHaveBeenCalledWith("ls", expect.objectContaining({ timeout: 5000 }))
         })
 
         it("should execute in project root", async () => {
@@ -493,10 +464,7 @@ describe("RunCommandTool", () => {
 
             toolWithMock.getSecurity().addToWhitelist(["custom-safe"])
 
-            const result = await toolWithMock.execute(
-                { command: "custom-safe arg" },
-                ctx,
-            )
+            const result = await toolWithMock.execute({ command: "custom-safe arg" }, ctx)
 
             expect(result.success).toBe(true)
             expect(ctx.requestConfirmation).not.toHaveBeenCalled()

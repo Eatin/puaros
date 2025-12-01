@@ -69,9 +69,7 @@ function createMockGit(options: {
     if (options.error) {
         mockGit.diffSummary.mockRejectedValue(options.error)
     } else {
-        mockGit.diffSummary.mockResolvedValue(
-            options.diffSummary ?? createMockDiffSummary(),
-        )
+        mockGit.diffSummary.mockResolvedValue(options.diffSummary ?? createMockDiffSummary())
         mockGit.diff.mockResolvedValue(options.diff ?? "")
     }
 
@@ -224,9 +222,7 @@ describe("GitDiffTool", () => {
             it("should handle binary files", async () => {
                 const mockGit = createMockGit({
                     diffSummary: createMockDiffSummary({
-                        files: [
-                            { file: "image.png", insertions: 0, deletions: 0, binary: true },
-                        ],
+                        files: [{ file: "image.png", insertions: 0, deletions: 0, binary: true }],
                     }),
                 })
                 const toolWithMock = new GitDiffTool(() => mockGit)
@@ -293,11 +289,7 @@ describe("GitDiffTool", () => {
                 )
 
                 expect(result.success).toBe(true)
-                expect(mockGit.diffSummary).toHaveBeenCalledWith([
-                    "--cached",
-                    "--",
-                    "src/index.ts",
-                ])
+                expect(mockGit.diffSummary).toHaveBeenCalledWith(["--cached", "--", "src/index.ts"])
             })
 
             it("should return null pathFilter when not provided", async () => {

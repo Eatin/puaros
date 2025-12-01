@@ -150,12 +150,9 @@ export class RunTestsTool implements ITool {
                 return createSuccessResult(callId, result, Date.now() - startTime)
             } catch (error) {
                 return this.handleExecError(
-                    callId,
-                    runner,
-                    command,
+                    { callId, runner, command, startTime },
                     error,
                     execStartTime,
-                    startTime,
                 )
             }
         } catch (error) {
@@ -168,25 +165,37 @@ export class RunTestsTool implements ITool {
      * Detect which test runner is available in the project.
      */
     async detectTestRunner(projectRoot: string): Promise<TestRunner | null> {
-        if (await this.hasFile(projectRoot, "vitest.config.ts")) {
-            return "vitest"
-        }
-        if (await this.hasFile(projectRoot, "vitest.config.js")) {
-            return "vitest"
-        }
-        if (await this.hasFile(projectRoot, "vitest.config.mts")) {
-            return "vitest"
-        }
-        if (await this.hasFile(projectRoot, "jest.config.js")) {
-            return "jest"
-        }
-        if (await this.hasFile(projectRoot, "jest.config.ts")) {
-            return "jest"
-        }
-        if (await this.hasFile(projectRoot, "jest.config.json")) {
-            return "jest"
+        const configRunner = await this.detectByConfigFile(projectRoot)
+        if (configRunner) {
+            return configRunner
         }
 
+        return this.detectByPackageJson(projectRoot)
+    }
+
+    private async detectByConfigFile(projectRoot: string): Promise<TestRunner | null> {
+        const configFiles: { files: string[]; runner: TestRunner }[] = [
+            {
+                files: ["vitest.config.ts", "vitest.config.js", "vitest.config.mts"],
+                runner: "vitest",
+            },
+            {
+                files: ["jest.config.js", "jest.config.ts", "jest.config.json"],
+                runner: "jest",
+            },
+        ]
+
+        for (const { files, runner } of configFiles) {
+            for (const file of files) {
+                if (await this.hasFile(projectRoot, file)) {
+                    return runner
+                }
+            }
+        }
+        return null
+    }
+
+    private async detectByPackageJson(projectRoot: string): Promise<TestRunner | null> {
         const packageJsonPath = path.join(projectRoot, "package.json")
         try {
             const content = await this.fsReadFile(packageJsonPath, "utf-8")
@@ -196,23 +205,22 @@ export class RunTestsTool implements ITool {
                 dependencies?: Record<string, string>
             }
 
-            if (pkg.devDependencies?.vitest || pkg.dependencies?.vitest) {
+            const deps = { ...pkg.devDependencies, ...pkg.dependencies }
+            if (deps.vitest) {
                 return "vitest"
             }
-            if (pkg.devDependencies?.jest || pkg.dependencies?.jest) {
+            if (deps.jest) {
                 return "jest"
             }
-            if (pkg.devDependencies?.mocha || pkg.dependencies?.mocha) {
+            if (deps.mocha) {
                 return "mocha"
             }
-
             if (pkg.scripts?.test) {
                 return "npm"
             }
         } catch {
             // package.json doesn't exist or is invalid
         }
-
         return null
     }
 
@@ -220,63 +228,69 @@ export class RunTestsTool implements ITool {
      * Build the test command based on runner and options.
      */
     buildCommand(runner: TestRunner, testPath?: string, filter?: string, watch?: boolean): string {
-        const parts: string[] = []
-
-        switch (runner) {
-            case "vitest":
-                parts.push("npx vitest")
-                if (!watch) {
-                    parts.push("run")
-                }
-                if (testPath) {
-                    parts.push(testPath)
-                }
-                if (filter) {
-                    parts.push("-t", `"${filter}"`)
-                }
-                break
-
-            case "jest":
-                parts.push("npx jest")
-                if (testPath) {
-                    parts.push(testPath)
-                }
-                if (filter) {
-                    parts.push("-t", `"${filter}"`)
-                }
-                if (watch) {
-                    parts.push("--watch")
-                }
-                break
-
-            case "mocha":
-                parts.push("npx mocha")
-                if (testPath) {
-                    parts.push(testPath)
-                }
-                if (filter) {
-                    parts.push("--grep", `"${filter}"`)
-                }
-                if (watch) {
-                    parts.push("--watch")
-                }
-                break
-
-            case "npm":
-                parts.push("npm test")
-                if (testPath || filter) {
-                    parts.push("--")
-                    if (testPath) {
-                        parts.push(testPath)
-                    }
-                    if (filter) {
-                        parts.push(`"${filter}"`)
-                    }
-                }
-                break
+        const builders: Record<TestRunner, () => string[]> = {
+            vitest: () => this.buildVitestCommand(testPath, filter, watch),
+            jest: () => this.buildJestCommand(testPath, filter, watch),
+            mocha: () => this.buildMochaCommand(testPath, filter, watch),
+            npm: () => this.buildNpmCommand(testPath, filter),
         }
+        return builders[runner]().join(" ")
+    }
 
-        return parts.join(" ")
+    private buildVitestCommand(testPath?: string, filter?: string, watch?: boolean): string[] {
+        const parts = ["npx vitest"]
+        if (!watch) {
+            parts.push("run")
+        }
+        if (testPath) {
+            parts.push(testPath)
+        }
+        if (filter) {
+            parts.push("-t", `"${filter}"`)
+        }
+        return parts
+    }
+
+    private buildJestCommand(testPath?: string, filter?: string, watch?: boolean): string[] {
+        const parts = ["npx jest"]
+        if (testPath) {
+            parts.push(testPath)
+        }
+        if (filter) {
+            parts.push("-t", `"${filter}"`)
+        }
+        if (watch) {
+            parts.push("--watch")
+        }
+        return parts
+    }
+
+    private buildMochaCommand(testPath?: string, filter?: string, watch?: boolean): string[] {
+        const parts = ["npx mocha"]
+        if (testPath) {
+            parts.push(testPath)
+        }
+        if (filter) {
+            parts.push("--grep", `"${filter}"`)
+        }
+        if (watch) {
+            parts.push("--watch")
+        }
+        return parts
+    }
+
+    private buildNpmCommand(testPath?: string, filter?: string): string[] {
+        const parts = ["npm test"]
+        if (testPath || filter) {
+            parts.push("--")
+            if (testPath) {
+                parts.push(testPath)
+            }
+            if (filter) {
+                parts.push(`"${filter}"`)
+            }
+        }
+        return parts
     }
 
     /**
@@ -295,13 +309,11 @@ export class RunTestsTool implements ITool {
      * Handle exec errors and return appropriate result.
      */
     private handleExecError(
-        callId: string,
-        runner: TestRunner,
-        command: string,
+        ctx: { callId: string; runner: TestRunner; command: string; startTime: number },
         error: unknown,
         execStartTime: number,
-        startTime: number,
     ): ToolResult {
+        const { callId, runner, command, startTime } = ctx
         const durationMs = Date.now() - execStartTime
 
         if (this.isExecError(error)) {

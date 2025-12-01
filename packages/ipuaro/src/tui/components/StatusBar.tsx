@@ -6,6 +6,7 @@
 import { Box, Text } from "ink"
 import type React from "react"
 import type { BranchInfo, TuiStatus } from "../types.js"
+import { getContextColor, getStatusColor, type Theme } from "../utils/theme.js"
 
 export interface StatusBarProps {
     contextUsage: number
@@ -13,27 +14,30 @@ export interface StatusBarProps {
     branch: BranchInfo
     sessionTime: string
     status: TuiStatus
+    theme?: Theme
 }
 
-function getStatusIndicator(status: TuiStatus): { text: string; color: string } {
+function getStatusIndicator(status: TuiStatus, theme: Theme): { text: string; color: string } {
+    const color = getStatusColor(status, theme)
+
     switch (status) {
         case "ready": {
-            return { text: "ready", color: "green" }
+            return { text: "ready", color }
         }
         case "thinking": {
-            return { text: "thinking...", color: "yellow" }
+            return { text: "thinking...", color }
         }
         case "tool_call": {
-            return { text: "executing...", color: "cyan" }
+            return { text: "executing...", color }
         }
         case "awaiting_confirmation": {
-            return { text: "confirm?", color: "magenta" }
+            return { text: "confirm?", color }
         }
         case "error": {
-            return { text: "error", color: "red" }
+            return { text: "error", color }
         }
         default: {
-            return { text: "ready", color: "green" }
+            return { text: "ready", color }
         }
     }
 }
@@ -48,9 +52,11 @@ export function StatusBar({
     branch,
     sessionTime,
     status,
+    theme = "dark",
 }: StatusBarProps): React.JSX.Element {
-    const statusIndicator = getStatusIndicator(status)
+    const statusIndicator = getStatusIndicator(status, theme)
     const branchDisplay = branch.isDetached ? `HEAD@${branch.name.slice(0, 7)}` : branch.name
+    const contextColor = getContextColor(contextUsage, theme)
 
     return (
         <Box borderStyle="single" borderColor="gray" paddingX={1} justifyContent="space-between">
@@ -59,11 +65,7 @@ export function StatusBar({
                     [ipuaro]
                 </Text>
                 <Text color="gray">
-                    [ctx:{" "}
-                    <Text color={contextUsage > 0.8 ? "red" : "white"}>
-                        {formatContextUsage(contextUsage)}
-                    </Text>
-                    ]
+                    [ctx: <Text color={contextColor}>{formatContextUsage(contextUsage)}</Text>]
                 </Text>
                 <Text color="gray">
                     [<Text color="blue">{projectName}</Text>]

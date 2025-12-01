@@ -7,10 +7,14 @@ import { Box, Text } from "ink"
 import type React from "react"
 import type { ChatMessage } from "../../domain/value-objects/ChatMessage.js"
 import type { ToolCall } from "../../domain/value-objects/ToolCall.js"
+import { getRoleColor, type Theme } from "../utils/theme.js"
 
 export interface ChatProps {
     messages: ChatMessage[]
     isThinking: boolean
+    theme?: Theme
+    showStats?: boolean
+    showToolCalls?: boolean
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -42,11 +46,20 @@ function formatToolCall(call: ToolCall): string {
     return `[${call.name} ${params}]`
 }
 
-function UserMessage({ message }: { message: ChatMessage }): React.JSX.Element {
+interface MessageComponentProps {
+    message: ChatMessage
+    theme: Theme
+    showStats: boolean
+    showToolCalls: boolean
+}
+
+function UserMessage({ message, theme }: MessageComponentProps): React.JSX.Element {
+    const roleColor = getRoleColor("user", theme)
+
     return (
         <Box flexDirection="column" marginBottom={1}>
             <Box gap={1}>
-                <Text color="green" bold>
+                <Text color={roleColor} bold>
                     You
                 </Text>
                 <Text color="gray" dimColor>
@@ -60,13 +73,19 @@ function UserMessage({ message }: { message: ChatMessage }): React.JSX.Element {
     )
 }
 
-function AssistantMessage({ message }: { message: ChatMessage }): React.JSX.Element {
+function AssistantMessage({
+    message,
+    theme,
+    showStats,
+    showToolCalls,
+}: MessageComponentProps): React.JSX.Element {
     const stats = formatStats(message.stats)
+    const roleColor = getRoleColor("assistant", theme)
 
     return (
         <Box flexDirection="column" marginBottom={1}>
             <Box gap={1}>
-                <Text color="cyan" bold>
+                <Text color={roleColor} bold>
                     Assistant
                 </Text>
                 <Text color="gray" dimColor>
@@ -74,7 +93,7 @@ function AssistantMessage({ message }: { message: ChatMessage }): React.JSX.Elem
                 </Text>
             </Box>
 
-            {message.toolCalls && message.toolCalls.length > 0 && (
+            {showToolCalls && message.toolCalls && message.toolCalls.length > 0 && (
                 <Box flexDirection="column" marginLeft={2} marginBottom={1}>
                     {message.toolCalls.map((call) => (
                         <Text key={call.id} color="yellow">
@@ -90,7 +109,7 @@ function AssistantMessage({ message }: { message: ChatMessage }): React.JSX.Elem
                 </Box>
             )}
 
-            {stats && (
+            {showStats && stats && (
                 <Box marginLeft={2} marginTop={1}>
                     <Text color="gray" dimColor>
                         {stats}
@@ -101,7 +120,9 @@ function AssistantMessage({ message }: { message: ChatMessage }): React.JSX.Elem
     )
 }
 
-function ToolMessage({ message }: { message: ChatMessage }): React.JSX.Element {
+function ToolMessage({ message, theme }: MessageComponentProps): React.JSX.Element {
+    const roleColor = getRoleColor("tool", theme)
+
     return (
         <Box flexDirection="column" marginBottom={1} marginLeft={2}>
             {message.toolResults?.map((result) => (
@@ -115,31 +136,39 @@ function ToolMessage({ message }: { message: ChatMessage }): React.JSX.Element {
     )
 }
 
-function SystemMessage({ message }: { message: ChatMessage }): React.JSX.Element {
+function SystemMessage({ message, theme }: MessageComponentProps): React.JSX.Element {
     const isError = message.content.toLowerCase().startsWith("error")
+    const roleColor = getRoleColor("system", theme)
 
     return (
         <Box marginBottom={1} marginLeft={2}>
-            <Text color={isError ? "red" : "gray"} dimColor={!isError}>
+            <Text color={isError ? "red" : roleColor} dimColor={!isError}>
                 {message.content}
             </Text>
         </Box>
     )
 }
 
-function MessageComponent({ message }: { message: ChatMessage }): React.JSX.Element {
+function MessageComponent({
+    message,
+    theme,
+    showStats,
+    showToolCalls,
+}: MessageComponentProps): React.JSX.Element {
+    const props = { message, theme, showStats, showToolCalls }
+
     switch (message.role) {
         case "user": {
-            return <UserMessage message={message} />
+            return <UserMessage {...props} />
         }
         case "assistant": {
-            return <AssistantMessage message={message} />
+            return <AssistantMessage {...props} />
         }
         case "tool": {
-            return <ToolMessage message={message} />
+            return <ToolMessage {...props} />
         }
         case "system": {
-            return <SystemMessage message={message} />
+            return <SystemMessage {...props} />
         }
         default: {
             return <></>
@@ -147,24 +176,35 @@ function MessageComponent({ message }: { message: ChatMessage }): React.JSX.Elem
     }
 }
 
-function ThinkingIndicator(): React.JSX.Element {
+function ThinkingIndicator({ theme }: { theme: Theme }): React.JSX.Element {
+    const color = getRoleColor("assistant", theme)
+
     return (
         <Box marginBottom={1}>
-            <Text color="yellow">Thinking...</Text>
+            <Text color={color}>Thinking...</Text>
         </Box>
     )
 }
 
-export function Chat({ messages, isThinking }: ChatProps): React.JSX.Element {
+export function Chat({
+    messages,
+    isThinking,
+    theme = "dark",
+    showStats = true,
+    showToolCalls = true,
+}: ChatProps): React.JSX.Element {
     return (
         <Box flexDirection="column" flexGrow={1} paddingX={1}>
             {messages.map((message, index) => (
                 <MessageComponent
                     key={`${String(message.timestamp)}-${String(index)}`}
                     message={message}
+                    theme={theme}
+                    showStats={showStats}
+                    showToolCalls={showToolCalls}
                 />
             ))}
-            {isThinking && <ThinkingIndicator />}
+            {isThinking && <ThinkingIndicator theme={theme} />}
         </Box>
     )
 }

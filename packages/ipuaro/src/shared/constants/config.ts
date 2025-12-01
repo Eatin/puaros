@@ -87,6 +87,17 @@ export const InputConfigSchema = z.object({
 })
 
 /**
+ * Display configuration schema.
+ */
+export const DisplayConfigSchema = z.object({
+    showStats: z.boolean().default(true),
+    showToolCalls: z.boolean().default(true),
+    theme: z.enum(["dark", "light"]).default("dark"),
+    bellOnComplete: z.boolean().default(false),
+    progressBar: z.boolean().default(true),
+})
+
+/**
  * Full configuration schema.
  */
 export const ConfigSchema = z.object({
@@ -97,6 +108,7 @@ export const ConfigSchema = z.object({
     undo: UndoConfigSchema.default({}),
     edit: EditConfigSchema.default({}),
     input: InputConfigSchema.default({}),
+    display: DisplayConfigSchema.default({}),
 })
 
 /**
@@ -110,6 +122,7 @@ export type WatchdogConfig = z.infer<typeof WatchdogConfigSchema>
 export type UndoConfig = z.infer<typeof UndoConfigSchema>
 export type EditConfig = z.infer<typeof EditConfigSchema>
 export type InputConfig = z.infer<typeof InputConfigSchema>
+export type DisplayConfig = z.infer<typeof DisplayConfigSchema>
 
 /**
  * Default configuration.

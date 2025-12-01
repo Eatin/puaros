@@ -5,6 +5,89 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.1] - 2025-12-02 - Display Configuration
+
+### Added
+
+- **DisplayConfigSchema (0.22.1)**
+  - New configuration schema for display settings in `src/shared/constants/config.ts`
+  - `showStats: boolean` (default: true) - toggle statistics display in chat
+  - `showToolCalls: boolean` (default: true) - toggle tool calls display in chat
+  - `theme: "dark" | "light"` (default: "dark") - color theme for TUI
+  - `bellOnComplete: boolean` (default: false) - ring terminal bell on completion
+  - `progressBar: boolean` (default: true) - toggle progress bar display
+  - Integrated into main ConfigSchema with `.default({})`
+  - Exported `DisplayConfig` type from config module
+
+- **Theme Utilities (0.22.1)**
+  - New `theme.ts` utility in `src/tui/utils/theme.ts`
+  - `Theme` type: "dark" | "light"
+  - `ColorScheme` interface with semantic colors (primary, secondary, success, warning, error, info, muted)
+  - Dark theme colors: cyan primary, blue secondary, black background, white foreground
+  - Light theme colors: blue primary, cyan secondary, white background, black foreground
+  - `getColorScheme()` - get color scheme for theme
+  - `getStatusColor()` - dynamic colors for status (ready, thinking, error, tool_call, awaiting_confirmation)
+  - `getRoleColor()` - dynamic colors for message roles (user, assistant, system, tool)
+  - `getContextColor()` - dynamic colors for context usage (green <60%, yellow 60-79%, red ≥80%)
+
+- **Bell Notification (0.22.1)**
+  - New `bell.ts` utility in `src/tui/utils/bell.ts`
+  - `ringBell()` function for terminal bell notification
+  - Uses ASCII bell character (\u0007) via stdout
+  - Triggered when status changes to "ready" if `bellOnComplete` enabled
+
+### Changed
+
+- **StatusBar Component**
+  - Added `theme?: Theme` prop (default: "dark")
+  - Uses `getStatusColor()` for dynamic status indicator colors
+  - Uses `getContextColor()` for dynamic context usage colors
+  - Theme-aware color scheme throughout component
+
+- **Chat Component**
+  - Added `theme?: Theme` prop (default: "dark")
+  - Added `showStats?: boolean` prop (default: true)
+  - Added `showToolCalls?: boolean` prop (default: true)
+  - Created `MessageComponentProps` interface for consistent prop passing
+  - All message subcomponents (UserMessage, AssistantMessage, ToolMessage, SystemMessage) now theme-aware
+  - Uses `getRoleColor()` for dynamic message role colors
+  - Stats conditionally displayed based on `showStats`
+  - Tool calls conditionally displayed based on `showToolCalls`
+  - ThinkingIndicator now theme-aware
+
+- **App Component**
+  - Added `theme?: "dark" | "light"` prop (default: "dark")
+  - Added `showStats?: boolean` prop (default: true)
+  - Added `showToolCalls?: boolean` prop (default: true)
+  - Added `bellOnComplete?: boolean` prop (default: false)
+  - Extended `ExtendedAppProps` interface with display config props
+  - Passes display config to StatusBar and Chat components
+  - Added useEffect hook for bell notification on status change to "ready"
+  - Imports `ringBell` utility
+
+### Technical Details
+
+- Total tests: 1571 (was 1525, +46 new tests)
+- New test files:
+  - `display-config.test.ts` with 20 tests (schema validation)
+  - `theme.test.ts` with 24 tests (color scheme, status/role/context colors)
+  - `bell.test.ts` with 2 tests (stdout write verification)
+- Coverage: 97.68% lines, 91.38% branches, 98.97% functions, 97.68% statements
+- 0 ESLint errors, 0 warnings
+- Build successful with no TypeScript errors
+- 3 new utility files created, 4 components updated
+- All display options configurable via DisplayConfigSchema
+
+### Notes
+
+This release completes the first item (0.22.1) of the v0.22.0 Extended Configuration milestone. Remaining items for v0.22.0:
+- 0.22.2 - Session Configuration
+- 0.22.3 - Context Configuration
+- 0.22.4 - Autocomplete Configuration
+- 0.22.5 - Commands Configuration
+
+---
+
 ## [0.21.4] - 2025-12-02 - Syntax Highlighting in DiffView
 
 ### Added

@@ -1648,9 +1648,9 @@ interface DiffViewProps {
 ## Version 0.22.0 - Extended Configuration ⚙️
 
 **Priority:** MEDIUM
-**Status:** Pending
+**Status:** In Progress (1/5 complete)
 
-### 0.22.1 - Display Configuration
+### 0.22.1 - Display Configuration ✅
 
 ```typescript
 // src/shared/constants/config.ts additions
@@ -1664,11 +1664,11 @@ export const DisplayConfigSchema = z.object({
 ```
 
 **Deliverables:**
-- [ ] DisplayConfigSchema in config.ts
-- [ ] Bell notification on response complete
-- [ ] Theme support (dark/light color schemes)
-- [ ] Configurable stats display
-- [ ] Unit tests
+- [x] DisplayConfigSchema in config.ts
+- [x] Bell notification on response complete
+- [x] Theme support (dark/light color schemes)
+- [x] Configurable stats display
+- [x] Unit tests (46 new tests: 20 schema, 24 theme, 2 bell)
 
 ### 0.22.2 - Session Configuration
 
@@ -1880,6 +1880,6 @@ sessions:list             # List<session_id>
 
 ---
 
-**Last Updated:** 2025-12-01
+**Last Updated:** 2025-12-02
 **Target Version:** 1.0.0
-**Current Version:** 0.18.0
+**Current Version:** 0.22.1

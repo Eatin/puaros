@@ -17,6 +17,7 @@ import { Chat, ConfirmDialog, Input, StatusBar } from "./components/index.js"
 import { type CommandResult, useCommands, useHotkeys, useSession } from "./hooks/index.js"
 import type { AppProps, BranchInfo } from "./types.js"
 import type { ConfirmChoice } from "../shared/types/index.js"
+import { ringBell } from "./utils/bell.js"
 
 export interface AppDependencies {
     storage: IStorage
@@ -31,6 +32,10 @@ export interface ExtendedAppProps extends AppProps {
     onExit?: () => void
     multiline?: boolean | "auto"
     syntaxHighlight?: boolean
+    theme?: "dark" | "light"
+    showStats?: boolean
+    showToolCalls?: boolean
+    bellOnComplete?: boolean
 }
 
 function LoadingScreen(): React.JSX.Element {
@@ -69,6 +74,10 @@ export function App({
     onExit,
     multiline = false,
     syntaxHighlight = true,
+    theme = "dark",
+    showStats = true,
+    showToolCalls = true,
+    bellOnComplete = false,
 }: ExtendedAppProps): React.JSX.Element {
     const { exit } = useApp()
 
@@ -193,6 +202,12 @@ export function App({
         }
     }, [session])
 
+    useEffect(() => {
+        if (bellOnComplete && status === "ready") {
+            ringBell()
+        }
+    }, [bellOnComplete, status])
+
     const handleSubmit = useCallback(
         (text: string): void => {
             if (isCommand(text)) {
@@ -228,8 +243,15 @@ export function App({
                 branch={branch}
                 sessionTime={sessionTime}
                 status={status}
+                theme={theme}
             />
-            <Chat messages={messages} isThinking={status === "thinking"} />
+            <Chat
+                messages={messages}
+                isThinking={status === "thinking"}
+                theme={theme}
+                showStats={showStats}
+                showToolCalls={showToolCalls}
+            />
             {commandResult && (
                 <Box
                     borderStyle="round"

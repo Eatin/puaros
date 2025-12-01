@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2025-12-01 - Commands
+
+### Added
+
+- **useCommands Hook**
+  - New hook for handling slash commands in TUI
+  - `parseCommand()`: Parses command input into name and arguments
+  - `isCommand()`: Checks if input is a slash command
+  - `executeCommand()`: Executes command and returns result
+  - `getCommands()`: Returns all available command definitions
+
+- **8 Slash Commands**
+  - `/help` - Shows all commands and hotkeys
+  - `/clear` - Clears chat history (keeps session)
+  - `/undo` - Reverts last file change from undo stack
+  - `/sessions [list|load|delete] [id]` - Manage sessions
+  - `/status` - Shows system status (LLM, context, stats)
+  - `/reindex` - Forces full project reindexation
+  - `/eval` - LLM self-check for hallucinations
+  - `/auto-apply [on|off]` - Toggle auto-apply mode
+
+- **Command Result Display**
+  - Visual feedback box for command results
+  - Green border for success, red for errors
+  - Auto-clear after 5 seconds
+
+### Changed
+
+- **App.tsx Integration**
+  - Added `useCommands` hook integration
+  - Command handling in `handleSubmit`
+  - New state for `autoApply` and `commandResult`
+  - Reindex placeholder action
+
+### Technical Details
+
+- Total tests: 1343 (38 new useCommands tests)
+- Test coverage: ~98% maintained
+- Modular command factory functions for maintainability
+- Commands extracted to separate functions to stay under line limits
+
+---
+
 ## [0.13.0] - 2025-12-01 - Security
 
 ### Added

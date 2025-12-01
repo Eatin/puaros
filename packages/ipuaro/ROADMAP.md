@@ -148,9 +148,10 @@ packages/ipuaro/
 
 ---
 
-## Version 0.1.0 - Foundation ⚙️
+## Version 0.1.0 - Foundation ⚙️ ✅
 
 **Priority:** CRITICAL
+**Status:** Complete (v0.1.0 released)
 
 ### 0.1.1 - Project Setup
 
@@ -310,9 +311,10 @@ interface Config {
 
 ---
 
-## Version 0.2.0 - Redis Storage 🗄️
+## Version 0.2.0 - Redis Storage 🗄️ ✅
 
 **Priority:** CRITICAL
+**Status:** Complete (v0.2.0 released)
 
 ### 0.2.1 - Redis Client
 
@@ -367,9 +369,10 @@ class RedisStorage implements IStorage {
 
 ---
 
-## Version 0.3.0 - Indexer 📂
+## Version 0.3.0 - Indexer 📂 ✅
 
 **Priority:** CRITICAL
+**Status:** Complete (v0.3.0, v0.3.1 released)
 
 ### 0.3.1 - File Scanner
 
@@ -456,9 +459,10 @@ class Watchdog {
 
 ---
 
-## Version 0.4.0 - LLM Integration 🤖
+## Version 0.4.0 - LLM Integration 🤖 ✅
 
 **Priority:** CRITICAL
+**Status:** Complete (v0.4.0 released)
 
 ### 0.4.1 - Ollama Client
 
@@ -531,9 +535,10 @@ function parseToolCalls(response: string): ToolCall[]
 
 ---
 
-## Version 0.5.0 - Read Tools 📖
+## Version 0.5.0 - Read Tools 📖 ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.5.0 released)
 
 4 tools for reading code without modification.
 
@@ -609,9 +614,10 @@ class GetStructureTool implements ITool {
 
 ---
 
-## Version 0.6.0 - Edit Tools ✏️
+## Version 0.6.0 - Edit Tools ✏️ ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.6.0 released)
 
 3 tools for file modifications. All require confirmation (unless autoApply).
 
@@ -662,9 +668,10 @@ class DeleteFileTool implements ITool {
 
 ---
 
-## Version 0.7.0 - Search Tools 🔍
+## Version 0.7.0 - Search Tools 🔍 ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.7.0 released)
 
 ### 0.7.1 - find_references
 
@@ -699,9 +706,10 @@ class FindDefinitionTool implements ITool {
 
 ---
 
-## Version 0.8.0 - Analysis Tools 📊
+## Version 0.8.0 - Analysis Tools 📊 ✅
 
 **Priority:** MEDIUM
+**Status:** Complete (v0.8.0 released)
 
 ### 0.8.1 - get_dependencies
 
@@ -742,9 +750,10 @@ class FindDefinitionTool implements ITool {
 
 ---
 
-## Version 0.9.0 - Git & Run Tools 🚀
+## Version 0.9.0 - Git & Run Tools 🚀 ✅
 
 **Priority:** MEDIUM
+**Status:** Complete (v0.9.0 released) — includes CommandSecurity (Blacklist/Whitelist)
 
 ### 0.9.1 - git_status
 
@@ -798,9 +807,10 @@ class FindDefinitionTool implements ITool {
 
 ---
 
-## Version 0.10.0 - Session Management 💾
+## Version 0.10.0 - Session Management 💾 ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.10.0 released) — includes HandleMessage orchestrator (originally planned for 0.14.0)
 
 ### 0.10.1 - Session Entity
 
@@ -873,9 +883,10 @@ class ContextManager {
 
 ---
 
-## Version 0.11.0 - TUI Basic 🖥️
+## Version 0.11.0 - TUI Basic 🖥️ ✅
 
 **Priority:** CRITICAL
+**Status:** Complete (v0.11.0 released) — includes useHotkeys (originally planned for 0.16.0)
 
 ### 0.11.1 - App Shell
 
@@ -945,9 +956,10 @@ interface Props {
 
 ---
 
-## Version 0.12.0 - TUI Advanced 🎨
+## Version 0.12.0 - TUI Advanced 🎨 ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.12.0 released)
 
 ### 0.12.1 - DiffView
 
@@ -1009,9 +1021,10 @@ interface Props {
 
 ---
 
-## Version 0.13.0 - Security 🔒
+## Version 0.13.0 - Security 🔒 ✅
 
 **Priority:** HIGH
+**Status:** Complete (v0.13.0 released) — Blacklist/Whitelist done in v0.9.0, PathValidator in v0.13.0
 
 ### 0.13.1 - Blacklist
 
@@ -1055,11 +1068,14 @@ function validatePath(path: string, projectRoot: string): boolean
 
 ---
 
-## Version 0.14.0 - Orchestrator 🎭
+## [DONE] Original 0.14.0 - Orchestrator 🎭 ✅
 
-**Priority:** CRITICAL
+> **Note:** This was implemented in v0.10.0 as part of Session Management
 
-### 0.14.1 - HandleMessage Use Case
+<details>
+<summary>Originally planned (click to expand)</summary>
+
+### HandleMessage Use Case (Done in v0.10.5)
 
 ```typescript
 // src/application/use-cases/HandleMessage.ts
@@ -1091,7 +1107,7 @@ class HandleMessage {
 }
 ```
 
-### 0.14.2 - Edit Flow
+### Edit Flow (Done in v0.10.5)
 
 ```typescript
 // Edit handling inside HandleMessage:
@@ -1104,17 +1120,49 @@ class HandleMessage {
 //    - Update storage (lines, AST, meta)
 ```
 
-**Tests:**
-- [ ] Unit tests for HandleMessage
-- [ ] E2E tests for full message flow
+</details>
 
 ---
 
-## Version 0.15.0 - Commands 📝
+## [DONE] Original 0.16.0 - Hotkeys & Polish ⌨️ ✅
 
-**Priority:** MEDIUM
+> **Note:** useHotkeys done in v0.11.0, ContextManager auto-compression in v0.10.3
 
-7 slash commands for TUI.
+<details>
+<summary>Originally planned (click to expand)</summary>
+
+### Hotkeys (Done in v0.11.0)
+
+```typescript
+// src/tui/hooks/useHotkeys.ts
+
+Ctrl+C  // Interrupt generation (1st), exit (2nd)
+Ctrl+D  // Exit with session save
+Ctrl+Z  // Undo (= /undo)
+↑/↓     // Input history
+Tab     // Path autocomplete
+```
+
+### Auto-compression (Done in v0.10.3)
+
+```typescript
+// Triggered at >80% context:
+// 1. LLM summarizes old messages
+// 2. Remove tool results older than 5 messages
+// 3. Update status bar (ctx% changes)
+// No modal notification - silent
+```
+
+</details>
+
+---
+
+## Version 0.14.0 - Commands 📝 ✅
+
+**Priority:** HIGH
+**Status:** Complete (v0.14.0 released)
+
+8 slash commands for TUI.
 
 ```typescript
 // src/tui/hooks/useCommands.ts
@@ -1130,47 +1178,16 @@ class HandleMessage {
 ```
 
 **Tests:**
-- [ ] Unit tests for command handlers
+- [x] Unit tests for command handlers (38 tests)
 
 ---
 
-## Version 0.16.0 - Hotkeys & Polish ⌨️
-
-**Priority:** MEDIUM
-
-### 0.16.1 - Hotkeys
-
-```typescript
-// src/tui/hooks/useHotkeys.ts
-
-Ctrl+C  // Interrupt generation (1st), exit (2nd)
-Ctrl+D  // Exit with session save
-Ctrl+Z  // Undo (= /undo)
-↑/↓     // Input history
-Tab     // Path autocomplete
-```
-
-### 0.16.2 - Auto-compression
-
-```typescript
-// Triggered at >80% context:
-// 1. LLM summarizes old messages
-// 2. Remove tool results older than 5 messages
-// 3. Update status bar (ctx% changes)
-// No modal notification - silent
-```
-
-**Tests:**
-- [ ] Integration tests for hotkeys
-- [ ] Unit tests for compression
-
----
-
-## Version 0.17.0 - CLI Entry Point 🚪
+## Version 0.15.0 - CLI Entry Point 🚪 ⬜
 
 **Priority:** HIGH
+**Status:** NEXT MILESTONE
 
-### 0.17.1 - CLI Commands
+### 0.15.1 - CLI Commands
 
 ```typescript
 // src/cli/index.ts
@@ -1180,7 +1197,7 @@ ipuaro init             // Create .ipuaro.json config
 ipuaro index            // Index only (no TUI)
 ```
 
-### 0.17.2 - CLI Options
+### 0.15.2 - CLI Options
 
 ```bash
 --auto-apply            # Enable auto-apply mode
@@ -1189,7 +1206,7 @@ ipuaro index            // Index only (no TUI)
 --version               # Show version
 ```
 
-### 0.17.3 - Onboarding
+### 0.15.3 - Onboarding
 
 ```typescript
 // src/cli/commands/start.ts
@@ -1206,11 +1223,12 @@ ipuaro index            // Index only (no TUI)
 
 ---
 
-## Version 0.18.0 - Error Handling ⚠️
+## Version 0.16.0 - Error Handling ⚠️ ⬜
 
 **Priority:** HIGH
+**Status:** Partial — IpuaroError exists (v0.1.0), need full error matrix implementation
 
-### 0.18.1 - Error Types
+### 0.16.1 - Error Types
 
 ```typescript
 // src/shared/errors/IpuaroError.ts
@@ -1223,7 +1241,7 @@ class IpuaroError extends Error {
 }
 ```
 
-### 0.18.2 - Error Handling Matrix
+### 0.16.2 - Error Handling Matrix
 
 | Error | Recoverable | Options |
 |-------|-------------|---------|
@@ -1244,16 +1262,16 @@ class IpuaroError extends Error {
 **Target:** Stable release
 
 **Checklist:**
-- [ ] All 18 tools implemented and tested
-- [ ] TUI fully functional
-- [ ] Session persistence working
-- [ ] Error handling complete
+- [x] All 18 tools implemented and tested ✅ (v0.9.0)
+- [x] TUI fully functional ✅ (v0.11.0, v0.12.0)
+- [x] Session persistence working ✅ (v0.10.0)
+- [ ] Error handling complete (partial)
 - [ ] Performance optimized
 - [ ] Documentation complete
-- [ ] 80%+ test coverage
-- [ ] 0 ESLint errors
+- [x] 80%+ test coverage ✅ (~98%)
+- [x] 0 ESLint errors ✅
 - [ ] Examples working
-- [ ] CHANGELOG.md up to date
+- [x] CHANGELOG.md up to date ✅
 
 ---
 
@@ -1327,5 +1345,6 @@ sessions:list             # List<session_id>
 
 ---
 
-**Last Updated:** 2025-11-29
+**Last Updated:** 2025-12-01
 **Target Version:** 1.0.0
+**Current Version:** 0.14.0

@@ -13,7 +13,7 @@ import type { ErrorChoice } from "../shared/types/index.js"
 import type { IToolRegistry } from "../application/interfaces/IToolRegistry.js"
 import type { ProjectStructure } from "../infrastructure/llm/prompts.js"
 import { Chat, Input, StatusBar } from "./components/index.js"
-import { useHotkeys, useSession } from "./hooks/index.js"
+import { type CommandResult, useCommands, useHotkeys, useSession } from "./hooks/index.js"
 import type { AppProps, BranchInfo } from "./types.js"
 
 export interface AppDependencies {
@@ -58,7 +58,7 @@ async function handleErrorDefault(_error: Error): Promise<ErrorChoice> {
 
 export function App({
     projectPath,
-    autoApply = false,
+    autoApply: initialAutoApply = false,
     deps,
     onExit,
 }: ExtendedAppProps): React.JSX.Element {
@@ -66,24 +66,54 @@ export function App({
 
     const [branch] = useState<BranchInfo>({ name: "main", isDetached: false })
     const [sessionTime, setSessionTime] = useState("0m")
+    const [autoApply, setAutoApply] = useState(initialAutoApply)
+    const [commandResult, setCommandResult] = useState<CommandResult | null>(null)
 
     const projectName = projectPath.split("/").pop() ?? "unknown"
 
-    const { session, messages, status, isLoading, error, sendMessage, undo, abort } = useSession(
+    const { session, messages, status, isLoading, error, sendMessage, undo, clearHistory, abort } =
+        useSession(
+            {
+                storage: deps.storage,
+                sessionStorage: deps.sessionStorage,
+                llm: deps.llm,
+                tools: deps.tools,
+                projectRoot: projectPath,
+                projectName,
+                projectStructure: deps.projectStructure,
+            },
+            {
+                autoApply,
+                onConfirmation: handleConfirmationDefault,
+                onError: handleErrorDefault,
+            },
+        )
+
+    const reindex = useCallback(async (): Promise<void> => {
+        /*
+         * TODO: Implement full reindex via IndexProject use case
+         * For now, this is a placeholder
+         */
+        await Promise.resolve()
+    }, [])
+
+    const { executeCommand, isCommand } = useCommands(
         {
-            storage: deps.storage,
+            session,
             sessionStorage: deps.sessionStorage,
+            storage: deps.storage,
             llm: deps.llm,
             tools: deps.tools,
             projectRoot: projectPath,
             projectName,
-            projectStructure: deps.projectStructure,
         },
         {
-            autoApply,
-            onConfirmation: handleConfirmationDefault,
-            onError: handleErrorDefault,
+            clearHistory,
+            undo,
+            setAutoApply,
+            reindex,
         },
+        { autoApply },
     )
 
     const handleExit = useCallback((): void => {
@@ -128,12 +158,19 @@ export function App({
 
     const handleSubmit = useCallback(
         (text: string): void => {
-            if (text.startsWith("/")) {
+            if (isCommand(text)) {
+                void executeCommand(text).then((result) => {
+                    setCommandResult(result)
+                    // Auto-clear command result after 5 seconds
+                    setTimeout(() => {
+                        setCommandResult(null)
+                    }, 5000)
+                })
                 return
             }
             void sendMessage(text)
         },
-        [sendMessage],
+        [sendMessage, isCommand, executeCommand],
     )
 
     if (isLoading) {
@@ -156,6 +193,18 @@ export function App({
                 status={status}
             />
             <Chat messages={messages} isThinking={status === "thinking"} />
+            {commandResult && (
+                <Box
+                    borderStyle="round"
+                    borderColor={commandResult.success ? "green" : "red"}
+                    paddingX={1}
+                    marginY={1}
+                >
+                    <Text color={commandResult.success ? "green" : "red"} wrap="wrap">
+                        {commandResult.message}
+                    </Text>
+                </Box>
+            )}
             <Input
                 onSubmit={handleSubmit}
                 history={session?.inputHistory ?? []}

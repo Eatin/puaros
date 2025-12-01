@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-12-01 - TUI Advanced
+
+### Added
+
+- **DiffView Component (0.12.1)**
+  - Inline diff display with green (added) and red (removed) highlighting
+  - Header with file path and line range: `┌─── path (lines X-Y) ───┐`
+  - Line numbers with proper padding
+  - Stats footer showing additions and deletions count
+
+- **ConfirmDialog Component (0.12.2)**
+  - Confirmation dialog with [Y] Apply / [N] Cancel / [E] Edit options
+  - Optional diff preview integration
+  - Keyboard input handling (Y/N/E keys, Escape)
+  - Visual selection feedback
+
+- **ErrorDialog Component (0.12.3)**
+  - Error dialog with [R] Retry / [S] Skip / [A] Abort options
+  - Recoverable vs non-recoverable error handling
+  - Disabled buttons for non-recoverable errors
+  - Keyboard input with Escape support
+
+- **Progress Component (0.12.4)**
+  - Progress bar display: `[=====>    ] 45% (120/267 files)`
+  - Color-coded progress (cyan < 50%, yellow < 100%, green = 100%)
+  - Configurable width
+  - Label support for context
+
+### Changed
+
+- Total tests: 1254 (unchanged - TUI components excluded from coverage)
+- TUI layer now has 8 components + 2 hooks
+- All v0.12.0 roadmap items complete
+
+---
+
 ## [0.11.0] - 2025-12-01 - TUI Basic
 
 ### Added

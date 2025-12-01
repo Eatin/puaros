@@ -15,6 +15,7 @@ export default defineConfig({
                 "src/**/*.test.ts",
                 "src/tui/**/*.ts",
                 "src/tui/**/*.tsx",
+                "src/cli/**/*.ts",
             ],
             thresholds: {
                 lines: 95,

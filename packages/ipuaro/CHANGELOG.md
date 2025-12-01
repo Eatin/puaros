@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2025-12-01 - CLI Entry Point
+
+### Added
+
+- **Onboarding Module (0.15.3)**
+  - `checkRedis()`: Validates Redis connection with helpful error messages
+  - `checkOllama()`: Validates Ollama availability with install instructions
+  - `checkModel()`: Checks if LLM model is available, offers to pull if missing
+  - `checkProjectSize()`: Warns if project has >10K files
+  - `runOnboarding()`: Runs all pre-flight checks before starting
+
+- **Start Command (0.15.1)**
+  - Full TUI startup with dependency injection
+  - Integrates onboarding checks before launch
+  - Interactive model pull prompt if model missing
+  - Redis, storage, LLM, and tools initialization
+  - Clean shutdown with disconnect on exit
+
+- **Init Command (0.15.1)**
+  - Creates `.ipuaro.json` configuration file
+  - Default template with Redis, LLM, and edit settings
+  - `--force` option to overwrite existing config
+  - Helpful output showing available options
+
+- **Index Command (0.15.1)**
+  - Standalone project indexing without TUI
+  - File scanning with progress output
+  - AST parsing with error handling
+  - Metadata analysis and storage
+  - Symbol index and dependency graph building
+  - Duration and statistics reporting
+
+- **CLI Options (0.15.2)**
+  - `--auto-apply`: Enable auto-apply mode for edits
+  - `--model <name>`: Override LLM model
+  - `--help`: Show help
+  - `--version`: Show version
+
+- **Tools Setup Helper**
+  - `registerAllTools()`: Registers all 18 tools with the registry
+  - Clean separation from CLI logic
+
+### Changed
+
+- **CLI Architecture**
+  - Refactored from placeholder to full implementation
+  - Commands in separate modules under `src/cli/commands/`
+  - Dynamic version from package.json
+  - `start` command is now default (runs with `ipuaro` or `ipuaro start`)
+
+### Technical Details
+
+- Total tests: 1372 (29 new CLI tests)
+- Coverage: ~98% maintained (CLI excluded from coverage thresholds)
+- New test files: onboarding.test.ts, init.test.ts, tools-setup.test.ts
+
+---
+
 ## [0.14.0] - 2025-12-01 - Commands
 
 ### Added

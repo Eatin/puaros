@@ -1182,10 +1182,10 @@ Tab     // Path autocomplete
 
 ---
 
-## Version 0.15.0 - CLI Entry Point 🚪 ⬜
+## Version 0.15.0 - CLI Entry Point 🚪 ✅
 
 **Priority:** HIGH
-**Status:** NEXT MILESTONE
+**Status:** Complete (v0.15.0 released)
 
 ### 0.15.1 - CLI Commands
 
@@ -1219,14 +1219,14 @@ ipuaro index            // Index only (no TUI)
 ```
 
 **Tests:**
-- [ ] E2E tests for CLI
+- [x] Unit tests for CLI commands (29 tests)
 
 ---
 
 ## Version 0.16.0 - Error Handling ⚠️ ⬜
 
 **Priority:** HIGH
-**Status:** Partial — IpuaroError exists (v0.1.0), need full error matrix implementation
+**Status:** NEXT MILESTONE — IpuaroError exists (v0.1.0), need full error matrix implementation
 
 ### 0.16.1 - Error Types
 
@@ -1347,4 +1347,4 @@ sessions:list             # List<session_id>
 
 **Last Updated:** 2025-12-01
 **Target Version:** 1.0.0
-**Current Version:** 0.14.0
+**Current Version:** 0.15.0

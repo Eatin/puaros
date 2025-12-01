@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2025-12-01 - Error Handling
+
+### Added
+
+- **Error Handling Matrix (0.16.2)**
+  - `ERROR_MATRIX`: Defines behavior for each error type
+  - Per-type options: retry, skip, abort, confirm, regenerate
+  - Per-type defaults and recoverability settings
+  - Comprehensive error type support: redis, parse, llm, file, command, conflict, validation, timeout, unknown
+
+- **IpuaroError Enhancements (0.16.1)**
+  - `ErrorOption` type: New type for available recovery options
+  - `ErrorMeta` interface: Error metadata with type, recoverable flag, options, and default
+  - `options` property: Available recovery options from matrix
+  - `defaultOption` property: Default option for the error type
+  - `context` property: Optional context data for debugging
+  - `getMeta()`: Returns full error metadata
+  - `hasOption()`: Checks if an option is available
+  - `toDisplayString()`: Formatted error message with suggestion
+  - New factory methods: `llmTimeout()`, `fileNotFound()`, `commandBlacklisted()`, `unknown()`
+
+- **ErrorHandler Service**
+  - `handle()`: Async error handling with user callback
+  - `handleSync()`: Sync error handling with defaults
+  - `wrap()`: Wraps async functions with error handling
+  - `withRetry()`: Wraps functions with automatic retry logic
+  - `resetRetries()`: Resets retry counters
+  - `getRetryCount()`: Gets current retry count
+  - `isMaxRetriesExceeded()`: Checks if max retries reached
+  - Configurable options: maxRetries, autoSkipParseErrors, autoRetryLLMErrors
+
+- **Utility Functions**
+  - `getErrorOptions()`: Get available options for error type
+  - `getDefaultErrorOption()`: Get default option for error type
+  - `isRecoverableError()`: Check if error type is recoverable
+  - `toIpuaroError()`: Convert any error to IpuaroError
+  - `createErrorHandler()`: Factory function for ErrorHandler
+
+### Changed
+
+- **IpuaroError Constructor**
+  - New signature: `(type, message, options?)` with options object
+  - Options include: recoverable, suggestion, context
+  - Matrix-based defaults for all properties
+
+- **ErrorChoice → ErrorOption**
+  - `ErrorChoice` type deprecated in shared/types
+  - Use `ErrorOption` from shared/errors instead
+  - Updated HandleMessage and useSession to use ErrorOption
+
+### Technical Details
+
+- Total tests: 1420 (59 new tests)
+- Coverage: 97.59% maintained
+- New test files: ErrorHandler.test.ts
+- Updated test file: IpuaroError.test.ts
+
+---
+
 ## [0.15.0] - 2025-12-01 - CLI Entry Point
 
 ### Added

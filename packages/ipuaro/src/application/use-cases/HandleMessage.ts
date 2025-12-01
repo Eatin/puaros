@@ -14,8 +14,7 @@ import {
 import type { ToolCall } from "../../domain/value-objects/ToolCall.js"
 import { createErrorResult, type ToolResult } from "../../domain/value-objects/ToolResult.js"
 import { createUndoEntry, type UndoEntry } from "../../domain/value-objects/UndoEntry.js"
-import { IpuaroError } from "../../shared/errors/IpuaroError.js"
-import type { ErrorChoice } from "../../shared/types/index.js"
+import { type ErrorOption, IpuaroError } from "../../shared/errors/IpuaroError.js"
 import {
     buildInitialContext,
     type ProjectStructure,
@@ -58,7 +57,7 @@ export interface HandleMessageEvents {
     onToolCall?: (call: ToolCall) => void
     onToolResult?: (result: ToolResult) => void
     onConfirmation?: (message: string, diff?: DiffInfo) => Promise<boolean>
-    onError?: (error: IpuaroError) => Promise<ErrorChoice>
+    onError?: (error: IpuaroError) => Promise<ErrorOption>
     onStatusChange?: (status: HandleMessageStatus) => void
     onUndoEntry?: (entry: UndoEntry) => void
 }

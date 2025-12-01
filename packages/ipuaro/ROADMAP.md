@@ -1223,37 +1223,71 @@ ipuaro index            // Index only (no TUI)
 
 ---
 
-## Version 0.16.0 - Error Handling ⚠️ ⬜
+## Version 0.16.0 - Error Handling ⚠️ ✅
 
 **Priority:** HIGH
-**Status:** NEXT MILESTONE — IpuaroError exists (v0.1.0), need full error matrix implementation
+**Status:** Complete (v0.16.0 released)
 
-### 0.16.1 - Error Types
+### 0.16.1 - Error Types ✅
 
 ```typescript
 // src/shared/errors/IpuaroError.ts
-type ErrorType = "redis" | "parse" | "llm" | "file" | "command" | "conflict"
+type ErrorType = "redis" | "parse" | "llm" | "file" | "command" | "conflict" | "validation" | "timeout" | "unknown"
+type ErrorOption = "retry" | "skip" | "abort" | "confirm" | "regenerate"
+
+interface ErrorMeta {
+    type: ErrorType
+    recoverable: boolean
+    options: ErrorOption[]
+    defaultOption: ErrorOption
+}
 
 class IpuaroError extends Error {
     type: ErrorType
     recoverable: boolean
     suggestion?: string
+    options: ErrorOption[]
+    defaultOption: ErrorOption
+    context?: Record<string, unknown>
+
+    getMeta(): ErrorMeta
+    hasOption(option: ErrorOption): boolean
+    toDisplayString(): string
 }
 ```
 
-### 0.16.2 - Error Handling Matrix
+### 0.16.2 - Error Handling Matrix ✅
 
-| Error | Recoverable | Options |
-|-------|-------------|---------|
-| Redis unavailable | No | Retry / Abort |
-| AST parse failed | Yes | Skip file / Abort |
-| LLM timeout | Yes | Retry / Skip / Abort |
-| File not found | Yes | Skip / Abort |
-| Command not in whitelist | Yes | Confirm / Skip / Abort |
-| Edit conflict | Yes | Apply / Skip / Regenerate |
+| Error | Recoverable | Options | Default |
+|-------|-------------|---------|---------|
+| Redis unavailable | No | Retry / Abort | Abort |
+| AST parse failed | Yes | Skip / Abort | Skip |
+| LLM timeout | Yes | Retry / Skip / Abort | Retry |
+| File not found | Yes | Skip / Abort | Skip |
+| Command not in whitelist | Yes | Confirm / Skip / Abort | Confirm |
+| Edit conflict | Yes | Skip / Regenerate / Abort | Skip |
+| Validation error | Yes | Skip / Abort | Skip |
+| Timeout | Yes | Retry / Skip / Abort | Retry |
+| Unknown | No | Abort | Abort |
+
+### 0.16.3 - ErrorHandler Service ✅
+
+```typescript
+// src/shared/errors/ErrorHandler.ts
+class ErrorHandler {
+    handle(error: IpuaroError, contextKey?: string): Promise<ErrorHandlingResult>
+    handleSync(error: IpuaroError, contextKey?: string): ErrorHandlingResult
+    wrap<T>(fn: () => Promise<T>, errorType: ErrorType, contextKey?: string): Promise<Result>
+    withRetry<T>(fn: () => Promise<T>, errorType: ErrorType, contextKey: string): Promise<T>
+    resetRetries(contextKey?: string): void
+    getRetryCount(contextKey: string): number
+    isMaxRetriesExceeded(contextKey: string): boolean
+}
+```
 
 **Tests:**
-- [ ] Unit tests for error handling
+- [x] Unit tests for IpuaroError (27 tests)
+- [x] Unit tests for ErrorHandler (32 tests)
 
 ---
 
@@ -1265,7 +1299,7 @@ class IpuaroError extends Error {
 - [x] All 18 tools implemented and tested ✅ (v0.9.0)
 - [x] TUI fully functional ✅ (v0.11.0, v0.12.0)
 - [x] Session persistence working ✅ (v0.10.0)
-- [ ] Error handling complete (partial)
+- [x] Error handling complete ✅ (v0.16.0)
 - [ ] Performance optimized
 - [ ] Documentation complete
 - [x] 80%+ test coverage ✅ (~98%)
@@ -1347,4 +1381,4 @@ sessions:list             # List<session_id>
 
 **Last Updated:** 2025-12-01
 **Target Version:** 1.0.0
-**Current Version:** 0.15.0
+**Current Version:** 0.16.0

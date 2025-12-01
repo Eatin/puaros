@@ -16,12 +16,7 @@ export class ToolRegistry implements IToolRegistry {
      */
     register(tool: ITool): void {
         if (this.tools.has(tool.name)) {
-            throw new IpuaroError(
-                "validation",
-                `Tool "${tool.name}" is already registered`,
-                true,
-                "Use a different tool name or unregister the existing tool first",
-            )
+            throw IpuaroError.validation(`Tool "${tool.name}" is already registered`)
         }
         this.tools.set(tool.name, tool)
     }

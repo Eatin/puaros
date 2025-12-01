@@ -19,8 +19,12 @@ export type ConfirmChoice = "apply" | "cancel" | "edit"
 
 /**
  * User choice for errors.
+ * @deprecated Use ErrorOption from shared/errors instead
  */
 export type ErrorChoice = "retry" | "skip" | "abort"
+
+// Re-export ErrorOption for convenience
+export type { ErrorOption } from "../errors/IpuaroError.js"
 
 /**
  * Project structure node.

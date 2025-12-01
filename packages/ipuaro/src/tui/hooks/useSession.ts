@@ -10,7 +10,7 @@ import type { ISessionStorage } from "../../domain/services/ISessionStorage.js"
 import type { IStorage } from "../../domain/services/IStorage.js"
 import type { DiffInfo } from "../../domain/services/ITool.js"
 import type { ChatMessage } from "../../domain/value-objects/ChatMessage.js"
-import type { ErrorChoice } from "../../shared/types/index.js"
+import type { ErrorOption } from "../../shared/errors/IpuaroError.js"
 import type { IToolRegistry } from "../../application/interfaces/IToolRegistry.js"
 import {
     HandleMessage,
@@ -34,7 +34,7 @@ export interface UseSessionDependencies {
 export interface UseSessionOptions {
     autoApply?: boolean
     onConfirmation?: (message: string, diff?: DiffInfo) => Promise<boolean>
-    onError?: (error: Error) => Promise<ErrorChoice>
+    onError?: (error: Error) => Promise<ErrorOption>
 }
 
 export interface UseSessionReturn {

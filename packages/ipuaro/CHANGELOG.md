@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2025-12-01 - Missing Use Cases
+
+### Added
+
+- **IndexProject Use Case (0.20.1)**
+  - Full indexing pipeline orchestration in `src/application/use-cases/IndexProject.ts`
+  - Coordinates FileScanner, ASTParser, MetaAnalyzer, and IndexBuilder
+  - Progress reporting with phases: scanning, parsing, analyzing, indexing
+  - Stores file data, ASTs, metadata, symbol index, and dependency graph in Redis
+  - Returns indexing statistics: filesScanned, filesParsed, parseErrors, timeMs
+  - 19 unit tests
+
+- **ExecuteTool Use Case (0.20.2)**
+  - Tool execution orchestration in `src/application/use-cases/ExecuteTool.ts`
+  - Parameter validation and error handling
+  - Confirmation flow management with auto-apply support
+  - Undo stack management with entry creation
+  - Returns execution result with undo tracking
+  - Supports progress callbacks
+
+### Changed
+
+- **CLI index Command Refactored**
+  - Now uses IndexProject use case instead of direct infrastructure calls
+  - Simplified progress reporting and output formatting
+  - Better statistics display
+
+- **TUI /reindex Command Integrated**
+  - App.tsx reindex function now uses IndexProject use case
+  - Full project reindexation via slash command
+
+- **HandleMessage Refactored**
+  - Now uses ExecuteTool use case for tool execution
+  - Simplified executeToolCall method (from 35 lines to 24 lines)
+  - Better separation of concerns: tool execution delegated to ExecuteTool
+  - Undo entry tracking via undoEntryId
+
+### Technical Details
+
+- Total tests: 1463 passed (was 1444, +19 tests)
+- Coverage: 97.71% lines, 91.58% branches, 98.97% functions, 97.71% statements
+- All existing tests passing after refactoring
+- Clean architecture: use cases properly orchestrate infrastructure components
+
+---
+
 ## [0.19.0] - 2025-12-01 - XML Tool Format Refactor
 
 ### Changed

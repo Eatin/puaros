@@ -90,12 +90,10 @@ export function App({
         )
 
     const reindex = useCallback(async (): Promise<void> => {
-        /*
-         * TODO: Implement full reindex via IndexProject use case
-         * For now, this is a placeholder
-         */
-        await Promise.resolve()
-    }, [])
+        const { IndexProject } = await import("../application/use-cases/IndexProject.js")
+        const indexProject = new IndexProject(deps.storage, projectPath)
+        await indexProject.execute(projectPath)
+    }, [deps.storage, projectPath])
 
     const { executeCommand, isCommand } = useCommands(
         {

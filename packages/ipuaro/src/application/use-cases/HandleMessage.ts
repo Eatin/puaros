@@ -1,9 +1,8 @@
-import { randomUUID } from "node:crypto"
 import type { Session } from "../../domain/entities/Session.js"
 import type { ILLMClient } from "../../domain/services/ILLMClient.js"
 import type { ISessionStorage } from "../../domain/services/ISessionStorage.js"
 import type { IStorage } from "../../domain/services/IStorage.js"
-import type { DiffInfo, ToolContext } from "../../domain/services/ITool.js"
+import type { DiffInfo } from "../../domain/services/ITool.js"
 import {
     type ChatMessage,
     createAssistantMessage,
@@ -12,8 +11,8 @@ import {
     createUserMessage,
 } from "../../domain/value-objects/ChatMessage.js"
 import type { ToolCall } from "../../domain/value-objects/ToolCall.js"
-import { createErrorResult, type ToolResult } from "../../domain/value-objects/ToolResult.js"
-import { createUndoEntry, type UndoEntry } from "../../domain/value-objects/UndoEntry.js"
+import type { ToolResult } from "../../domain/value-objects/ToolResult.js"
+import type { UndoEntry } from "../../domain/value-objects/UndoEntry.js"
 import { type ErrorOption, IpuaroError } from "../../shared/errors/IpuaroError.js"
 import {
     buildInitialContext,
@@ -23,6 +22,7 @@ import {
 import { parseToolCalls } from "../../infrastructure/llm/ResponseParser.js"
 import type { IToolRegistry } from "../interfaces/IToolRegistry.js"
 import { ContextManager } from "./ContextManager.js"
+import { ExecuteTool } from "./ExecuteTool.js"
 
 /**
  * Status during message handling.
@@ -82,6 +82,7 @@ export class HandleMessage {
     private readonly llm: ILLMClient
     private readonly tools: IToolRegistry
     private readonly contextManager: ContextManager
+    private readonly executeTool: ExecuteTool
     private readonly projectRoot: string
     private projectStructure?: ProjectStructure
 
@@ -102,6 +103,7 @@ export class HandleMessage {
         this.tools = tools
         this.projectRoot = projectRoot
         this.contextManager = new ContextManager(llm.getContextWindowSize())
+        this.executeTool = new ExecuteTool(storage, sessionStorage, tools, projectRoot)
     }
 
     /**
@@ -257,87 +259,32 @@ export class HandleMessage {
     }
 
     private async executeToolCall(toolCall: ToolCall, session: Session): Promise<ToolResult> {
-        const startTime = Date.now()
-        const tool = this.tools.get(toolCall.name)
-
-        if (!tool) {
-            return createErrorResult(
-                toolCall.id,
-                `Unknown tool: ${toolCall.name}`,
-                Date.now() - startTime,
-            )
-        }
-
-        const context: ToolContext = {
-            projectRoot: this.projectRoot,
-            storage: this.storage,
-            requestConfirmation: async (msg: string, diff?: DiffInfo) => {
-                return this.handleConfirmation(msg, diff, toolCall, session)
+        const { result, undoEntryCreated, undoEntryId } = await this.executeTool.execute(
+            toolCall,
+            session,
+            {
+                autoApply: this.options.autoApply,
+                onConfirmation: async (msg: string, diff?: DiffInfo) => {
+                    this.emitStatus("awaiting_confirmation")
+                    if (this.events.onConfirmation) {
+                        return this.events.onConfirmation(msg, diff)
+                    }
+                    return true
+                },
+                onProgress: (_msg: string) => {
+                    this.events.onStatusChange?.("tool_call")
+                },
             },
-            onProgress: (_msg: string) => {
-                this.events.onStatusChange?.("tool_call")
-            },
-        }
-
-        try {
-            const validationError = tool.validateParams(toolCall.params)
-            if (validationError) {
-                return createErrorResult(toolCall.id, validationError, Date.now() - startTime)
-            }
-
-            const result = await tool.execute(toolCall.params, context)
-            return result
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error)
-            return createErrorResult(toolCall.id, errorMessage, Date.now() - startTime)
-        }
-    }
-
-    private async handleConfirmation(
-        msg: string,
-        diff: DiffInfo | undefined,
-        toolCall: ToolCall,
-        session: Session,
-    ): Promise<boolean> {
-        if (this.options.autoApply) {
-            if (diff) {
-                this.createUndoEntryFromDiff(diff, toolCall, session)
-            }
-            return true
-        }
-
-        this.emitStatus("awaiting_confirmation")
-
-        if (this.events.onConfirmation) {
-            const confirmed = await this.events.onConfirmation(msg, diff)
-
-            if (confirmed && diff) {
-                this.createUndoEntryFromDiff(diff, toolCall, session)
-            }
-
-            return confirmed
-        }
-
-        if (diff) {
-            this.createUndoEntryFromDiff(diff, toolCall, session)
-        }
-        return true
-    }
-
-    private createUndoEntryFromDiff(diff: DiffInfo, toolCall: ToolCall, session: Session): void {
-        const entry = createUndoEntry(
-            randomUUID(),
-            diff.filePath,
-            diff.oldLines,
-            diff.newLines,
-            `${toolCall.name}: ${diff.filePath}`,
-            toolCall.id,
         )
 
-        session.addUndoEntry(entry)
-        void this.sessionStorage.pushUndoEntry(session.id, entry)
-        session.stats.editsApplied++
-        this.events.onUndoEntry?.(entry)
+        if (undoEntryCreated && undoEntryId) {
+            const undoEntry = session.undoStack.find((entry) => entry.id === undoEntryId)
+            if (undoEntry) {
+                this.events.onUndoEntry?.(undoEntry)
+            }
+        }
+
+        return result
     }
 
     private async handleLLMError(error: unknown, session: Session): Promise<void> {

@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.2] - 2025-12-02 - Session Configuration
+
+### Added
+
+- **SessionConfigSchema (0.22.2)**
+  - New configuration schema for session settings in `src/shared/constants/config.ts`
+  - `persistIndefinitely: boolean` (default: true) - toggle indefinite session persistence
+  - `maxHistoryMessages: number` (default: 100) - maximum number of messages to keep in session history
+  - `saveInputHistory: boolean` (default: true) - toggle saving user input to history
+  - Integrated into main ConfigSchema with `.default({})`
+  - Exported `SessionConfig` type from config module
+
+- **Session.truncateHistory() Method**
+  - New method in `src/domain/entities/Session.ts`
+  - Truncates message history to specified maximum length
+  - Keeps most recent messages when truncating
+
+### Changed
+
+- **HandleMessage Use Case**
+  - Added `maxHistoryMessages?: number` option to `HandleMessageOptions`
+  - Added `saveInputHistory?: boolean` option to `HandleMessageOptions`
+  - Added `truncateHistoryIfNeeded()` private method for automatic history truncation
+  - Calls `truncateHistoryIfNeeded()` after every message addition (6 locations)
+  - Checks `saveInputHistory` before saving input to history
+  - Ensures history stays within configured limits automatically
+
+- **useSession Hook**
+  - Added `config?: Config` to `UseSessionDependencies`
+  - Passes `maxHistoryMessages` and `saveInputHistory` from config to HandleMessage options
+  - Session configuration now flows from config through to message handling
+
+- **App Component**
+  - Added `config?: Config` to `AppDependencies`
+  - Passes config to useSession hook
+  - Enables configuration-driven session management
+
+### Technical Details
+
+- Total tests: 1590 passed (was 1571, +19 new tests)
+- New test file: `session-config.test.ts` with 19 tests
+  - Default values validation
+  - `persistIndefinitely` boolean validation
+  - `maxHistoryMessages` positive integer validation (including edge cases: zero, negative, float rejection)
+  - `saveInputHistory` boolean validation
+  - Partial and full config merging tests
+- Coverage: 97.62% lines, 91.32% branches, 98.77% functions, 97.62% statements
+- 0 ESLint errors, 0 warnings
+- Build successful with no TypeScript errors
+
+### Notes
+
+This release completes the second item (0.22.2) of the v0.22.0 Extended Configuration milestone. Remaining items for v0.22.0:
+- 0.22.3 - Context Configuration
+- 0.22.4 - Autocomplete Configuration
+- 0.22.5 - Commands Configuration
+
+---
+
 ## [0.22.1] - 2025-12-02 - Display Configuration
 
 ### Added

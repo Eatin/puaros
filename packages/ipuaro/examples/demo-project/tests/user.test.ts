@@ -18,7 +18,7 @@ describe("UserService", () => {
             const user = await userService.createUser({
                 email: "test@example.com",
                 name: "Test User",
-                password: "password123"
+                password: "password123",
             })
 
             expect(user).toBeDefined()
@@ -32,8 +32,8 @@ describe("UserService", () => {
                 userService.createUser({
                     email: "invalid-email",
                     name: "Test User",
-                    password: "password123"
-                })
+                    password: "password123",
+                }),
             ).rejects.toThrow(ValidationError)
         })
 
@@ -42,8 +42,8 @@ describe("UserService", () => {
                 userService.createUser({
                     email: "test@example.com",
                     name: "Test User",
-                    password: "weak"
-                })
+                    password: "weak",
+                }),
             ).rejects.toThrow(ValidationError)
         })
 
@@ -51,15 +51,15 @@ describe("UserService", () => {
             await userService.createUser({
                 email: "test@example.com",
                 name: "Test User",
-                password: "password123"
+                password: "password123",
             })
 
             await expect(
                 userService.createUser({
                     email: "test@example.com",
                     name: "Another User",
-                    password: "password123"
-                })
+                    password: "password123",
+                }),
             ).rejects.toThrow("already exists")
         })
     })
@@ -69,7 +69,7 @@ describe("UserService", () => {
             const created = await userService.createUser({
                 email: "test@example.com",
                 name: "Test User",
-                password: "password123"
+                password: "password123",
             })
 
             const found = await userService.getUserById(created.id)
@@ -87,11 +87,11 @@ describe("UserService", () => {
             const user = await userService.createUser({
                 email: "test@example.com",
                 name: "Test User",
-                password: "password123"
+                password: "password123",
             })
 
             const updated = await userService.updateUser(user.id, {
-                name: "Updated Name"
+                name: "Updated Name",
             })
 
             expect(updated.name).toBe("Updated Name")
@@ -99,9 +99,9 @@ describe("UserService", () => {
         })
 
         it("should throw error for non-existent user", async () => {
-            await expect(
-                userService.updateUser("non-existent", { name: "Test" })
-            ).rejects.toThrow("not found")
+            await expect(userService.updateUser("non-existent", { name: "Test" })).rejects.toThrow(
+                "not found",
+            )
         })
     })
 
@@ -110,7 +110,7 @@ describe("UserService", () => {
             const user = await userService.createUser({
                 email: "test@example.com",
                 name: "Test User",
-                password: "password123"
+                password: "password123",
             })
 
             await userService.deleteUser(user.id)
@@ -125,13 +125,13 @@ describe("UserService", () => {
             await userService.createUser({
                 email: "user1@example.com",
                 name: "User 1",
-                password: "password123"
+                password: "password123",
             })
 
             await userService.createUser({
                 email: "user2@example.com",
                 name: "User 2",
-                password: "password123"
+                password: "password123",
             })
 
             const users = await userService.listUsers()

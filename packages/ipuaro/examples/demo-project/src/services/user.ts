@@ -25,9 +25,7 @@ export class UserService {
         }
 
         // Check if user already exists
-        const existingUser = Array.from(this.users.values()).find(
-            (u) => u.email === dto.email
-        )
+        const existingUser = Array.from(this.users.values()).find((u) => u.email === dto.email)
 
         if (existingUser) {
             throw new Error("User with this email already exists")
@@ -40,7 +38,7 @@ export class UserService {
             name: dto.name,
             role: dto.role || "user",
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         }
 
         this.users.set(user.id, user)
@@ -71,7 +69,7 @@ export class UserService {
             ...user,
             ...(dto.name && { name: dto.name }),
             ...(dto.role && { role: dto.role }),
-            updatedAt: new Date()
+            updatedAt: new Date(),
         }
 
         this.users.set(id, updated)

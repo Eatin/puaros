@@ -303,7 +303,9 @@ describe("GetFunctionTool", () => {
         })
 
         it("should handle error when reading lines fails", async () => {
-            const ast = createMockAST([createMockFunction({ name: "test", lineStart: 1, lineEnd: 1 })])
+            const ast = createMockAST([
+                createMockFunction({ name: "test", lineStart: 1, lineEnd: 1 }),
+            ])
             const storage: IStorage = {
                 getFile: vi.fn().mockResolvedValue(null),
                 getAST: vi.fn().mockResolvedValue(ast),

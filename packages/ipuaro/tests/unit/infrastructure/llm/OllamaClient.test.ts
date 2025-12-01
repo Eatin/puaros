@@ -123,8 +123,7 @@ describe("OllamaClient", () => {
             mockOllamaInstance.chat.mockResolvedValue({
                 message: {
                     role: "assistant",
-                    content:
-                        '<tool_call name="get_lines"><path>src/index.ts</path></tool_call>',
+                    content: '<tool_call name="get_lines"><path>src/index.ts</path></tool_call>',
                     tool_calls: undefined,
                 },
                 eval_count: 30,
@@ -408,7 +407,6 @@ describe("OllamaClient", () => {
         })
     })
 
-
     describe("error handling", () => {
         it("should handle ECONNREFUSED errors", async () => {
             mockOllamaInstance.chat.mockRejectedValue(new Error("ECONNREFUSED"))
@@ -435,7 +433,9 @@ describe("OllamaClient", () => {
 
             const client = new OllamaClient(defaultConfig)
 
-            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(/Request was aborted/)
+            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(
+                /Request was aborted/,
+            )
         })
 
         it("should handle model not found errors", async () => {
@@ -443,7 +443,9 @@ describe("OllamaClient", () => {
 
             const client = new OllamaClient(defaultConfig)
 
-            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(/Model.*not found/)
+            await expect(client.chat([createUserMessage("Hello")])).rejects.toThrow(
+                /Model.*not found/,
+            )
         })
     })
 })

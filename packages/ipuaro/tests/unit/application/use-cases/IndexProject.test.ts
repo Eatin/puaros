@@ -19,7 +19,7 @@ vi.mock("../../../../src/infrastructure/indexer/FileScanner.js", () => ({
                 return 'export function main() { return "hello" }'
             }
             if (path.includes("utils.ts")) {
-                return 'export const add = (a: number, b: number) => a + b'
+                return "export const add = (a: number, b: number) => a + b"
             }
             return null
         }
@@ -31,7 +31,16 @@ vi.mock("../../../../src/infrastructure/indexer/ASTParser.js", () => ({
         parse() {
             return {
                 ...createEmptyFileAST(),
-                functions: [{ name: "test", lineStart: 1, lineEnd: 5, params: [], isAsync: false, isExported: true }],
+                functions: [
+                    {
+                        name: "test",
+                        lineStart: 1,
+                        lineEnd: 5,
+                        params: [],
+                        isAsync: false,
+                        isExported: true,
+                    },
+                ],
             }
         }
     },
@@ -116,7 +125,7 @@ describe("IndexProject", () => {
                 expect.objectContaining({
                     hash: expect.any(String),
                     lines: expect.any(Array),
-                })
+                }),
             )
         })
 
@@ -128,7 +137,7 @@ describe("IndexProject", () => {
                 "src/index.ts",
                 expect.objectContaining({
                     functions: expect.any(Array),
-                })
+                }),
             )
         })
 
@@ -136,19 +145,14 @@ describe("IndexProject", () => {
             await useCase.execute("/test/project")
 
             expect(mockStorage.setMeta).toHaveBeenCalledTimes(2)
-            expect(mockStorage.setMeta).toHaveBeenCalledWith(
-                "src/index.ts",
-                expect.any(Object)
-            )
+            expect(mockStorage.setMeta).toHaveBeenCalledWith("src/index.ts", expect.any(Object))
         })
 
         it("should build and store symbol index", async () => {
             await useCase.execute("/test/project")
 
             expect(mockStorage.setSymbolIndex).toHaveBeenCalledTimes(1)
-            expect(mockStorage.setSymbolIndex).toHaveBeenCalledWith(
-                expect.any(Map)
-            )
+            expect(mockStorage.setSymbolIndex).toHaveBeenCalledWith(expect.any(Map))
         })
 
         it("should build and store dependency graph", async () => {
@@ -159,7 +163,7 @@ describe("IndexProject", () => {
                 expect.objectContaining({
                     imports: expect.any(Map),
                     importedBy: expect.any(Map),
-                })
+                }),
             )
         })
 
@@ -168,7 +172,7 @@ describe("IndexProject", () => {
 
             expect(mockStorage.setProjectConfig).toHaveBeenCalledWith(
                 "last_indexed",
-                expect.any(Number)
+                expect.any(Number),
             )
         })
 
@@ -186,7 +190,7 @@ describe("IndexProject", () => {
                     total: expect.any(Number),
                     currentFile: expect.any(String),
                     phase: expect.stringMatching(/scanning|parsing|analyzing|indexing/),
-                })
+                }),
             )
         })
 
@@ -198,7 +202,7 @@ describe("IndexProject", () => {
             })
 
             const scanningCalls = progressCallback.mock.calls.filter(
-                (call) => call[0].phase === "scanning"
+                (call) => call[0].phase === "scanning",
             )
             expect(scanningCalls.length).toBeGreaterThan(0)
         })
@@ -211,7 +215,7 @@ describe("IndexProject", () => {
             })
 
             const parsingCalls = progressCallback.mock.calls.filter(
-                (call) => call[0].phase === "parsing"
+                (call) => call[0].phase === "parsing",
             )
             expect(parsingCalls.length).toBeGreaterThan(0)
         })
@@ -224,7 +228,7 @@ describe("IndexProject", () => {
             })
 
             const analyzingCalls = progressCallback.mock.calls.filter(
-                (call) => call[0].phase === "analyzing"
+                (call) => call[0].phase === "analyzing",
             )
             expect(analyzingCalls.length).toBeGreaterThan(0)
         })
@@ -237,7 +241,7 @@ describe("IndexProject", () => {
             })
 
             const indexingCalls = progressCallback.mock.calls.filter(
-                (call) => call[0].phase === "indexing"
+                (call) => call[0].phase === "indexing",
             )
             expect(indexingCalls.length).toBeGreaterThan(0)
         })
@@ -245,10 +249,7 @@ describe("IndexProject", () => {
         it("should detect TypeScript files", async () => {
             await useCase.execute("/test/project")
 
-            expect(mockStorage.setAST).toHaveBeenCalledWith(
-                "src/index.ts",
-                expect.any(Object)
-            )
+            expect(mockStorage.setAST).toHaveBeenCalledWith("src/index.ts", expect.any(Object))
         })
 
         it("should handle files without parseable language", async () => {
@@ -276,7 +277,7 @@ describe("IndexProject", () => {
 
             expect(mockStorage.setAST).toHaveBeenCalledWith(
                 expect.stringContaining(".ts"),
-                expect.any(Object)
+                expect.any(Object),
             )
         })
     })
@@ -294,7 +295,7 @@ describe("IndexProject", () => {
             })
 
             const callsWithFiles = progressCallback.mock.calls.filter(
-                (call) => call[0].currentFile && call[0].currentFile.length > 0
+                (call) => call[0].currentFile && call[0].currentFile.length > 0,
             )
             expect(callsWithFiles.length).toBeGreaterThan(0)
         })
@@ -307,7 +308,7 @@ describe("IndexProject", () => {
             })
 
             const parsingCalls = progressCallback.mock.calls.filter(
-                (call) => call[0].phase === "parsing"
+                (call) => call[0].phase === "parsing",
             )
             if (parsingCalls.length > 0) {
                 expect(parsingCalls[0][0].total).toBe(2)

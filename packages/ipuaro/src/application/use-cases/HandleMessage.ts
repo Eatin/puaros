@@ -68,6 +68,8 @@ export interface HandleMessageEvents {
 export interface HandleMessageOptions {
     autoApply?: boolean
     maxToolCalls?: number
+    maxHistoryMessages?: number
+    saveInputHistory?: boolean
 }
 
 const DEFAULT_MAX_TOOL_CALLS = 20
@@ -136,6 +138,15 @@ export class HandleMessage {
     }
 
     /**
+     * Truncate session history if maxHistoryMessages is set.
+     */
+    private truncateHistoryIfNeeded(session: Session): void {
+        if (this.options.maxHistoryMessages !== undefined) {
+            session.truncateHistory(this.options.maxHistoryMessages)
+        }
+    }
+
+    /**
      * Execute the message handling flow.
      */
     async execute(session: Session, message: string): Promise<void> {
@@ -145,7 +156,12 @@ export class HandleMessage {
         if (message.trim()) {
             const userMessage = createUserMessage(message)
             session.addMessage(userMessage)
-            session.addInputToHistory(message)
+            this.truncateHistoryIfNeeded(session)
+
+            if (this.options.saveInputHistory !== false) {
+                session.addInputToHistory(message)
+            }
+
             this.emitMessage(userMessage)
         }
 
@@ -183,6 +199,7 @@ export class HandleMessage {
                     toolCalls: 0,
                 })
                 session.addMessage(assistantMessage)
+                this.truncateHistoryIfNeeded(session)
                 this.emitMessage(assistantMessage)
                 this.contextManager.addTokens(response.tokens)
                 this.contextManager.updateSession(session)
@@ -197,6 +214,7 @@ export class HandleMessage {
                 toolCalls: parsed.toolCalls.length,
             })
             session.addMessage(assistantMessage)
+            this.truncateHistoryIfNeeded(session)
             this.emitMessage(assistantMessage)
 
             toolCallCount += parsed.toolCalls.length
@@ -204,6 +222,7 @@ export class HandleMessage {
                 const errorMsg = `Maximum tool calls (${String(maxToolCalls)}) exceeded`
                 const errorMessage = createSystemMessage(errorMsg)
                 session.addMessage(errorMessage)
+                this.truncateHistoryIfNeeded(session)
                 this.emitMessage(errorMessage)
                 this.emitStatus("ready")
                 return
@@ -227,6 +246,7 @@ export class HandleMessage {
 
             const toolMessage = createToolMessage(results)
             session.addMessage(toolMessage)
+            this.truncateHistoryIfNeeded(session)
 
             this.contextManager.addTokens(response.tokens)
 
@@ -306,6 +326,7 @@ export class HandleMessage {
 
         const errorMessage = createSystemMessage(`Error: ${ipuaroError.message}`)
         session.addMessage(errorMessage)
+        this.truncateHistoryIfNeeded(session)
         this.emitMessage(errorMessage)
 
         this.emitStatus("ready")

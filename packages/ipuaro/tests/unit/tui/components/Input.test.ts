@@ -218,28 +218,32 @@ describe("Input", () => {
             it("should be active when multiline is true", () => {
                 const multiline = true
                 const lines = ["single line"]
-                const isMultilineActive = multiline === true || (multiline === "auto" && lines.length > 1)
+                const isMultilineActive =
+                    multiline === true || (multiline === "auto" && lines.length > 1)
                 expect(isMultilineActive).toBe(true)
             })
 
             it("should not be active when multiline is false", () => {
                 const multiline = false
                 const lines = ["line1", "line2"]
-                const isMultilineActive = multiline === true || (multiline === "auto" && lines.length > 1)
+                const isMultilineActive =
+                    multiline === true || (multiline === "auto" && lines.length > 1)
                 expect(isMultilineActive).toBe(false)
             })
 
             it("should be active in auto mode with multiple lines", () => {
                 const multiline = "auto"
                 const lines = ["line1", "line2"]
-                const isMultilineActive = multiline === true || (multiline === "auto" && lines.length > 1)
+                const isMultilineActive =
+                    multiline === true || (multiline === "auto" && lines.length > 1)
                 expect(isMultilineActive).toBe(true)
             })
 
             it("should not be active in auto mode with single line", () => {
                 const multiline = "auto"
                 const lines = ["single line"]
-                const isMultilineActive = multiline === true || (multiline === "auto" && lines.length > 1)
+                const isMultilineActive =
+                    multiline === true || (multiline === "auto" && lines.length > 1)
                 expect(isMultilineActive).toBe(false)
             })
         })

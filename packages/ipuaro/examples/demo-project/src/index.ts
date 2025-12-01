@@ -21,7 +21,7 @@ async function main(): Promise<void> {
             email: "demo@example.com",
             name: "Demo User",
             password: "password123",
-            role: "admin"
+            role: "admin",
         })
 
         logger.info("Demo user created", { userId: user.id })

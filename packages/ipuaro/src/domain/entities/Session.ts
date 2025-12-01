@@ -94,6 +94,12 @@ export class Session {
         }
     }
 
+    truncateHistory(maxMessages: number): void {
+        if (this.history.length > maxMessages) {
+            this.history = this.history.slice(-maxMessages)
+        }
+    }
+
     clearHistory(): void {
         this.history = []
         this.context = {

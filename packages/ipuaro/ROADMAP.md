@@ -1648,7 +1648,7 @@ interface DiffViewProps {
 ## Version 0.22.0 - Extended Configuration ⚙️
 
 **Priority:** MEDIUM
-**Status:** In Progress (1/5 complete)
+**Status:** In Progress (2/5 complete)
 
 ### 0.22.1 - Display Configuration ✅
 
@@ -1670,7 +1670,7 @@ export const DisplayConfigSchema = z.object({
 - [x] Configurable stats display
 - [x] Unit tests (46 new tests: 20 schema, 24 theme, 2 bell)
 
-### 0.22.2 - Session Configuration
+### 0.22.2 - Session Configuration ✅
 
 ```typescript
 // src/shared/constants/config.ts additions
@@ -1682,10 +1682,10 @@ export const SessionConfigSchema = z.object({
 ```
 
 **Deliverables:**
-- [ ] SessionConfigSchema in config.ts
-- [ ] History truncation based on maxHistoryMessages
-- [ ] Input history persistence toggle
-- [ ] Unit tests
+- [x] SessionConfigSchema in config.ts
+- [x] History truncation based on maxHistoryMessages
+- [x] Input history persistence toggle
+- [x] Unit tests (19 new tests)
 
 ### 0.22.3 - Context Configuration
 

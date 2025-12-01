@@ -3,7 +3,12 @@
  */
 
 import { describe, expect, it } from "vitest"
-import { getColorScheme, getContextColor, getRoleColor, getStatusColor } from "../../../../src/tui/utils/theme.js"
+import {
+    getColorScheme,
+    getContextColor,
+    getRoleColor,
+    getStatusColor,
+} from "../../../../src/tui/utils/theme.js"
 
 describe("theme utilities", () => {
     describe("getColorScheme", () => {

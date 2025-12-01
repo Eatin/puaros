@@ -20,7 +20,7 @@ export function sanitizeInput(input: string): string {
 export class ValidationError extends Error {
     constructor(
         message: string,
-        public field: string
+        public field: string,
     ) {
         super(message)
         this.name = "ValidationError"

@@ -11,6 +11,7 @@ import type { IStorage } from "../../domain/services/IStorage.js"
 import type { DiffInfo } from "../../domain/services/ITool.js"
 import type { ChatMessage } from "../../domain/value-objects/ChatMessage.js"
 import type { ErrorOption } from "../../shared/errors/IpuaroError.js"
+import type { Config } from "../../shared/constants/config.js"
 import type { IToolRegistry } from "../../application/interfaces/IToolRegistry.js"
 import {
     HandleMessage,
@@ -30,6 +31,7 @@ export interface UseSessionDependencies {
     projectRoot: string
     projectName: string
     projectStructure?: ProjectStructure
+    config?: Config
 }
 
 export interface UseSessionOptions {
@@ -111,7 +113,11 @@ async function initializeSession(
     if (deps.projectStructure) {
         handleMessage.setProjectStructure(deps.projectStructure)
     }
-    handleMessage.setOptions({ autoApply: options.autoApply })
+    handleMessage.setOptions({
+        autoApply: options.autoApply,
+        maxHistoryMessages: deps.config?.session.maxHistoryMessages,
+        saveInputHistory: deps.config?.session.saveInputHistory,
+    })
     handleMessage.setEvents(createEventHandlers(setters, options))
     refs.current.handleMessage = handleMessage
     refs.current.undoChange = new UndoChange(deps.sessionStorage, deps.storage)

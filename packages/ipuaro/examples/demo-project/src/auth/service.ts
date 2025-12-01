@@ -79,7 +79,7 @@ export class AuthService {
         return {
             token,
             expiresAt,
-            userId: user.id
+            userId: user.id,
         }
     }
 }

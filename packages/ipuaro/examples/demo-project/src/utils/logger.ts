@@ -30,7 +30,7 @@ export class Logger {
             level,
             context: this.context,
             message,
-            ...(meta && { meta })
+            ...(meta && { meta }),
         }
         console.log(JSON.stringify(logEntry))
     }

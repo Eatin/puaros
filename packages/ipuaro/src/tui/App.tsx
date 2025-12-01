@@ -10,6 +10,7 @@ import type { ISessionStorage } from "../domain/services/ISessionStorage.js"
 import type { IStorage } from "../domain/services/IStorage.js"
 import type { DiffInfo } from "../domain/services/ITool.js"
 import type { ErrorOption } from "../shared/errors/IpuaroError.js"
+import type { Config } from "../shared/constants/config.js"
 import type { IToolRegistry } from "../application/interfaces/IToolRegistry.js"
 import type { ConfirmationResult } from "../application/use-cases/ExecuteTool.js"
 import type { ProjectStructure } from "../infrastructure/llm/prompts.js"
@@ -25,6 +26,7 @@ export interface AppDependencies {
     llm: ILLMClient
     tools: IToolRegistry
     projectStructure?: ProjectStructure
+    config?: Config
 }
 
 export interface ExtendedAppProps extends AppProps {
@@ -129,6 +131,7 @@ export function App({
                 projectRoot: projectPath,
                 projectName,
                 projectStructure: deps.projectStructure,
+                config: deps.config,
             },
             {
                 autoApply,

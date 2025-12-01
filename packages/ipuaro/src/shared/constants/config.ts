@@ -98,6 +98,15 @@ export const DisplayConfigSchema = z.object({
 })
 
 /**
+ * Session configuration schema.
+ */
+export const SessionConfigSchema = z.object({
+    persistIndefinitely: z.boolean().default(true),
+    maxHistoryMessages: z.number().int().positive().default(100),
+    saveInputHistory: z.boolean().default(true),
+})
+
+/**
  * Full configuration schema.
  */
 export const ConfigSchema = z.object({
@@ -109,6 +118,7 @@ export const ConfigSchema = z.object({
     edit: EditConfigSchema.default({}),
     input: InputConfigSchema.default({}),
     display: DisplayConfigSchema.default({}),
+    session: SessionConfigSchema.default({}),
 })
 
 /**
@@ -123,6 +133,7 @@ export type UndoConfig = z.infer<typeof UndoConfigSchema>
 export type EditConfig = z.infer<typeof EditConfigSchema>
 export type InputConfig = z.infer<typeof InputConfigSchema>
 export type DisplayConfig = z.infer<typeof DisplayConfigSchema>
+export type SessionConfig = z.infer<typeof SessionConfigSchema>
 
 /**
  * Default configuration.

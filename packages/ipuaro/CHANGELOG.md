@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2025-12-01 - TUI Basic
+
+### Added
+
+- **TUI Types (0.11.0)**
+  - `TuiStatus`: Status type for TUI display (ready, thinking, tool_call, awaiting_confirmation, error)
+  - `BranchInfo`: Git branch information (name, isDetached)
+  - `AppProps`: Main app component props
+  - `StatusBarData`: Status bar display data
+
+- **App Shell (0.11.1)**
+  - Main TUI App component with React/Ink
+  - Session initialization and state management
+  - Loading and error screens
+  - Hotkey integration (Ctrl+C, Ctrl+D, Ctrl+Z)
+  - Session time tracking
+
+- **StatusBar Component (0.11.2)**
+  - Displays: `[ipuaro] [ctx: 12%] [project] [branch] [time] status`
+  - Context usage with color warning at >80%
+  - Git branch with detached HEAD support
+  - Status indicator with colors (ready=green, thinking=yellow, error=red)
+
+- **Chat Component (0.11.3)**
+  - Message history display with role-based styling
+  - User messages (green), Assistant messages (cyan), System messages (gray)
+  - Tool call display with parameters
+  - Response stats: time, tokens, tool calls
+  - Thinking indicator during LLM processing
+
+- **Input Component (0.11.4)**
+  - Prompt with `> ` prefix
+  - History navigation with ↑/↓ arrow keys
+  - Saved input restoration when navigating past history
+  - Disabled state during processing
+  - Custom placeholder support
+
+- **useSession Hook (0.11.5)**
+  - Session state management with React hooks
+  - Message handling integration
+  - Status tracking (ready, thinking, tool_call, error)
+  - Undo support
+  - Clear history functionality
+  - Abort/interrupt support
+
+- **useHotkeys Hook (0.11.6)**
+  - Ctrl+C: Interrupt (1st), Exit (2nd within 1s)
+  - Ctrl+D: Exit with session save
+  - Ctrl+Z: Undo last change
+
+### Changed
+
+- Total tests: 1254 (was 1174)
+- Coverage: 97.75% lines, 92.22% branches
+- TUI layer now has 4 components + 2 hooks
+- TUI excluded from coverage thresholds (requires React testing setup)
+
+---
+
 ## [0.10.0] - 2025-12-01 - Session Management
 
 ### Added

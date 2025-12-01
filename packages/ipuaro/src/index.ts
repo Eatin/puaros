@@ -21,5 +21,8 @@ export * from "./shared/index.js"
 // Infrastructure exports
 export * from "./infrastructure/index.js"
 
+// TUI exports
+export * from "./tui/index.js"
+
 // Version
 export const VERSION = pkg.version

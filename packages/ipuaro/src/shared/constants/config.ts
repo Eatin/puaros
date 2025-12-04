@@ -24,6 +24,8 @@ export const LLMConfigSchema = z.object({
     apiKey: z.string().optional(),
     apiBase: z.string().optional(),
     provider: z.enum(["ollama", "openai"]).default("ollama"),
+    // Custom headers for LLM API requests
+    headers: z.record(z.string(), z.string()).optional(),
 })
 
 /**

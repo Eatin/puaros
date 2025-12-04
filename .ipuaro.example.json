@@ -10,7 +10,11 @@
     "apiKey": "your-api-key-here",
     "apiBase": "https://api.openai.com/v1",
     "temperature": 0.1,
-    "contextWindow": 128000
+    "contextWindow": 128000,
+    "headers": {
+      "X-Custom-Header": "value",
+      "X-Another-Header": "another-value"
+    }
   },
   "project": {
     "ignorePatterns": ["node_modules", "dist", "build", ".git", ".next", ".nuxt", "coverage", ".cache"],

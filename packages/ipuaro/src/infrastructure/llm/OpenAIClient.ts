@@ -15,6 +15,7 @@ export class OpenAIClient implements ILLMClient {
     private readonly model: string
     private readonly contextWindow: number
     private readonly temperature: number
+    private readonly customHeaders: Record<string, string>
     private abortController: AbortController | null = null
 
     /**
@@ -27,6 +28,7 @@ export class OpenAIClient implements ILLMClient {
         this.model = config.model
         this.contextWindow = config.contextWindow ?? 128000
         this.temperature = config.temperature ?? 0.1
+        this.customHeaders = config.headers ?? {}
     }
 
     /**
@@ -52,6 +54,7 @@ export class OpenAIClient implements ILLMClient {
                     headers: {
                         Authorization: `Bearer ${this.apiKey}`,
                         'Content-Type': 'application/json',
+                        ...this.customHeaders,
                     },
                     signal: this.abortController.signal,
                 }
@@ -97,6 +100,7 @@ export class OpenAIClient implements ILLMClient {
             await axios.get(`${this.apiBase}/models`, {
                 headers: {
                     Authorization: `Bearer ${this.apiKey}`,
+                    ...this.customHeaders,
                 },
                 timeout: 5000,
             })

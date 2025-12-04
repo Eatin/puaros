@@ -20,6 +20,10 @@ export const LLMConfigSchema = z.object({
     temperature: z.number().min(0).max(2).default(0.1),
     host: z.string().default("http://localhost:11434"),
     timeout: z.number().int().positive().default(120_000),
+    // OpenAI specific settings
+    apiKey: z.string().optional(),
+    apiBase: z.string().optional(),
+    provider: z.enum(["ollama", "openai"]).default("ollama"),
 })
 
 /**

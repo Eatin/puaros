@@ -5,6 +5,7 @@
 
 import { RedisClient } from "../../infrastructure/storage/RedisClient.js"
 import { OllamaClient } from "../../infrastructure/llm/OllamaClient.js"
+import { OpenAIClient } from "../../infrastructure/llm/OpenAIClient.js"
 import { FileScanner } from "../../infrastructure/indexer/FileScanner.js"
 import type { LLMConfig, RedisConfig } from "../../shared/constants/config.js"
 
@@ -122,6 +123,11 @@ export async function checkModel(config: LLMConfig): Promise<{
     needsPull: boolean
     error?: string
 }> {
+    if (config.provider === "openai") {
+        // No model check needed for OpenAI - handled by API
+        return { ok: true, needsPull: false }
+    }
+    
     const client = new OllamaClient(config)
 
     try {
@@ -227,15 +233,59 @@ Ensure you're running ipuaro in a project directory with source files.`,
 }
 
 /**
+ * Check OpenAI availability.
+ */
+export async function checkOpenAI(config: LLMConfig & { apiKey?: string }): Promise<{
+    ok: boolean
+    error?: string
+}> {
+    if (!config.apiKey) {
+        return {
+            ok: false,
+            error: "OpenAI API key is missing. Please provide it in the configuration or as OPENAI_API_KEY environment variable.",
+        }
+    }
+    
+    const client = new OpenAIClient({ 
+        ...config, 
+        apiKey: config.apiKey, 
+        apiBase: config.apiBase 
+    })
+
+    try {
+        const available = await client.isAvailable()
+
+        if (!available) {
+            return {
+                ok: false,
+                error: `Cannot connect to OpenAI at ${config.apiBase || "https://api.openai.com/v1"}
+
+Please ensure your API key is valid and you have network connectivity.`,
+            }
+        }
+
+        return { ok: true }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return {
+            ok: false,
+            error: `OpenAI check failed: ${message}`,
+        }
+    }
+}
+
+/**
  * Run all onboarding checks.
  */
 export async function runOnboarding(options: OnboardingOptions): Promise<OnboardingResult> {
     const errors: string[] = []
     const warnings: string[] = []
     const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES
+    const { provider } = options.llmConfig
 
     let redisOk = true
     let ollamaOk = true
+    let openaiOk = true
     let modelOk = true
     let projectOk = true
     let fileCount = 0
@@ -248,7 +298,7 @@ export async function runOnboarding(options: OnboardingOptions): Promise<Onboard
         }
     }
 
-    if (!options.skipOllama) {
+    if (!options.skipOllama && provider === "ollama") {
         const ollamaResult = await checkOllama(options.llmConfig)
         ollamaOk = ollamaResult.ok
         if (!ollamaOk && ollamaResult.error) {
@@ -256,7 +306,15 @@ export async function runOnboarding(options: OnboardingOptions): Promise<Onboard
         }
     }
 
-    if (!options.skipModel && ollamaOk) {
+    if (provider === "openai") {
+        const openaiResult = await checkOpenAI(options.llmConfig)
+        openaiOk = openaiResult.ok
+        if (!openaiOk && openaiResult.error) {
+            errors.push(openaiResult.error)
+        }
+    }
+
+    if (!options.skipModel && (provider === "ollama" ? ollamaOk : openaiOk)) {
         const modelResult = await checkModel(options.llmConfig)
         modelOk = modelResult.ok
         if (!modelOk && modelResult.error) {
@@ -277,8 +335,12 @@ export async function runOnboarding(options: OnboardingOptions): Promise<Onboard
         }
     }
 
+    // Success condition depends on provider
+    const providerOk = provider === "ollama" ? (ollamaOk && modelOk) : openaiOk
+    const success = redisOk && providerOk && projectOk && errors.length === 0
+
     return {
-        success: redisOk && ollamaOk && modelOk && projectOk && errors.length === 0,
+        success,
         redisOk,
         ollamaOk,
         modelOk,

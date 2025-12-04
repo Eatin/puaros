@@ -157,14 +157,14 @@ export class IpuaroError extends Error {
 
     static llm(message: string, context?: Record<string, unknown>): IpuaroError {
         return new IpuaroError("llm", message, {
-            suggestion: "Please ensure Ollama is running and model is available",
+            suggestion: "Please ensure your LLM service (Ollama or OpenAI) is available",
             context,
         })
     }
 
     static llmTimeout(message: string): IpuaroError {
         return new IpuaroError("timeout", message, {
-            suggestion: "The LLM request timed out. Try again or check Ollama status.",
+            suggestion: "The LLM request timed out. Try again or check your LLM service status.",
         })
     }
 

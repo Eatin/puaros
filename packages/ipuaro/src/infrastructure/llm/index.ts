@@ -1,5 +1,6 @@
 // LLM infrastructure exports
 export { OllamaClient } from "./OllamaClient.js"
+export { OpenAIClient } from "./OpenAIClient.js"
 export {
     SYSTEM_PROMPT,
     buildInitialContext,

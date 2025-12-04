@@ -12,6 +12,7 @@ import { RedisClient } from "../../infrastructure/storage/RedisClient.js"
 import { RedisStorage } from "../../infrastructure/storage/RedisStorage.js"
 import { RedisSessionStorage } from "../../infrastructure/storage/RedisSessionStorage.js"
 import { OllamaClient } from "../../infrastructure/llm/OllamaClient.js"
+import { OpenAIClient } from "../../infrastructure/llm/OpenAIClient.js"
 import { ToolRegistry } from "../../infrastructure/tools/registry.js"
 import { generateProjectName } from "../../infrastructure/storage/schema.js"
 import { type Config, DEFAULT_CONFIG } from "../../shared/constants/config.js"
@@ -52,10 +53,15 @@ export async function executeStart(
 
     console.warn("🔍 Running pre-flight checks...\n")
 
+    // Skip Ollama checks if using OpenAI
+    const isOpenAI = config.llm.provider === "openai"
+    
     const onboardingResult = await runOnboarding({
         redisConfig: config.redis,
         llmConfig,
         projectPath: resolvedPath,
+        skipOllama: isOpenAI,
+        skipModel: isOpenAI,
     })
 
     for (const warning of onboardingResult.warnings) {
@@ -105,7 +111,16 @@ export async function executeStart(
 
         const storage = new RedisStorage(redisClient, projectName)
         const sessionStorage = new RedisSessionStorage(redisClient)
-        const llm = new OllamaClient(llmConfig)
+        
+        // Create appropriate LLM client based on provider
+        const llm = config.llm.provider === "openai" 
+            ? new OpenAIClient({
+                ...llmConfig,
+                apiKey: config.llm.apiKey || process.env.OPENAI_API_KEY || "",
+                apiBase: config.llm.apiBase || "https://api.openai.com/v1",
+              })
+            : new OllamaClient(llmConfig)
+            
         const tools = new ToolRegistry()
 
         registerAllTools(tools)

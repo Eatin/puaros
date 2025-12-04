@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { Config, ConfigSchema, DEFAULT_CONFIG } from "../constants/config.js"
+import { Config, ConfigSchema, DEFAULT_CONFIG, LLMConfig } from "../constants/config.js"
 
 const CONFIG_FILE_NAME = ".ipuaro.json"
 const DEFAULT_CONFIG_PATH = "config/default.json"
@@ -11,6 +11,16 @@ const DEFAULT_CONFIG_PATH = "config/default.json"
  */
 export function loadConfig(projectRoot: string): Config {
     const configs: Partial<Config>[] = []
+
+    // Check for environment variables
+    if (process.env.OPENAI_API_KEY) {
+        // Add OpenAI API key from environment to configs
+        configs.push({
+            llm: {
+                apiKey: process.env.OPENAI_API_KEY
+            }
+        } as Partial<Config>);
+    }
 
     const defaultConfigPath = join(projectRoot, DEFAULT_CONFIG_PATH)
     if (existsSync(defaultConfigPath)) {
